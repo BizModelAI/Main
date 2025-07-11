@@ -106,6 +106,20 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
       const startTime = Date.now();
       let currentResults = {};
       
+      // Validate quizData before proceeding
+      if (!quizData) {
+        console.error("QuizData is null or undefined, cannot generate report");
+        // Wait minimum duration and complete with empty data
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        onComplete({
+          personalizedPaths: [],
+          aiInsights: null,
+          allCharacteristics: [],
+          businessFitDescriptions: {}
+        });
+        return;
+      }
+      
       try {
         // Step 1: Analyze profile (immediate)
         const step1Result = await executeStep(0, async () => {
@@ -200,7 +214,7 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
     };
 
     generateReport();
-  }, []);
+  }, [quizData]);
 
   const executeStep = async (stepIndex: number, asyncFunction: () => Promise<any>) => {
     // Mark step as active
