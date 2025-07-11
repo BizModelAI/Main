@@ -269,26 +269,35 @@ const FullReport: React.FC<FullReportProps> = ({
     // Scroll to top when component mounts
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    // Always trigger confetti animation when full report opens (since it's generated fresh each time)
-    const triggerConfetti = () => {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.2 }
-      });
-      
-      // Second burst for more effect
-      setTimeout(() => {
+    // Trigger confetti animation only once per session
+    const confettiKey = `confetti_shown_fullreport_${Date.now()}`;
+    const sessionKey = `confetti_session_${userEmail || 'anonymous'}`;
+    const hasShownConfetti = sessionStorage.getItem(sessionKey);
+    
+    if (!hasShownConfetti) {
+      const triggerConfetti = () => {
         confetti({
-          particleCount: 50,
-          spread: 50,
-          origin: { y: 0.3 }
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.2 }
         });
-      }, 250);
-    };
+        
+        // Second burst for more effect
+        setTimeout(() => {
+          confetti({
+            particleCount: 50,
+            spread: 50,
+            origin: { y: 0.3 }
+          });
+        }, 250);
+      };
 
-    // Trigger confetti after a short delay
-    setTimeout(triggerConfetti, 500);
+      // Trigger confetti after a short delay
+      setTimeout(triggerConfetti, 500);
+      
+      // Mark confetti as shown for this session
+      sessionStorage.setItem(sessionKey, 'true');
+    }
     
     // Generate all 6 characteristics with OpenAI
     const generateAllCharacteristics = async () => {
