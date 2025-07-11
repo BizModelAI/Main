@@ -879,9 +879,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                             .map((strategy: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 <Star className="h-4 w-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
-                                <span className="text-gray-700">
-                                  {strategy}
-                                </span>
+                                <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(strategy)} />
                               </li>
                             ))}
                         </ul>
@@ -897,7 +895,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                             .map((rec: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                                <span className="text-gray-700">{rec}</span>
+                                <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(rec)} />
                               </li>
                             ))}
                         </ul>
@@ -978,7 +976,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                           .map((strategy: string, index: number) => (
                             <li key={index} className="flex items-start">
                               <Star className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                              <span className="text-gray-700">{strategy}</span>
+                              <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(strategy)} />
                             </li>
                           ))}
                       </ul>
@@ -994,7 +992,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                           (challenge: string, index: number) => (
                             <li key={index} className="flex items-start">
                               <AlertTriangle className="h-4 w-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                              <span className="text-gray-700">{challenge}</span>
+                              <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(challenge)} />
                             </li>
                           ),
                         )}
@@ -1519,10 +1517,8 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                 </div>
 
                 <div className="mb-6">
-                  <p className="text-blue-100 text-lg leading-relaxed">
-                    {aiInsights?.motivationalMessage ||
-                      "Your unique combination of skills and drive positions you perfectly for entrepreneurial success."}
-                  </p>
+                  <p className="text-blue-100 text-lg leading-relaxed" dangerouslySetInnerHTML={renderMarkdownContent(aiInsights?.motivationalMessage ||
+                      "Your unique combination of skills and drive positions you perfectly for entrepreneurial success.")} />
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
