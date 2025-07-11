@@ -91,19 +91,19 @@ interface AIInsights {
   motivationalMessage: string;
 }
 
-const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
+const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail, preloadedReportData }) => {
   const navigate = useNavigate();
   const [selectedPath, setSelectedPath] = useState<BusinessPath | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
   const [showAILoading, setShowAILoading] = useState(false);
-  const [loadedReportData, setLoadedReportData] = useState<any>(null);
+  const [loadedReportData, setLoadedReportData] = useState<any>(preloadedReportData);
   const [personalizedPaths, setPersonalizedPaths] = useState<BusinessPath[]>(
-    [],
+    preloadedReportData?.personalizedPaths || [],
   );
-  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(true);
+  const [aiInsights, setAiInsights] = useState<AIInsights | null>(preloadedReportData?.aiInsights || null);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(preloadedReportData?.aiAnalysis || null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
 
   const [showPreview, setShowPreview] = useState(true);
@@ -126,10 +126,55 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   useEffect(() => {
     console.log("Results component received quizData:", quizData);
+    console.log("Results component received preloadedReportData:", preloadedReportData);
     
-    // Clear AI cache for fresh quiz results
-    aiCacheManager.clearCacheForQuiz(quizData);
-    console.log("AI cache cleared for new quiz results");
+    // If no preloaded data available, fall back to generating paths from quiz
+    if (!preloadedReportData?.personalizedPaths || preloadedReportData.personalizedPaths.length === 0) {
+      console.log("No preloaded paths, generating from quiz data");
+      
+      // Use advanced scoring algorithm
+      const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
+      console.log("Advanced algorithm scores:", advancedScores);
+      
+      // Convert to BusinessPath format for compatibility
+      const convertedPaths: BusinessPath[] = advancedScores.map(score => ({
+        id: score.id,
+        name: score.name,
+        description: getBusinessModelDescription(score.id, score.name),
+        detailedDescription: `${score.name} with ${score.score}% compatibility`,
+        fitScore: score.score,
+        difficulty: score.score >= 75 ? 'Easy' : score.score >= 50 ? 'Medium' : 'Hard',
+        timeToProfit: score.score >= 80 ? "1-3 months" : score.score >= 60 ? "3-6 months" : "6+ months",
+        startupCost: score.score >= 70 ? "$0-500" : score.score >= 50 ? "$500-2000" : "$2000+",
+        potentialIncome: score.score >= 80 ? "$3K-10K+/month" : score.score >= 60 ? "$1K-5K/month" : "$500-2K/month",
+        pros: [`${score.score}% compatibility match`, `${score.category} for your profile`, "Personalized recommendations"],
+        cons: score.score < 70 ? ["Lower compatibility score", "May require skill development"] : ["Minor adjustments needed"],
+        tools: ["Standard business tools", "Communication platforms", "Analytics tools"],
+        skills: ["Basic business skills", "Communication", "Organization"],
+        icon: "💼",
+        marketSize: "Large",
+        averageIncome: {
+          beginner: "$1K-3K",
+          intermediate: "$3K-8K", 
+          advanced: "$8K-20K+"
+        },
+        userStruggles: ["Getting started", "Finding clients", "Scaling up"],
+        solutions: ["Step-by-step guidance", "Proven frameworks", "Community support"],
+        bestFitPersonality: ["Motivated", "Organized", "Goal-oriented"],
+        resources: {
+          platforms: ["LinkedIn", "Website", "Social Media"],
+          learning: ["Online courses", "Books", "Mentorship"],
+          tools: ["CRM", "Analytics", "Communication"]
+        },
+        actionPlan: {
+          phase1: ["Setup basic infrastructure", "Define target market", "Create initial offerings"],
+          phase2: ["Launch marketing campaigns", "Build client base", "Optimize processes"],
+          phase3: ["Scale operations", "Expand services", "Build team"]
+        }
+      }));
+      
+      setPersonalizedPaths(convertedPaths);
+    }
     
     // Trigger confetti blast only on first visit to results page
     const confettiKey = `confetti_shown_${userEmail || 'anonymous'}`;
@@ -150,92 +195,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Mark confetti as shown for this user
       localStorage.setItem(confettiKey, 'true');
     }
-    
-    // Use advanced scoring algorithm
-    const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
-    console.log("Advanced algorithm scores:", advancedScores);
-    
-    // Convert to BusinessPath format for compatibility
-    const convertedPaths: BusinessPath[] = advancedScores.map(score => ({
-      id: score.id,
-      name: score.name,
-      description: getBusinessModelDescription(score.id, score.name),
-      detailedDescription: `${score.name} with ${score.score}% compatibility`,
-      fitScore: score.score,
-      difficulty: score.score >= 75 ? 'Easy' : score.score >= 50 ? 'Medium' : 'Hard',
-      timeToProfit: score.score >= 80 ? "1-3 months" : score.score >= 60 ? "3-6 months" : "6+ months",
-      startupCost: score.score >= 70 ? "$0-500" : score.score >= 50 ? "$500-2000" : "$2000+",
-      potentialIncome: score.score >= 80 ? "$3K-10K+/month" : score.score >= 60 ? "$1K-5K/month" : "$500-2K/month",
-      pros: [`${score.score}% compatibility match`, `${score.category} for your profile`, "Personalized recommendations"],
-      cons: score.score < 70 ? ["Lower compatibility score", "May require skill development"] : ["Minor adjustments needed"],
-      tools: ["Standard business tools", "Communication platforms", "Analytics tools"],
-      skills: ["Basic business skills", "Communication", "Organization"],
-      icon: "💼",
-      marketSize: "Large",
-      averageIncome: {
-        beginner: "$1K-3K",
-        intermediate: "$3K-8K", 
-        advanced: "$8K-20K+"
-      },
-      userStruggles: ["Getting started", "Finding clients", "Scaling up"],
-      solutions: ["Step-by-step guidance", "Proven frameworks", "Community support"],
-      bestFitPersonality: ["Motivated", "Organized", "Goal-oriented"],
-      resources: {
-        platforms: ["LinkedIn", "Website", "Social Media"],
-        learning: ["Online courses", "Books", "Mentorship"],
-        tools: ["CRM", "Analytics", "Communication"]
-      },
-      actionPlan: {
-        phase1: ["Setup basic infrastructure", "Define target market", "Create initial offerings"],
-        phase2: ["Launch marketing campaigns", "Build client base", "Optimize processes"],
-        phase3: ["Scale operations", "Expand services", "Build team"]
-      }
-    }));
-    
-    setPersonalizedPaths(convertedPaths);
 
     // Mark quiz as completed
     setHasCompletedQuiz(true);
 
-  }, [quizData, setHasCompletedQuiz]);
-
-  // Generate AI content for results page (basic insights + preview analysis)
-  const generateAIContent = async (paths: BusinessPath[]) => {
-    try {
-      setIsGeneratingAI(true);
-      
-      // Since we cleared the cache when the quiz was taken, always generate fresh content
-      console.log("Generating fresh AI content from OpenAI for new quiz results...");
-      console.log("Top business model being passed to AI:", paths[0]?.name, "with", paths[0]?.fitScore, "% fit");
-
-      const aiService = AIService.getInstance();
-
-      // Generate basic insights for results page
-      const insights = await aiService.generatePersonalizedInsights(
-        quizData,
-        paths.slice(0, 3),
-      );
-      setAiInsights(insights);
-
-      // Generate detailed AI analysis for full report preview
-      const analysis = await aiService.generateDetailedAnalysis(
-        quizData,
-        paths[0],
-      );
-      setAiAnalysis(analysis);
-
-      // Cache the generated content for subsequent page visits
-      aiCacheManager.cacheAIContent(quizData, insights, analysis, paths[0]);
-      
-    } catch (error) {
-      console.error("Error generating AI content:", error);
-      // Fallback content
-      setAiInsights(generateFallbackInsights());
-      setAiAnalysis(generateFallbackAnalysis());
-    } finally {
-      setIsGeneratingAI(false);
-    }
-  };
+  }, [quizData, preloadedReportData, setHasCompletedQuiz]);
 
   // Generate full AI content only when user accesses specific pages (on-demand)
   const generateFullAIContent = async (paths: BusinessPath[]) => {
@@ -253,13 +217,6 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       setAiAnalysis(generateFallbackAnalysis());
     }
   };
-
-  // Generate AI content when personalized paths are loaded
-  useEffect(() => {
-    if (personalizedPaths.length > 0) {
-      generateAIContent(personalizedPaths);
-    }
-  }, [personalizedPaths]);
 
   // Helper function to execute download action
   const executeDownloadAction = async () => {
