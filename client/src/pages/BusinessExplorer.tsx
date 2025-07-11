@@ -14,6 +14,7 @@ import { PaywallModal } from "../components/PaywallModals";
 import { usePaywall } from "../contexts/PaywallContext";
 import { QuizData } from "../types";
 import { generatePersonalizedPaths, generateAIPersonalizedPaths } from "../utils/quizLogic";
+import { calculateAdvancedBusinessModelMatches } from "../utils/advancedScoringAlgorithm";
 
 interface BusinessExplorerProps {
   quizData?: QuizData | null;
@@ -69,18 +70,24 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
     }
   };
 
-  // Load AI-powered personalized paths
+  // Load consistent scoring algorithm paths
   useEffect(() => {
     if (!quizData || !hasUnlockedAnalysis) return;
     
     const loadPersonalizedPaths = async () => {
       try {
-        const paths = await generateAIPersonalizedPaths(quizData);
-        setPersonalizedPaths(paths);
+        // Use the same scoring algorithm as Results and Full Report for consistency
+        const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
+        const consistentPaths = advancedScores.map(score => ({
+          id: score.id,
+          name: score.name,
+          fitScore: score.score,
+          category: score.category
+        }));
+        setPersonalizedPaths(consistentPaths);
       } catch (error) {
-        console.error("Failed to load AI paths in BusinessExplorer:", error);
-        const fallbackPaths = generatePersonalizedPaths(quizData);
-        setPersonalizedPaths(fallbackPaths);
+        console.error("Failed to load consistent paths in BusinessExplorer:", error);
+        setPersonalizedPaths([]);
       }
     };
     

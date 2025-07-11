@@ -691,18 +691,41 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
 
   // Use advanced scores for accurate fit percentages matching home page - make this immediate
   const topThreePaths = topThreeAdvanced.map(advanced => {
-    const personalizedPath = personalizedPaths.find(p => p.id === advanced.id);
-    // Always use the advanced scoring data as base, with personalized path details if available
+    // Always use the advanced scoring data as the source of truth for consistency
     return {
       id: advanced.id,
       name: advanced.name,
-      fitScore: advanced.score, // Use the advanced scoring fit score
-      description: personalizedPath?.description || getBusinessModelDescription(advanced.id),
-      timeToProfit: personalizedPath?.timeToProfit || getBusinessModelTimeToProfit(advanced.id),
-      startupCost: personalizedPath?.startupCost || getBusinessModelStartupCost(advanced.id),
-      potentialIncome: personalizedPath?.potentialIncome || getBusinessModelPotentialIncome(advanced.id),
+      fitScore: advanced.score, // Use the advanced scoring fit score for consistency
+      description: getBusinessModelDescription(advanced.id),
+      timeToProfit: getBusinessModelTimeToProfit(advanced.id),
+      startupCost: getBusinessModelStartupCost(advanced.id),
+      potentialIncome: getBusinessModelPotentialIncome(advanced.id),
       category: advanced.category,
-      ...(personalizedPath || {})
+      difficulty: advanced.score >= 75 ? 'Easy' : advanced.score >= 50 ? 'Medium' : 'Hard',
+      pros: [`${advanced.score}% compatibility match`, `${advanced.category} for your profile`],
+      cons: advanced.score < 70 ? ["Lower compatibility score", "May require skill development"] : ["Minor adjustments needed"],
+      tools: ["Standard business tools", "Communication platforms", "Analytics tools"],
+      skills: ["Basic business skills", "Communication", "Organization"],
+      icon: "💼",
+      marketSize: "Large",
+      averageIncome: {
+        beginner: "$1K-3K",
+        intermediate: "$3K-8K", 
+        advanced: "$8K-20K+"
+      },
+      userStruggles: ["Getting started", "Finding clients", "Scaling up"],
+      solutions: ["Step-by-step guidance", "Proven frameworks", "Community support"],
+      bestFitPersonality: ["Motivated", "Organized", "Goal-oriented"],
+      resources: {
+        platforms: ["LinkedIn", "Website", "Social Media"],
+        learning: ["Online courses", "Books", "Mentorship"],
+        tools: ["CRM", "Analytics", "Communication"]
+      },
+      actionPlan: {
+        phase1: ["Setup basic infrastructure", "Define target market", "Create initial offerings"],
+        phase2: ["Launch marketing campaigns", "Build client base", "Optimize processes"],
+        phase3: ["Scale operations", "Expand services", "Build team"]
+      }
     };
   }).slice(0, 3);
   
