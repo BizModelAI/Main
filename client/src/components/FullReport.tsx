@@ -76,6 +76,7 @@ interface FullReportProps {
     aiInsights: any;
     allCharacteristics: string[];
     businessFitDescriptions: {[key: string]: string};
+    personalizedInsights: string;
   };
 }
 
@@ -268,34 +269,26 @@ const FullReport: React.FC<FullReportProps> = ({
     // Scroll to top when component mounts
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    // Trigger confetti animation only if not shown before for this user
-    const confettiKey = `confetti_shown_fullreport_${userEmail || 'anonymous'}`;
-    const hasShownConfetti = localStorage.getItem(confettiKey);
-    
-    if (!hasShownConfetti) {
-      const triggerConfetti = () => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.2 }
-        });
-        
-        // Second burst for more effect
-        setTimeout(() => {
-          confetti({
-            particleCount: 50,
-            spread: 50,
-            origin: { y: 0.3 }
-          });
-        }, 250);
-      };
-
-      // Trigger confetti after a short delay
-      setTimeout(triggerConfetti, 500);
+    // Always trigger confetti animation when full report opens (since it's generated fresh each time)
+    const triggerConfetti = () => {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.2 }
+      });
       
-      // Mark confetti as shown for this user
-      localStorage.setItem(confettiKey, 'true');
-    }
+      // Second burst for more effect
+      setTimeout(() => {
+        confetti({
+          particleCount: 50,
+          spread: 50,
+          origin: { y: 0.3 }
+        });
+      }, 250);
+    };
+
+    // Trigger confetti after a short delay
+    setTimeout(triggerConfetti, 500);
     
     // Generate all 6 characteristics with OpenAI
     const generateAllCharacteristics = async () => {
@@ -516,7 +509,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
       setAiInsights(preloadedData.aiInsights);
       setAllCharacteristics(preloadedData.allCharacteristics);
       setBusinessFitDescriptions(preloadedData.businessFitDescriptions);
-      setPersonalizedInsights(preloadedData.personalizedInsights || "");
+      setPersonalizedInsights(preloadedData.personalizedInsights);
       setIsLoadingInsights(false);
       setIsLoadingDescriptions(false);
       setIsLoadingPersonalizedInsights(false);

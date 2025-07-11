@@ -24,6 +24,7 @@ interface AIReportLoadingProps {
     aiInsights: any;
     allCharacteristics: string[];
     businessFitDescriptions: {[key: string]: string};
+    personalizedInsights: string;
   }) => void;
   onExit?: () => void;
 }
@@ -88,6 +89,14 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
       icon: BarChart3,
       status: 'pending',
       estimatedTime: 4
+    },
+    {
+      id: "generating-personalized-insights",
+      title: "Generating Personalized Insights",
+      description: "Creating detailed three-paragraph analysis just for you",
+      icon: Lightbulb,
+      status: 'pending',
+      estimatedTime: 3
     },
     {
       id: "finalizing-report",
@@ -175,6 +184,37 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
       ];
       
       return fallbackCharacteristics;
+    }
+  };
+
+  // Generate personalized insights
+  const generatePersonalizedInsights = async (quizData: QuizData, topBusinessPath: BusinessPath): Promise<string> => {
+    try {
+      const response = await fetch('/api/generate-personalized-insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          quizData,
+          topBusinessPath
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate personalized insights');
+      }
+
+      const data = await response.json();
+      return data.insights || '';
+    } catch (error) {
+      console.error('Error generating personalized insights:', error);
+      // Return fallback insights
+      return `Your assessment reveals strong alignment with ${topBusinessPath.name}. Your ${quizData.selfMotivationLevel >= 4 ? 'high' : 'moderate'} self-motivation level and ${quizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
+
+Based on your ${quizData.riskComfortLevel}/5 risk tolerance and ${quizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of ${topBusinessPath.name}. Your ${quizData.learningPreference} learning style will help you adapt to the requirements of this field.
+
+With your income goal of ${quizData.successIncomeGoal} per month and ${quizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
     }
   };
 
@@ -372,12 +412,24 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step5Result };
 
-        // Step 6: Finalize report
+        // Step 6: Generate personalized insights
         const step6Result = await executeStep(5, async () => {
+          const paths = (currentResults as any).personalizedPaths || [];
+          const topPath = paths[0];
+          if (topPath) {
+            const insights = await generatePersonalizedInsights(activeQuizData, topPath);
+            return { personalizedInsights: insights };
+          }
+          return { personalizedInsights: '' };
+        });
+        currentResults = { ...currentResults, ...step6Result };
+
+        // Step 7: Finalize report
+        const step7Result = await executeStep(6, async () => {
           await new Promise(resolve => setTimeout(resolve, 1500));
           return { reportFinalized: true };
         });
-        currentResults = { ...currentResults, ...step6Result };
+        currentResults = { ...currentResults, ...step7Result };
 
         // Ensure minimum 10 seconds duration
         const elapsedTime = Date.now() - startTime;
@@ -396,7 +448,8 @@ Return JSON format:
           personalizedPaths: (currentResults as any).personalizedPaths || [],
           aiInsights: (currentResults as any).aiInsights || null,
           allCharacteristics: (currentResults as any).allCharacteristics || [],
-          businessFitDescriptions: (currentResults as any).businessFitDescriptions || {}
+          businessFitDescriptions: (currentResults as any).businessFitDescriptions || {},
+          personalizedInsights: (currentResults as any).personalizedInsights || ''
         });
 
       } catch (error) {
@@ -417,7 +470,8 @@ Return JSON format:
           personalizedPaths: (currentResults as any).personalizedPaths || [],
           aiInsights: (currentResults as any).aiInsights || null,
           allCharacteristics: (currentResults as any).allCharacteristics || [],
-          businessFitDescriptions: (currentResults as any).businessFitDescriptions || {}
+          businessFitDescriptions: (currentResults as any).businessFitDescriptions || {},
+          personalizedInsights: (currentResults as any).personalizedInsights || ''
         });
       }
     };
