@@ -313,6 +313,13 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
 
       const categoryContent = getCategorySpecificContent(fitCategory);
 
+      // Generate AI-powered success predictors or struggle points
+      const aiSuccessPredictors = await this.generateAISuccessPredictors(
+        quizData, 
+        topPath, 
+        fitCategory
+      );
+
       return {
         fullAnalysis,
         keyInsights: categoryContent.keyInsights,
@@ -321,6 +328,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
           `Focus on ${quizData.creativeWorkEnjoyment >= 4 ? "creative differentiation" : "systematic execution"}`,
           `Leverage your ${quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "structured approach"} for consistency`,
         ],
+        successPredictors: aiSuccessPredictors,
         riskFactors: [
           quizData.longTermConsistency <= 2
             ? "May struggle with long-term consistency"
@@ -332,7 +340,6 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
             ? "Limited time may slow initial progress"
             : null,
         ].filter(Boolean) as string[],
-        successPredictors: categoryContent.successPredictors,
       };
     } catch (error) {
       console.error("Error generating detailed analysis:", error);
@@ -373,6 +380,80 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     } catch (error) {
       console.error("OpenAI API request failed:", error);
       throw error;
+    }
+  }
+
+  private async generateAISuccessPredictors(
+    quizData: QuizData,
+    topPath: BusinessPath,
+    fitCategory: string
+  ): Promise<string[]> {
+    try {
+      const userProfile = this.createUserProfile(quizData);
+      
+      const getPromptForPredictors = (category: string) => {
+        const baseInfo = `User Profile: ${userProfile}
+Business Model: ${topPath.name}
+Fit Score: ${topPath.fitScore}%
+Category: ${category}`;
+
+        if (category === "Best Fit" || category === "Strong Fit") {
+          return `${baseInfo}
+
+Based on the user's quiz responses, generate exactly 4 success predictors explaining why they are likely to succeed in ${topPath.name}. Each point should:
+1. Reference specific quiz answers or personality traits
+2. Explain how that trait leads to success in this business model
+3. Be concrete and actionable
+4. Be 15-25 words each
+
+Format as a simple list with each point on a new line, no numbers or bullets.`;
+        } else {
+          return `${baseInfo}
+
+Based on the user's quiz responses, generate exactly 4 struggle points explaining why they are likely to face challenges in ${topPath.name}. Each point should:
+1. Reference specific quiz answers or personality traits  
+2. Explain how that trait creates challenges in this business model
+3. Be honest but constructive
+4. Be 15-25 words each
+
+Format as a simple list with each point on a new line, no numbers or bullets.`;
+        }
+      };
+
+      const prompt = getPromptForPredictors(fitCategory);
+      const response = await this.makeOpenAIRequest(prompt, 200, 0.7);
+      
+      // Parse response into array of 4 points
+      const points = response.split('\n')
+        .filter(line => line.trim().length > 0)
+        .map(line => line.trim())
+        .slice(0, 4);
+
+      // Ensure we have exactly 4 points
+      while (points.length < 4) {
+        points.push(fitCategory === "Best Fit" || fitCategory === "Strong Fit" 
+          ? "Your profile shows strong alignment with this business model"
+          : "Some aspects of your profile may create challenges in this path");
+      }
+
+      return points;
+    } catch (error) {
+      console.error("Error generating AI success predictors:", error);
+      // Return fallback predictors
+      const fallbackPredictors = fitCategory === "Best Fit" || fitCategory === "Strong Fit"
+        ? [
+            "Your quiz responses show strong alignment with this business model",
+            "Your personality traits match successful entrepreneurs in this field",
+            "Your time commitment and goals align well with this path",
+            "Your risk tolerance and motivation support success in this area"
+          ]
+        : [
+            "Your quiz responses suggest some misalignment with this business model",
+            "Certain personality traits may create challenges in this field",
+            "Your time commitment or goals may not align perfectly with this path",
+            "Your risk tolerance or motivation may need adjustment for this area"
+          ];
+      return fallbackPredictors;
     }
   }
 
