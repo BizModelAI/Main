@@ -203,89 +203,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Income projections endpoint using OpenAI
+  // Income projections endpoint using hardcoded data
   app.post("/api/generate-income-projections", async (req, res) => {
     try {
-      const { businessId, businessModel, quizData, userProfile } = req.body;
-
-      const prompt = `
-        Generate realistic monthly income projections for a ${businessModel} business based on this user profile:
-
-        USER PROFILE:
-        ${userProfile}
-
-        BUSINESS MODEL: ${businessModel}
-
-        Create a 12-month projection with the following considerations:
-        - Factor in the user's time commitment, skills, and investment level
-        - Include realistic ramp-up periods and learning curves
-        - Account for seasonal variations where applicable
-        - Consider typical industry benchmarks and success rates
-        - Include key milestones and growth drivers
-
-        Return a JSON object with this structure:
-        {
-          "monthlyProjections": [
-            {
-              "month": "Month 1",
-              "income": number,
-              "cumulativeIncome": number,
-              "milestones": ["milestone1", "milestone2"]
-            }
-          ],
-          "averageTimeToProfit": "X-Y months",
-          "projectedYearOneIncome": number,
-          "keyFactors": ["factor1", "factor2", "factor3", "factor4"],
-          "assumptions": ["assumption1", "assumption2", "assumption3"]
-        }
-
-        Make projections realistic based on:
-        - Typical beginner success rates in this business model
-        - User's available time and skill level
-        - Market conditions and competition
-        - Required learning curve and skill development
-        - Initial investment and ongoing costs
-      `;
-
-      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert business analyst and financial advisor. Provide realistic, data-driven income projections based on industry benchmarks and user profiles.',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.3,
-        }),
-      });
-
-      if (!openaiResponse.ok) {
-        throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+      const { businessId } = req.body;
+      
+      if (!businessId) {
+        return res.status(400).json({ error: "Business ID is required" });
       }
 
-      const data = await openaiResponse.json();
-      const content = data.choices[0].message.content;
-      const result = JSON.parse(content);
-
-      res.json(result);
+      // Use hardcoded projections based on business model
+      const projections = getFallbackProjections(businessId);
+      res.json(projections);
     } catch (error) {
       console.error('Error generating income projections:', error);
-      
-      // Return fallback projections based on business model
-      const { businessId } = req.body;
-      const fallbackProjections = getFallbackProjections(businessId);
-      res.json(fallbackProjections);
+      res.status(500).json({ error: "Failed to generate income projections" });
     }
   });
 
