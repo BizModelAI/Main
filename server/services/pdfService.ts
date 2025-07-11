@@ -23,17 +23,9 @@ export class PDFService {
 
   async initializeBrowser(): Promise<void> {
     if (!this.browser) {
-      // Try to use system chromium first
-      let executablePath = '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium';
-      
-      // Check if chromium exists, otherwise use undefined to let puppeteer find it
-      if (!fs.existsSync(executablePath)) {
-        executablePath = undefined;
-      }
-      
+      // Vercel-compatible configuration
       this.browser = await puppeteer.launch({
         headless: true,
-        executablePath,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
