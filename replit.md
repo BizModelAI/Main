@@ -32,8 +32,11 @@ The application follows a monorepo structure with clear separation between clien
 
 ### Database Schema
 - **Users Table**: Basic user authentication with username/password
+- **Quiz Attempts Table**: Track user quiz completion history
+- **Payments Table**: Handle purchases and access pass management
+- **Unpaid User Emails Table**: Temporary storage for non-registered users
 - **Drizzle ORM**: Type-safe database operations with automatic migrations
-- **PostgreSQL**: Production database with Neon serverless integration
+- **PostgreSQL**: Production database with Supabase integration
 
 ### AI-Powered Analysis
 - **OpenAI Integration**: GPT-based personalized business insights
@@ -51,7 +54,7 @@ The application follows a monorepo structure with clear separation between clien
 ## External Dependencies
 
 ### Core Dependencies
-- **@neondatabase/serverless**: Serverless PostgreSQL database
+- **@neondatabase/serverless**: PostgreSQL connection pooling (compatible with Supabase)
 - **drizzle-orm**: Type-safe ORM with PostgreSQL dialect
 - **@tanstack/react-query**: Server state management
 - **@radix-ui/***: Headless UI components
@@ -72,7 +75,7 @@ The application follows a monorepo structure with clear separation between clien
 
 ### Development
 - **Local Development**: Vite dev server with hot reloading
-- **Database**: Local PostgreSQL or Neon development database
+- **Database**: Supabase PostgreSQL database with connection pooling
 - **Environment Variables**: `.env` file for API keys and database URLs
 
 ### Production Build
@@ -108,6 +111,7 @@ The application follows a monorepo structure with clear separation between clien
 - July 11, 2025. Implemented comprehensive fit category system for business model detail pages. Updated titles and content to reflect four categories: "Why [Business] Is the Best Fit For You" (70%+), "Why [Business] Is a Strong Fit For You" (50-69%), "Why [Business] Isn't the Best Fit For You" (30-49%), and "Why You Should Avoid [Business]" (<30%). AI generates category-specific content with appropriate tone and messaging. Success predictors section changes colors to red for poor/possible fit categories and shows "Why You Might Struggle" instead of positive predictors.
 - July 11, 2025. Redesigned psychological fit section on business model detail pages. Replaced percentage-based "Your Overall Psychological Fit" with descriptive categories: "Excellent!" (Best Fit), "Strong" (Strong Fit), "Okay" (Possible Fit), "Poor" (Poor Fit). Removed all percentage displays from personality trait bars. Added intelligent AI-generated descriptions that compare user personality profiles with successful entrepreneurs, highlighting specific strengths for Best/Strong fits and gaps for Possible/Poor fits.
 - July 11, 2025. Updated all AI prompts throughout the application to use direct second-person perspective ("you", "your") instead of third-person ("this user", "their") to create more personal, engaging AI-generated content. Changed prompts in aiService.ts for insights, recommendations, challenges, strategies, action plans, and motivational messages. Updated AI scoring service prompts to maintain consistent direct addressing of users.
+- July 11, 2025. Configured Supabase database connection setup. Updated database configuration to be compatible with Supabase PostgreSQL while maintaining existing Drizzle ORM integration. System now supports seamless connection to Supabase with proper connection pooling.
 
 ## User Preferences
 
