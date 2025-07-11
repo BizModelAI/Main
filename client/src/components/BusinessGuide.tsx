@@ -143,6 +143,9 @@ const BusinessGuide: React.FC<BusinessGuideProps> = ({ quizData }) => {
     if (model) {
       setBusinessModel(model);
     }
+
+    // Scroll to top when business model changes or page loads
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [businessId, quizData]);
 
   // Handle scroll to section
