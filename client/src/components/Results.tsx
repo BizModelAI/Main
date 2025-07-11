@@ -46,6 +46,29 @@ import { renderMarkdownContent } from "../utils/markdownUtils";
 import EmailResultsModal from "./EmailResultsModal";
 import { useAuth } from "../contexts/AuthContext";
 
+// Helper function to generate 2-sentence descriptions for business models
+const getBusinessModelDescription = (businessId: string, businessName: string): string => {
+  const descriptions: Record<string, string> = {
+    "freelancing": "Offer your specialized skills and services to clients on a project-by-project basis, working independently with complete schedule flexibility. Perfect for skilled professionals who want to monetize their expertise while maintaining control over their workload and client relationships.",
+    "affiliate-marketing": "Promote other companies' products and earn commissions on every sale you generate through your unique referral links. This performance-based model lets you build passive income streams by recommending products you genuinely believe in to your audience.",
+    "content-creation": "Create engaging videos, photos, blogs, or social media content for brands or build your own following to monetize through sponsorships and partnerships. This creative path allows you to turn your personality, expertise, or interests into a profitable personal brand.",
+    "social-media-agency": "Help businesses grow their online presence by managing their social media accounts, creating content, and running advertising campaigns. You'll combine creativity with strategic thinking to deliver measurable results for clients across various industries.",
+    "online-tutoring": "Share your knowledge and expertise by teaching others through one-on-one sessions, group classes, or online courses. This rewarding path lets you make a meaningful impact while building a scalable education business around subjects you're passionate about.",
+    "e-commerce": "Build and grow an online store selling physical or digital products, managing everything from product sourcing to customer service. This scalable model offers the potential for significant passive income once systems are established and optimized.",
+    "local-service": "Provide essential services to businesses and homeowners in your local area, from cleaning and maintenance to specialized professional services. This model offers steady demand, repeat customers, and the satisfaction of serving your immediate community.",
+    "ai-marketing-agency": "Leverage artificial intelligence tools to provide cutting-edge marketing solutions for businesses, from automated content creation to predictive analytics. This emerging field combines technical innovation with marketing expertise to deliver superior results for clients.",
+    "copywriting": "Create persuasive written content that drives sales and engagement for businesses, from email campaigns to website copy and advertisements. This high-demand skill allows you to work with diverse clients while building a reputation for delivering measurable results.",
+    "youtube-automation": "Build and monetize YouTube channels using systematic content creation and optimization strategies, often with minimal on-camera presence. This scalable approach can generate passive income through ad revenue, sponsorships, and product sales.",
+    "virtual-assistant": "Provide administrative, technical, or creative support services to entrepreneurs and businesses remotely, helping them focus on their core activities. This flexible role offers steady work opportunities with the potential to specialize in high-value niches.",
+    "high-ticket-sales": "Sell premium products or services with substantial commission potential, typically involving consultative sales processes and relationship building. This model rewards strong communication skills and relationship-building abilities with high per-transaction earnings.",
+    "saas-development": "Develop software applications that solve specific problems for businesses or consumers, generating recurring revenue through subscription models. This technical path offers high scalability potential and the satisfaction of building solutions that make a real difference.",
+    "digital-services": "Provide specialized digital services like web development, graphic design, or digital marketing to businesses looking to enhance their online presence. This broad category allows you to leverage technical skills while working with diverse clients across industries.",
+    "investing-trading": "Generate returns through strategic investment in stocks, cryptocurrency, real estate, or other financial instruments using analysis and market timing. This path requires financial knowledge and risk management skills but offers potential for significant passive income."
+  };
+
+  return descriptions[businessId] || `${businessName} offers a unique opportunity to build a profitable business by leveraging your skills and interests. This model provides flexibility and growth potential while allowing you to work on your own terms.`;
+};
+
 
 interface ResultsProps {
   quizData: QuizData;
@@ -136,7 +159,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     const convertedPaths: BusinessPath[] = advancedScores.map(score => ({
       id: score.id,
       name: score.name,
-      description: `${score.name} - ${score.category}`,
+      description: getBusinessModelDescription(score.id, score.name),
       detailedDescription: `${score.name} with ${score.score}% compatibility`,
       fitScore: score.score,
       difficulty: score.score >= 75 ? 'Easy' : score.score >= 50 ? 'Medium' : 'Hard',
