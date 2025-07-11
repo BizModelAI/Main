@@ -1,0 +1,1782 @@
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
+import {
+  ArrowLeft,
+  Download,
+  TrendingUp,
+  Target,
+  Brain,
+  Award,
+  Users,
+  CheckCircle,
+  AlertTriangle,
+  Star,
+  Zap,
+  Calendar,
+  BarChart3,
+  Lightbulb,
+  Clock,
+  DollarSign,
+  Shield,
+  ExternalLink,
+  ChevronDown,
+} from "lucide-react";
+import { QuizData, BusinessPath } from "../types";
+import { generatePersonalizedPaths, generateAIPersonalizedPaths } from "../utils/quizLogic";
+import { calculateAdvancedBusinessModelMatches } from "../utils/advancedScoringAlgorithm";
+import { AIService } from "../utils/aiService";
+import { useNavigate } from "react-router-dom";
+import { calculatePersonalityScores, getPersonalityDescription } from "../../../shared/personalityScoring";
+
+// Helper functions to convert stored numbers back to original quiz ranges
+const getIncomeRangeLabel = (value: number): string => {
+  if (value === 500) return "Less than $500";
+  if (value === 1250) return "$500–$2,000";
+  if (value === 3500) return "$2,000–$5,000";
+  if (value === 7500) return "$5,000+";
+  return `$${value}`;
+};
+
+const getInvestmentRangeLabel = (value: number): string => {
+  if (value === 0) return "$0";
+  if (value === 125) return "Under $250";
+  if (value === 625) return "$250–$1,000";
+  if (value === 1500) return "$1,000+";
+  return `$${value}`;
+};
+
+const getTimeCommitmentRangeLabel = (value: number): string => {
+  if (value === 3) return "Less than 5 hours";
+  if (value === 7) return "5–10 hours";
+  if (value === 17) return "10–25 hours";
+  if (value === 35) return "25+ hours";
+  return `${value} hours`;
+};
+
+const getTimelineLabel = (value: string): string => {
+  const labels: Record<string, string> = {
+    "under-1-month": "Under 1 month",
+    "1-3-months": "1–3 months",
+    "3-6-months": "3–6 months",
+    "no-rush": "No rush"
+  };
+  return labels[value] || value.replace("-", " ");
+};
+
+interface FullReportProps {
+  quizData: QuizData;
+  onBack: () => void;
+  userEmail?: string | null;
+  topPath?: BusinessPath;
+  allPaths?: BusinessPath[];
+  preloadedData?: {
+    personalizedPaths: BusinessPath[];
+    aiInsights: any;
+    allCharacteristics: string[];
+    businessFitDescriptions: {[key: string]: string};
+  };
+}
+
+interface TraitSliderProps {
+  label: string;
+  value: number;
+  leftLabel: string;
+  rightLabel: string;
+}
+
+const TraitSlider: React.FC<TraitSliderProps> = ({
+  label,
+  value,
+  leftLabel,
+  rightLabel,
+}) => {
+  const percentage = Math.round(value * 100);
+
+  return (
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-sm text-gray-500">{percentage}%</span>
+      </div>
+      <div className="relative">
+        <div className="w-full h-3 bg-gray-200 rounded-full">
+          <div
+            className="h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          />
+          <div
+            className="absolute top-0 w-4 h-4 bg-white border-2 border-blue-500 rounded-full shadow-md transform -translate-y-0.5 transition-all duration-500"
+            style={{ left: `calc(${percentage}% - 8px)` }}
+          />
+        </div>
+        <div className="flex justify-between mt-2">
+          <span className="text-xs text-gray-500">{leftLabel}</span>
+          <span className="text-xs text-gray-500">{rightLabel}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FullReport: React.FC<FullReportProps> = ({
+  quizData,
+  onBack,
+  userEmail,
+  topPath,
+  allPaths,
+  preloadedData,
+}) => {
+  const [personalizedPaths, setPersonalizedPaths] = useState<BusinessPath[]>(
+    [],
+  );
+  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(true);
+  const [allCharacteristics, setAllCharacteristics] = useState<string[]>([]);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [businessFitDescriptions, setBusinessFitDescriptions] = useState<{[key: string]: string}>({});
+  const [isLoadingDescriptions, setIsLoadingDescriptions] = useState(true);
+  const [personalizedInsights, setPersonalizedInsights] = useState<string>("");
+  const [isLoadingPersonalizedInsights, setIsLoadingPersonalizedInsights] = useState(true);
+  const navigate = useNavigate();
+
+  // Calculate trait scores using advanced algorithm
+  const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
+  const topThreeAdvanced = advancedScores.slice(0, 3);
+  
+  // Calculate trait scores using new comprehensive personality algorithm
+  const personalityScores = calculatePersonalityScores(quizData);
+  const personalityDescriptions = getPersonalityDescription(personalityScores);
+  
+  // Convert to display format (0-1 scale for UI)
+  const traitScores = {
+    socialComfort: personalityScores.socialComfort / 5,
+    consistency: personalityScores.discipline / 5,
+    riskTolerance: personalityScores.riskTolerance / 5,
+    techComfort: personalityScores.techComfort / 5,
+    motivation: personalityScores.motivation / 5,
+    feedbackResilience: personalityScores.feedbackResilience / 5,
+    structurePreference: personalityScores.structurePreference / 5,
+    creativity: personalityScores.creativity / 5,
+    communicationConfidence: personalityScores.confidence / 5,
+    adaptability: personalityScores.adaptability / 5,
+    focusPreference: personalityScores.focusPreference / 5,
+    resilience: personalityScores.resilience / 5,
+  };
+
+  const traitSliders = [
+    {
+      label: "Social Comfort",
+      trait: "socialComfort" as keyof typeof traitScores,
+      leftLabel: "Introvert",
+      rightLabel: "Extrovert",
+    },
+    {
+      label: "Discipline",
+      trait: "consistency" as keyof typeof traitScores,
+      leftLabel: "Low Discipline",
+      rightLabel: "High Discipline",
+    },
+    {
+      label: "Risk Tolerance",
+      trait: "riskTolerance" as keyof typeof traitScores,
+      leftLabel: "Avoids Risks",
+      rightLabel: "Embraces Risks",
+    },
+    {
+      label: "Tech Comfort",
+      trait: "techComfort" as keyof typeof traitScores,
+      leftLabel: "Low Tech Skills",
+      rightLabel: "Tech Savvy",
+    },
+    {
+      label: "Structure Preference",
+      trait: "structurePreference" as keyof typeof traitScores,
+      leftLabel: "Needs Structure",
+      rightLabel: "Works Freely",
+    },
+    {
+      label: "Motivation",
+      trait: "motivation" as keyof typeof traitScores,
+      leftLabel: "Passive",
+      rightLabel: "Self-Driven",
+    },
+    {
+      label: "Feedback Resilience",
+      trait: "feedbackResilience" as keyof typeof traitScores,
+      leftLabel: "Takes Feedback Personally",
+      rightLabel: "Uses Feedback to Grow",
+    },
+    {
+      label: "Creativity",
+      trait: "creativity" as keyof typeof traitScores,
+      leftLabel: "Analytical",
+      rightLabel: "Creative",
+    },
+    {
+      label: "Confidence",
+      trait: "communicationConfidence" as keyof typeof traitScores,
+      leftLabel: "Low Confidence",
+      rightLabel: "High Confidence",
+    },
+    {
+      label: "Adaptability",
+      trait: "adaptability" as keyof typeof traitScores,
+      leftLabel: "Prefers Stability",
+      rightLabel: "Embraces Change",
+    },
+    {
+      label: "Focus Preference",
+      trait: "focusPreference" as keyof typeof traitScores,
+      leftLabel: "Creative & Varied",
+      rightLabel: "Deep & Concentrated",
+    },
+    {
+      label: "Resilience",
+      trait: "resilience" as keyof typeof traitScores,
+      leftLabel: "Needs Support",
+      rightLabel: "Bounces Back Quick",
+    },
+  ];
+
+  // Sidebar navigation items
+  const sidebarItems = [
+    { id: "overview", label: "Executive Summary", icon: BarChart3 },
+    { id: "ai-analysis", label: "AI Personalized Analysis", icon: Brain },
+    { id: "personality-snapshot", label: "Personality Snapshot", icon: Users },
+    { id: "top-matches", label: "Your Top 3 Matches", icon: Target },
+    {
+      id: "business-to-avoid",
+      label: "Business Models to Avoid",
+      icon: Shield,
+    },
+    { id: "work-preferences", label: "Work Preferences", icon: Brain },
+    {
+      id: "business-environment",
+      label: "Business Environment Analysis",
+      icon: BarChart3,
+    },
+    {
+      id: "market-trends",
+      label: "Market Trends & Opportunities",
+      icon: TrendingUp,
+    },
+    {
+      id: "strengths-challenges",
+      label: "Strengths & Challenges",
+      icon: Award,
+    },
+    { id: "next-steps", label: "Next Steps", icon: Zap },
+  ];
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // Trigger confetti animation only if not shown before for this user
+    const confettiKey = `confetti_shown_fullreport_${userEmail || 'anonymous'}`;
+    const hasShownConfetti = localStorage.getItem(confettiKey);
+    
+    if (!hasShownConfetti) {
+      const triggerConfetti = () => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.2 }
+        });
+        
+        // Second burst for more effect
+        setTimeout(() => {
+          confetti({
+            particleCount: 50,
+            spread: 50,
+            origin: { y: 0.3 }
+          });
+        }, 250);
+      };
+
+      // Trigger confetti after a short delay
+      setTimeout(triggerConfetti, 500);
+      
+      // Mark confetti as shown for this user
+      localStorage.setItem(confettiKey, 'true');
+    }
+    
+    // Generate all 6 characteristics with OpenAI
+    const generateAllCharacteristics = async () => {
+      try {
+
+        const prompt = `Based on this quiz data, generate exactly 6 short positive characteristics that reflect the user's entrepreneurial strengths. Each should be 3-5 words maximum and highlight unique aspects of their entrepreneurial potential.
+
+Quiz Data:
+- Self-motivation level: ${quizData.selfMotivationLevel}/5
+- Risk comfort level: ${quizData.riskComfortLevel}/5
+- Tech skills rating: ${quizData.techSkillsRating}/5
+- Direct communication enjoyment: ${quizData.directCommunicationEnjoyment}/5
+- Learning preference: ${quizData.learningPreference}
+- Organization level: ${quizData.organizationLevel}/5
+- Creative work enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Work collaboration preference: ${quizData.workCollaborationPreference}
+- Decision making style: ${quizData.decisionMakingStyle}
+- Work structure preference: ${quizData.workStructurePreference}
+- Long-term consistency: ${quizData.longTermConsistency}/5
+- Uncertainty handling: ${quizData.uncertaintyHandling}/5
+- Tools familiar with: ${quizData.familiarTools?.join(', ')}
+- Main motivation: ${quizData.mainMotivation}
+- Weekly time commitment: ${quizData.weeklyTimeCommitment}
+- Income goal: ${quizData.successIncomeGoal}
+
+Return a JSON object with this exact structure:
+{
+  "characteristics": ["characteristic 1", "characteristic 2", "characteristic 3", "characteristic 4", "characteristic 5", "characteristic 6"]
+}
+
+Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", "Tech-savvy innovator", "Clear communicator", "Organized planner", "Creative problem solver"]}`;
+
+        const response = await fetch('/api/openai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            maxTokens: 200,
+            temperature: 0.7,
+            responseFormat: { type: 'json_object' }
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate characteristics');
+        }
+
+        const data = await response.json();
+        
+        // Clean up the response content (remove markdown code blocks if present)
+        let cleanContent = data.content;
+        if (cleanContent.includes('```json')) {
+          cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```/g, '');
+        }
+        
+        const parsed = JSON.parse(cleanContent);
+        if (parsed && parsed.characteristics && Array.isArray(parsed.characteristics) && parsed.characteristics.length === 6) {
+          setAllCharacteristics(parsed.characteristics);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (error) {
+        console.error('Error generating all characteristics:', error);
+        // Fallback characteristics based on quiz data
+        const fallbackCharacteristics = [
+          quizData.selfMotivationLevel >= 4 ? "Highly self-motivated" : "Moderately self-motivated",
+          quizData.riskComfortLevel >= 4 ? "High risk tolerance" : "Moderate risk tolerance",
+          quizData.techSkillsRating >= 4 ? "Strong tech skills" : "Adequate tech skills",
+          quizData.directCommunicationEnjoyment >= 4 ? "Excellent communicator" : "Good communicator",
+          quizData.organizationLevel >= 4 ? "Highly organized planner" : "Flexible approach to planning",
+          quizData.creativeWorkEnjoyment >= 4 ? "Creative problem solver" : "Analytical approach to challenges"
+        ];
+        
+        setAllCharacteristics(fallbackCharacteristics);
+      }
+    };
+
+    // Generate AI insights function
+    const generateInsights = async (paths: BusinessPath[]) => {
+      try {
+        const aiService = AIService.getInstance();
+        const insights = await aiService.generatePersonalizedInsights(
+          quizData,
+          paths.slice(0, 3),
+        );
+        setAiInsights(insights);
+      } catch (error) {
+        console.error("Error generating AI insights:", error);
+        // Set fallback insights that use actual quiz data
+        setAiInsights({
+          personalizedSummary: `Based on your quiz responses, you show strong alignment with ${paths[0]?.name || 'online business'} with a ${paths[0]?.fitScore || 75}% compatibility score. Your income goal of ${getIncomeRangeLabel(quizData.successIncomeGoal)} and ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} per week commitment indicate ${quizData.successIncomeGoal >= 5000 ? 'ambitious' : 'realistic'} expectations.`,
+          customRecommendations: [
+            `Given your ${quizData.techSkillsRating}/5 tech skills rating, ${quizData.techSkillsRating >= 4 ? 'leverage your technical abilities' : 'focus on user-friendly tools initially'}`,
+            `Your ${quizData.learningPreference} learning preference suggests ${quizData.learningPreference === 'hands_on' ? 'jumping into projects quickly' : 'studying comprehensive guides first'}`,
+            `With ${quizData.riskComfortLevel}/5 risk tolerance, ${quizData.riskComfortLevel >= 4 ? 'explore innovative approaches' : 'stick to proven methods initially'}`,
+          ],
+          potentialChallenges: [
+            `Your ${quizData.firstIncomeTimeline} timeline expectation may need adjustment based on typical ${paths[0]?.name || 'business'} growth patterns`,
+            `Budget of ${getInvestmentRangeLabel(quizData.upfrontInvestment)} ${quizData.upfrontInvestment < 1000 ? 'may require creative bootstrapping strategies' : 'provides good foundation for getting started'}`,
+          ],
+          successStrategies: [
+            `Focus on ${quizData.workCollaborationPreference === 'solo' ? 'independent execution' : 'collaborative opportunities'} that match your work style`,
+            `Leverage your ${quizData.organizationLevel}/5 organization level by ${quizData.organizationLevel >= 4 ? 'creating detailed systems' : 'using simple tracking methods'}`,
+            `Your ${quizData.selfMotivationLevel}/5 self-motivation suggests ${quizData.selfMotivationLevel >= 4 ? 'maintaining consistent daily progress' : 'finding accountability partners'}`,
+          ],
+          personalizedActionPlan: {
+            week1: [
+              `Research ${paths[0]?.name || 'your chosen business model'} thoroughly`,
+              `Set up ${quizData.techSkillsRating >= 4 ? 'advanced' : 'basic'} tools and systems`,
+              `Define target market aligned with your ${quizData.mainMotivation} motivation`,
+            ],
+            month1: [
+              `Launch MVP with ${getInvestmentRangeLabel(quizData.upfrontInvestment)} budget allocation`,
+              `Create content that matches your ${quizData.creativeWorkEnjoyment}/5 creativity level`,
+              `Gather feedback using your ${quizData.feedbackRejectionResponse}/5 feedback resilience`,
+            ],
+            month3: [
+              `Scale based on ${quizData.businessGrowthSize} growth expectations`,
+              `Optimize for ${quizData.passiveIncomeImportance >= 4 ? 'passive income streams' : 'active income generation'}`,
+              `Build partnerships that align with ${quizData.workCollaborationPreference} preference`,
+            ],
+            month6: [
+              `Evaluate progress toward ${getIncomeRangeLabel(quizData.successIncomeGoal)} goal`,
+              `Consider ${quizData.businessExitPlan === 'build_and_sell' ? 'preparing for eventual sale' : 'long-term sustainability'}`,
+              `Adjust strategy based on ${quizData.pathPreference === 'innovative' ? 'innovation opportunities' : 'proven methods'}`,
+            ],
+          },
+          motivationalMessage:
+            "Your unique combination of skills and drive positions you perfectly for entrepreneurial success.",
+        });
+      } finally {
+        setIsLoadingInsights(false);
+      }
+    };
+
+    // Generate personalized three-paragraph insights
+    const generatePersonalizedInsights = async () => {
+      try {
+        const topPath = topThreeAdvanced[0]; // Get the top business path
+        const response = await fetch('/api/generate-personalized-insights', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            quizData,
+            topBusinessPath: topPath
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate personalized insights');
+        }
+
+        const data = await response.json();
+        setPersonalizedInsights(data.insights);
+      } catch (error) {
+        console.error('Error generating personalized insights:', error);
+        // Set fallback insights using quiz data
+        const fallbackInsights = `Your assessment reveals a unique entrepreneurial profile that strongly aligns with ${topThreeAdvanced[0]?.name}. With a self-motivation level of ${quizData.selfMotivationLevel}/5 and ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} available, you demonstrate the commitment level necessary for business success. Your ${quizData.workStructurePreference?.replace('-', ' ')} approach to work structure, combined with your ${quizData.learningPreference?.replace('-', ' ')} learning style, creates an ideal foundation for the systematic approach required in your top-matched business model.
+
+Your income goal of ${getIncomeRangeLabel(quizData.successIncomeGoal)} within a ${quizData.firstIncomeTimeline?.replace('-', ' ')} timeframe is highly achievable given your risk comfort level of ${quizData.riskComfortLevel}/5 and available investment budget of ${getInvestmentRangeLabel(quizData.upfrontInvestment)}. This combination suggests you have realistic expectations while maintaining the ambition necessary for entrepreneurial growth. Your ${quizData.mainMotivation?.replace('-', ' ')} motivation aligns perfectly with the income potential and lifestyle flexibility offered by your recommended business paths.
+
+Based on your technical comfort level (${quizData.techSkillsRating}/5), communication preferences, and ${quizData.passionIdentityAlignment >= 4 ? 'strong desire for passion-aligned work' : 'practical approach to business'}, you're positioned for accelerated success. Your ${quizData.decisionMakingStyle?.replace('-', ' ')} decision-making style and ${quizData.longTermConsistency >= 4 ? 'excellent' : 'good'} track record with long-term goals indicate you'll navigate the initial challenges effectively. The convergence of your skills, motivation, and market timing creates a compelling opportunity for sustainable business growth.`;
+        setPersonalizedInsights(fallbackInsights);
+      } finally {
+        setIsLoadingPersonalizedInsights(false);
+      }
+    };
+
+    // Generate detailed business fit descriptions
+    const generateBusinessFitDescriptions = async () => {
+      try {
+        const top3Paths = topThreeAdvanced.slice(0, 3);
+        const response = await fetch('/api/generate-business-fit-descriptions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            quizData,
+            businessMatches: top3Paths
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate business fit descriptions');
+        }
+
+        const data = await response.json();
+        const descriptionsMap: {[key: string]: string} = {};
+        
+        data.descriptions.forEach((desc: {businessId: string, description: string}) => {
+          descriptionsMap[desc.businessId] = desc.description;
+        });
+        
+        setBusinessFitDescriptions(descriptionsMap);
+      } catch (error) {
+        console.error('Error generating business fit descriptions:', error);
+        // Set fallback descriptions
+        const fallbackDescriptions: {[key: string]: string} = {};
+        topThreeAdvanced.slice(0, 3).forEach((match, index) => {
+          fallbackDescriptions[match.id] = `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a ${index === 0 ? 'perfect' : index === 1 ? 'excellent' : 'good'} match for your entrepreneurial journey.
+
+${index === 0 ? 'As your top match, this path offers the best alignment with your goals and preferences.' : index === 1 ? 'This represents a strong secondary option that complements your primary strengths.' : 'This provides a solid alternative path that matches your core capabilities.'} Your ${quizData.learningPreference?.replace('-', ' ')} learning style and ${quizData.workStructurePreference?.replace('-', ' ')} work preference make this business model particularly suitable for your success.`;
+        });
+        setBusinessFitDescriptions(fallbackDescriptions);
+      } finally {
+        setIsLoadingDescriptions(false);
+      }
+    };
+
+    // Use preloaded data if available, otherwise generate from scratch
+    if (preloadedData) {
+      setPersonalizedPaths(preloadedData.personalizedPaths);
+      setAiInsights(preloadedData.aiInsights);
+      setAllCharacteristics(preloadedData.allCharacteristics);
+      setBusinessFitDescriptions(preloadedData.businessFitDescriptions);
+      setPersonalizedInsights(preloadedData.personalizedInsights || "");
+      setIsLoadingInsights(false);
+      setIsLoadingDescriptions(false);
+      setIsLoadingPersonalizedInsights(false);
+    } else {
+      // Generate AI-powered personalized paths
+      const loadPersonalizedPaths = async () => {
+        try {
+          const paths = await generateAIPersonalizedPaths(quizData);
+          setPersonalizedPaths(paths);
+          
+          // Generate AI insights after paths are loaded
+          generateInsights(paths);
+          
+          // Generate personalized insights
+          generatePersonalizedInsights();
+          
+          // Generate business fit descriptions
+          generateBusinessFitDescriptions();
+        } catch (error) {
+          console.error("Failed to load AI paths in Full Report, using fallback:", error);
+          const fallbackPaths = generatePersonalizedPaths(quizData);
+          setPersonalizedPaths(fallbackPaths);
+          
+          // Generate AI insights with fallback paths
+          generateInsights(fallbackPaths);
+          
+          // Generate personalized insights
+          generatePersonalizedInsights();
+          
+          // Generate business fit descriptions
+          generateBusinessFitDescriptions();
+        }
+      };
+      
+      loadPersonalizedPaths();
+      
+      // Generate all 6 characteristics with OpenAI only if no preloaded data
+      generateAllCharacteristics();
+    }
+  }, [quizData]);
+
+  // Scroll to Executive Summary section
+  const scrollToExecutiveSummary = () => {
+    const overviewSection = document.getElementById("overview");
+    if (overviewSection) {
+      overviewSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Handle scroll to section
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Update active section based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = sidebarItems.map((item) => item.id);
+      const scrollPosition = window.scrollY + 100;
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const element = document.getElementById(sections[i]);
+        if (element && element.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Use advanced scores for accurate fit percentages matching home page
+  const topThreePaths = topThreeAdvanced.map(advanced => {
+    const personalizedPath = personalizedPaths.find(p => p.id === advanced.id);
+    return personalizedPath ? {
+      ...personalizedPath,
+      fitScore: advanced.fitScore // Use the advanced scoring fit score
+    } : advanced;
+  }).filter(Boolean).slice(0, 3);
+  
+  const worstThreePaths = personalizedPaths.slice(-3).reverse(); // Get worst 3 and reverse for worst-first order
+
+  const handleGetStarted = (businessId: string) => {
+    navigate(`/business/${businessId}`);
+    // Scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }, 0);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          quizData,
+          userEmail,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      // Create blob from response
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'business-report.html';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      // You could add a toast notification here
+    }
+  };
+
+
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-700 to-indigo-800 text-white relative">
+        {/* Exit Arrow - Upper Left Corner */}
+        <button
+          onClick={onBack}
+          className="absolute top-8 left-8 p-2 hover:opacity-80 transition-opacity duration-300"
+          title="Back to Results"
+        >
+          <ArrowLeft className="h-6 w-6 text-white" />
+        </button>
+        
+        <div className="text-center max-w-4xl mx-auto px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="mx-auto mb-8">
+              <span className="text-6xl">🎉</span>
+            </div>
+
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Welcome to Your Full Report!
+            </h1>
+
+            <p className="text-xl md:text-2xl text-blue-100 mb-16 leading-relaxed">
+              Your personalized business blueprint is ready. Discover your
+              AI-powered analysis, personality insights, and complete roadmap to
+              success.
+            </p>
+
+            {/* Chevron to scroll to Executive Summary */}
+            <motion.button
+              onClick={scrollToExecutiveSummary}
+              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto hover:bg-white/30 transition-all duration-300"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <ChevronDown className="h-6 w-6 text-white" />
+            </motion.button>
+          </motion.div>
+        </div>
+      </section>
+
+
+
+      {/* Main Content with Sidebar */}
+      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-8">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Report Sections
+                  </h3>
+                  <nav className="space-y-2">
+                    {sidebarItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => scrollToSection(item.id)}
+                        className={`w-full flex items-center px-3 py-2 text-left rounded-xl transition-colors ${
+                          activeSection === item.id
+                            ? "bg-blue-50 text-blue-700 border-l-4 border-blue-700 rounded-r-lg"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                        <span className="text-sm font-medium">
+                          {item.label}
+                        </span>
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-12">
+              {/* Executive Summary */}
+              <section
+                id="overview"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <BarChart3 className="h-6 w-6 text-blue-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Executive Summary
+                  </h2>
+                </div>
+
+                {userEmail && (
+                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                      <span className="text-green-800 font-medium">
+                        Report saved to {userEmail}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3 mb-8">
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Report
+                  </button>
+                </div>
+
+                {/* Key Insights Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="text-center p-6 bg-blue-50 rounded-xl">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                      {topThreeAdvanced[0]?.score}%
+                    </div>
+                    <div className="text-sm font-medium text-blue-900 mb-1">
+                      Best Match
+                    </div>
+                    <div className="text-xs text-blue-700">
+                      {topThreeAdvanced[0]?.name}
+                    </div>
+                  </div>
+                  <div className="text-center p-6 bg-green-50 rounded-xl">
+                    <div className="text-2xl font-bold text-green-600 mb-2">
+                      {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}
+                    </div>
+                    <div className="text-sm font-medium text-green-900 mb-1">
+                      Hours/Week
+                    </div>
+                    <div className="text-xs text-green-700">Available Time</div>
+                  </div>
+                  <div className="text-center p-6 bg-purple-50 rounded-xl">
+                    <div className="text-2xl font-bold text-purple-600 mb-2">
+                      {getIncomeRangeLabel(quizData.successIncomeGoal)}
+                    </div>
+                    <div className="text-sm font-medium text-purple-900 mb-1">
+                      Income Goal
+                    </div>
+                    <div className="text-xs text-purple-700">
+                      Monthly Target
+                    </div>
+                  </div>
+                </div>
+
+                {/* Best Fit Characteristics */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Your Best Fit Characteristics
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {allCharacteristics.map((characteristic, index) => (
+                      <div key={index} className="flex items-center">
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                        <span className="text-gray-700">
+                          {characteristic}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+
+              </section>
+
+              {/* AI Personalized Analysis */}
+              <section
+                id="ai-analysis"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Brain className="h-6 w-6 text-purple-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    AI Personalized Analysis
+                  </h2>
+                </div>
+
+                {!isLoadingInsights && aiInsights && (
+                  <div className="space-y-6">
+                    {/* Three-paragraph detailed analysis */}
+                    <div className="prose max-w-none">
+                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
+                        <div className="space-y-4 text-gray-700 leading-relaxed">
+                          {isLoadingPersonalizedInsights ? (
+                            <div className="space-y-4">
+                              <div className="animate-pulse bg-gray-200 h-4 rounded w-full"></div>
+                              <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
+                              <div className="animate-pulse bg-gray-200 h-4 rounded w-5/6"></div>
+                              <div className="animate-pulse bg-gray-200 h-4 rounded w-full"></div>
+                              <div className="animate-pulse bg-gray-200 h-4 rounded w-4/5"></div>
+                              <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
+                            </div>
+                          ) : (
+                            <div className="whitespace-pre-line">
+                              {personalizedInsights}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Key Insights Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Key Success Indicators
+                        </h3>
+                        <ul className="space-y-2">
+                          {aiInsights.successStrategies
+                            ?.slice(0, 4)
+                            .map((strategy: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <Star className="h-4 w-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
+                                <span className="text-gray-700">
+                                  {strategy}
+                                </span>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          Personalized Recommendations
+                        </h3>
+                        <ul className="space-y-2">
+                          {aiInsights.customRecommendations
+                            ?.slice(0, 4)
+                            .map((rec: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                                <span className="text-gray-700">{rec}</span>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Personality Snapshot */}
+              <section
+                id="personality-snapshot"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Users className="h-6 w-6 text-blue-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Your Comprehensive Personality Snapshot
+                  </h2>
+                </div>
+                
+                <div className="mb-6 p-4 bg-blue-50 rounded-xl">
+                  <p className="text-blue-800 text-sm">
+                    Our advanced 12-metric personality algorithm analyzes your responses across all quiz dimensions to create a comprehensive entrepreneurial profile. Each assessment reflects your natural tendencies and optimal business environments.
+                  </p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  {traitSliders.map((slider, index) => {
+                    const metricKey = slider.trait === 'consistency' ? 'discipline' : 
+                                     slider.trait === 'communicationConfidence' ? 'confidence' : 
+                                     slider.trait;
+                    const description = personalityDescriptions[metricKey as keyof typeof personalityDescriptions];
+                    const score = personalityScores[metricKey as keyof typeof personalityScores];
+                    
+                    return (
+                      <div key={index} className="bg-gray-50 rounded-xl p-4">
+                        <TraitSlider
+                          label={slider.label}
+                          value={traitScores[slider.trait]}
+                          leftLabel={slider.leftLabel}
+                          rightLabel={slider.rightLabel}
+                        />
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="text-sm text-gray-600 italic">
+                            {description || 'Analysis based on your quiz responses'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Personality Summary */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Your Entrepreneurial Profile Summary
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Top Strengths:</h4>
+                      <ul className="space-y-1">
+                        {Object.entries(personalityScores)
+                          .sort(([,a], [,b]) => b - a)
+                          .slice(0, 3)
+                          .map(([key, value]) => (
+                            <li key={key} className="flex items-center text-sm text-gray-700">
+                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                              <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Growth Areas:</h4>
+                      <ul className="space-y-1">
+                        {Object.entries(personalityScores)
+                          .sort(([,a], [,b]) => a - b)
+                          .slice(0, 3)
+                          .map(([key, value]) => (
+                            <li key={key} className="flex items-center text-sm text-gray-700">
+                              <AlertTriangle className="h-4 w-4 text-yellow-500 mr-2" />
+                              <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Top 3 Matches */}
+              <section
+                id="top-matches"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Target className="h-6 w-6 text-green-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Your Top 3 Business Matches
+                  </h2>
+                </div>
+
+                <div className="space-y-6">
+                  {topThreePaths.map((path, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-xl p-6"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                              index === 0
+                                ? "bg-yellow-100 text-yellow-600"
+                                : index === 1
+                                  ? "bg-gray-100 text-gray-600"
+                                  : "bg-orange-100 text-orange-600"
+                            }`}
+                          >
+                            {index + 1}
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {path.name}
+                          </h3>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {path.fitScore}%
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 mb-4">{path.description}</p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="text-sm text-gray-700">
+                            {path.timeToProfit}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="text-sm text-gray-700">
+                            {path.startupCost}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <TrendingUp className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="text-sm text-gray-700">
+                            {path.potentialIncome}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Why This Fits You */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-4">
+                        <h4 className="font-semibold text-blue-900 mb-2">
+                          Why This Fits You
+                        </h4>
+                        {isLoadingDescriptions ? (
+                          <div className="text-blue-800 text-sm">
+                            <div className="animate-pulse">
+                              <div className="h-4 bg-blue-200 rounded w-full mb-2"></div>
+                              <div className="h-4 bg-blue-200 rounded w-3/4 mb-2"></div>
+                              <div className="h-4 bg-blue-200 rounded w-5/6"></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-blue-800 text-sm whitespace-pre-line">
+                            {businessFitDescriptions[path.id] || 
+                              `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a ${index === 0 ? 'perfect' : index === 1 ? 'excellent' : 'good'} match for your entrepreneurial journey.
+
+${index === 0 ? 'As your top match, this path offers the best alignment with your goals and preferences.' : index === 1 ? 'This represents a strong secondary option that complements your primary strengths.' : 'This provides a solid alternative path that matches your core capabilities.'} Your ${quizData.learningPreference?.replace('-', ' ')} learning style and ${quizData.workStructurePreference?.replace('-', ' ')} work preference make this business model particularly suitable for your success.`}
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleGetStarted(path.id)}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                      >
+                        Learn More About {path.name}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Business Models to Avoid */}
+              <section
+                id="business-to-avoid"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Shield className="h-6 w-6 text-red-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Business Models to Avoid
+                  </h2>
+                </div>
+
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-red-800 text-sm">
+                    <strong>Important Note:</strong> These business models
+                    scored lowest for your current profile. This doesn't mean
+                    they\'re bad businesses—they just don't align well with your
+                    current goals, skills, or preferences. As you grow and
+                    develop, some of these might become viable options in the
+                    future.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  {worstThreePaths.map((path, index) => (
+                    <div
+                      key={index}
+                      className="border border-red-200 rounded-xl p-6 bg-red-50"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-red-100 text-red-600">
+                            <AlertTriangle className="h-4 w-4" />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {path.name}
+                          </h3>
+                        </div>
+                        <div className="text-2xl font-bold text-red-600">
+                          {path.fitScore}%
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 mb-4">{path.description}</p>
+
+                      <div className="bg-white border border-red-200 rounded-2xl p-4">
+                        <h4 className="font-semibold text-red-900 mb-2">
+                          Why This Doesn't Fit Your Current Profile
+                        </h4>
+                        <ul className="text-red-800 text-sm space-y-1">
+                          {path.fitScore < 30 && (
+                            <>
+                              <li>
+                                • Requires skills or preferences that don't
+                                align with your current profile
+                              </li>
+                              <li>
+                                • Time commitment or income timeline doesn't
+                                match your goals
+                              </li>
+                              <li>
+                                • Risk level or investment requirements are
+                                misaligned
+                              </li>
+                            </>
+                          )}
+                          {path.fitScore >= 30 && path.fitScore < 50 && (
+                            <>
+                              <li>
+                                • Some aspects align, but key requirements don't
+                                match your strengths
+                              </li>
+                              <li>
+                                • Better options available that suit your
+                                profile more closely
+                              </li>
+                              <li>
+                                • May require significant skill development
+                                before becoming viable
+                              </li>
+                            </>
+                          )}
+                          {path.id === "app-saas-development" &&
+                            quizData.techSkillsRating < 4 && (
+                              <li>
+                                • Requires advanced technical skills (your
+                                current level: {quizData.techSkillsRating}/5)
+                              </li>
+                            )}
+                          {path.id === "high-ticket-sales" &&
+                            quizData.directCommunicationEnjoyment < 4 && (
+                              <li>
+                                • Requires high comfort with direct
+                                communication (your level:{" "}
+                                {quizData.directCommunicationEnjoyment}/5)
+                              </li>
+                            )}
+                          {path.id === "content-creation-ugc" &&
+                            quizData.brandFaceComfort < 3 && (
+                              <li>
+                                • Requires comfort being the face of a brand
+                                (your comfort level: {quizData.brandFaceComfort}
+                                /5)
+                              </li>
+                            )}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <h3 className="font-semibold text-blue-900 mb-2">
+                    💡 Future Consideration
+                  </h3>
+                  <p className="text-blue-800 text-sm">
+                    As you develop your skills and gain experience, some of
+                    these business models may become more suitable. Consider
+                    revisiting this analysis in 6-12 months as your profile
+                    evolves.
+                  </p>
+                </div>
+              </section>
+
+              {/* Business Environment Analysis */}
+              <section
+                id="business-environment"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <BarChart3 className="h-6 w-6 text-blue-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Business Environment Analysis
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Your Constraints & Advantages
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-900">
+                            Time Availability
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              quizData.weeklyTimeCommitment >= 30
+                                ? "bg-green-100 text-green-800"
+                                : quizData.weeklyTimeCommitment >= 15
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {quizData.weeklyTimeCommitment >= 30
+                              ? "High"
+                              : quizData.weeklyTimeCommitment >= 15
+                                ? "Medium"
+                                : "Limited"}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} available
+                          for business activities
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-900">
+                            Investment Budget
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              quizData.upfrontInvestment >= 1000
+                                ? "bg-green-100 text-green-800"
+                                : quizData.upfrontInvestment >= 250
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {quizData.upfrontInvestment >= 1000
+                              ? "High"
+                              : quizData.upfrontInvestment >= 250
+                                ? "Medium"
+                                : "Low"}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          {getInvestmentRangeLabel(quizData.upfrontInvestment)} available for startup
+                          costs
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-900">
+                            Technical Skills
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              quizData.techSkillsRating >= 4
+                                ? "bg-green-100 text-green-800"
+                                : quizData.techSkillsRating >= 3
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {quizData.techSkillsRating >= 4
+                              ? "High"
+                              : quizData.techSkillsRating >= 3
+                                ? "Medium"
+                                : "Basic"}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          Level {quizData.techSkillsRating}/5 -{" "}
+                          {quizData.techSkillsRating >= 4
+                            ? "Can handle complex tools"
+                            : quizData.techSkillsRating >= 3
+                              ? "Comfortable with standard tools"
+                              : "May need additional training"}
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-xl">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-gray-900">
+                            Communication Comfort
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              quizData.directCommunicationEnjoyment >= 4
+                                ? "bg-green-100 text-green-800"
+                                : quizData.directCommunicationEnjoyment >= 3
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {quizData.directCommunicationEnjoyment >= 4
+                              ? "High"
+                              : quizData.directCommunicationEnjoyment >= 3
+                                ? "Medium"
+                                : "Low"}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          Level {quizData.directCommunicationEnjoyment}/5 -{" "}
+                          {quizData.directCommunicationEnjoyment >= 4
+                            ? "Excellent for client-facing roles"
+                            : quizData.directCommunicationEnjoyment >= 3
+                              ? "Good for moderate interaction"
+                              : "Better suited for behind-the-scenes work"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Market Positioning Strategy
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <h4 className="font-semibold text-blue-900 mb-2">
+                          Target Market
+                        </h4>
+                        <p className="text-blue-800 text-sm">
+                          Focus on{" "}
+                          {quizData.meaningfulContributionImportance >= 4
+                            ? "purpose-driven clients who value impact"
+                            : "practical clients who prioritize results"}
+                          {" "}in the {topThreePaths[0]?.name.toLowerCase()} space.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <h4 className="font-semibold text-blue-900 mb-2">
+                          Pricing Strategy
+                        </h4>
+                        <p className="text-blue-800 text-sm">
+                          {quizData.successIncomeGoal >= 5000
+                            ? "Premium pricing strategy"
+                            : "Competitive pricing strategy"}{" "}
+                          based on your ${getIncomeRangeLabel(quizData.successIncomeGoal)}
+                          {" "}income goal and{" "}
+                          {quizData.riskComfortLevel >= 4 ? "high" : "moderate"}{" "}
+                          risk tolerance.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <h4 className="font-semibold text-blue-900 mb-2">
+                          Differentiation Focus
+                        </h4>
+                        <p className="text-blue-800 text-sm">
+                          Emphasize your{" "}
+                          {quizData.directCommunicationEnjoyment >= 4
+                            ? "excellent communication skills"
+                            : "systematic approach"}{" "}
+                          and{" "}
+                          {quizData.longTermConsistency >= 4
+                            ? "proven track record of consistency"
+                            : "commitment to quality delivery"}
+                          .
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Market Trends & Opportunities */}
+              <section
+                id="market-trends"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <TrendingUp className="h-6 w-6 text-green-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Market Trends & Opportunities
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Growing Markets
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <h4 className="font-semibold text-green-900 mb-2">
+                          AI & Automation Services
+                        </h4>
+                        <p className="text-green-800 text-sm mb-2">
+                          Market growing 25% annually
+                        </p>
+                        <p className="text-green-700 text-xs">
+                          Businesses need help implementing AI tools and
+                          automating processes
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <h4 className="font-semibold text-green-900 mb-2">
+                          Content Creation
+                        </h4>
+                        <p className="text-green-800 text-sm mb-2">
+                          Creator economy worth $104B+
+                        </p>
+                        <p className="text-green-700 text-xs">
+                          Brands increasingly rely on authentic, user-generated
+                          content
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <h4 className="font-semibold text-green-900 mb-2">
+                          Online Education
+                        </h4>
+                        <p className="text-green-800 text-sm mb-2">
+                          $350B market by 2025
+                        </p>
+                        <p className="text-green-700 text-xs">
+                          High demand for specialized skills training and
+                          coaching
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                        <h4 className="font-semibold text-green-900 mb-2">
+                          E-commerce & Digital Products
+                        </h4>
+                        <p className="text-green-800 text-sm mb-2">
+                          Growing 15% year-over-year
+                        </p>
+                        <p className="text-green-700 text-xs">
+                          Shift to online shopping continues accelerating
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Emerging Opportunities
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                        <h4 className="font-semibold text-purple-900 mb-2">
+                          Sustainability Consulting
+                        </h4>
+                        <p className="text-purple-800 text-sm mb-2">
+                          ESG compliance demand rising
+                        </p>
+                        <p className="text-purple-700 text-xs">
+                          Companies need help with environmental and social
+                          responsibility
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                        <h4 className="font-semibold text-purple-900 mb-2">
+                          Remote Work Solutions
+                        </h4>
+                        <p className="text-purple-800 text-sm mb-2">
+                          Permanent shift to hybrid work
+                        </p>
+                        <p className="text-purple-700 text-xs">
+                          Tools and services for distributed teams in high
+                          demand
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                        <h4 className="font-semibold text-purple-900 mb-2">
+                          Health & Wellness Tech
+                        </h4>
+                        <p className="text-purple-800 text-sm mb-2">
+                          $659B market opportunity
+                        </p>
+                        <p className="text-purple-700 text-xs">
+                          Digital health solutions and wellness coaching growing
+                          rapidly
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                        <h4 className="font-semibold text-purple-900 mb-2">
+                          Micro-SaaS
+                        </h4>
+                        <p className="text-purple-800 text-sm mb-2">
+                          Niche software solutions
+                        </p>
+                        <p className="text-purple-700 text-xs">
+                          Small, focused tools solving specific problems for
+                          targeted audiences
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Market Timing Advantage
+                  </h3>
+                  <p className="text-gray-700 mb-4">
+                    Based on your profile and current market conditions, you're
+                    entering at an optimal time. The convergence of digital
+                    transformation, remote work adoption, and AI accessibility
+                    creates unprecedented opportunities for new entrepreneurs.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        $2.3T
+                      </div>
+                      <div className="text-sm text-blue-700">
+                        Digital economy size
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        73%
+                      </div>
+                      <div className="text-sm text-purple-700">
+                        Businesses going digital
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        42%
+                      </div>
+                      <div className="text-sm text-green-700">
+                        Remote work adoption
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+
+              {/* Work Preferences */}
+              <section
+                id="work-preferences"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Brain className="h-6 w-6 text-purple-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Work Preferences
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 font-medium">
+                          Time Commitment
+                        </span>
+                        <span className="text-purple-600 font-semibold">
+                          {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        Weekly hours available for business activities
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 font-medium">
+                          Learning Style
+                        </span>
+                        <span className="text-purple-600 font-semibold capitalize">
+                          {quizData.learningPreference?.replace("-", " ")}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        How you best absorb new information and skills
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 font-medium">
+                          Work Structure
+                        </span>
+                        <span className="text-purple-600 font-semibold capitalize">
+                          {quizData.workStructurePreference?.replace("-", " ")}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        Your preferred level of routine and organization
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 font-medium">
+                          Collaboration
+                        </span>
+                        <span className="text-purple-600 font-semibold capitalize">
+                          {quizData.workCollaborationPreference?.replace("-", " ")}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        How you prefer to work with others
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 font-medium">
+                          Decision Making
+                        </span>
+                        <span className="text-purple-600 font-semibold capitalize">
+                          {quizData.decisionMakingStyle?.replace("-", " ")}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        Your approach to making important choices
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 font-medium">
+                          Income Goal
+                        </span>
+                        <span className="text-purple-600 font-semibold">
+                          {getIncomeRangeLabel(quizData.successIncomeGoal)}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        Your target monthly income objective
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Strengths & Challenges */}
+              <section
+                id="strengths-challenges"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Award className="h-6 w-6 text-yellow-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Strengths & Challenges
+                  </h2>
+                </div>
+
+                {!isLoadingInsights && aiInsights && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                        Your Strengths
+                      </h3>
+                      <ul className="space-y-3">
+                        {aiInsights.successStrategies
+                          ?.slice(0, 4)
+                          .map((strategy: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <Star className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                              <span className="text-gray-700">{strategy}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
+                        Potential Challenges
+                      </h3>
+                      <ul className="space-y-3">
+                        {aiInsights.potentialChallenges?.map(
+                          (challenge: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <AlertTriangle className="h-4 w-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
+                              <span className="text-gray-700">{challenge}</span>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+
+
+              {/* Next Steps */}
+              <section
+                id="next-steps"
+                className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-lg p-8 text-white"
+              >
+                <div className="flex items-center mb-6">
+                  <Zap className="h-6 w-6 text-white mr-3" />
+                  <h2 className="text-2xl font-bold text-white">
+                    Ready to Get Started?
+                  </h2>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-blue-100 text-lg leading-relaxed">
+                    {aiInsights?.motivationalMessage ||
+                      "Your unique combination of skills and drive positions you perfectly for entrepreneurial success."}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button
+                    onClick={() => handleGetStarted(topThreeAdvanced[0]?.id)}
+                    className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+                  >
+                    Learn More About {topThreeAdvanced[0]?.name}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigate('/explore');
+                      setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }, 100);
+                    }}
+                    className="border border-white text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/10 transition-colors"
+                  >
+                    Explore All Options
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Comprehensive personality scoring system now integrated via shared/personalityScoring.ts
+
+export default FullReport;
