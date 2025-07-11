@@ -228,10 +228,8 @@ const FullReport: React.FC<FullReportProps> = ({
   const [isLoadingInsights, setIsLoadingInsights] = useState(true);
   const [allCharacteristics, setAllCharacteristics] = useState<string[]>([]);
   const [activeSection, setActiveSection] = useState("overview");
-  const [businessFitDescriptions, setBusinessFitDescriptions] = useState<{[key: string]: string}>(
-    preloadedData?.businessFitDescriptions || {}
-  );
-  const [isLoadingDescriptions, setIsLoadingDescriptions] = useState(false);
+  const [businessFitDescriptions, setBusinessFitDescriptions] = useState<{[key: string]: string}>({});
+  const [isLoadingDescriptions, setIsLoadingDescriptions] = useState(true);
   const [personalizedInsights, setPersonalizedInsights] = useState<string>("");
   const [isLoadingPersonalizedInsights, setIsLoadingPersonalizedInsights] = useState(true);
   const navigate = useNavigate();
