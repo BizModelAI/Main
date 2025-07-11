@@ -98,7 +98,6 @@ const TraitSlider: React.FC<TraitSliderProps> = ({
     <div className="mb-6">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-gray-700">{label}</span>
-        <span className="text-sm text-gray-500">{percentage}%</span>
       </div>
       <div className="relative">
         <div className="w-full h-3 bg-gray-200 rounded-full">

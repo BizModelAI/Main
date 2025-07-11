@@ -125,7 +125,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({ quizData, userEmail }) => 
               <div key={index} className="bg-gray-50 p-4 rounded-xl">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-semibold text-gray-900">{trait.label}</span>
-                  <span className="text-sm text-gray-600">{Math.round(trait.value * 100)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                   <div 
