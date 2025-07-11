@@ -65,6 +65,99 @@ const getTimelineLabel = (value: string): string => {
   return labels[value] || value.replace("-", " ");
 };
 
+// Helper functions for immediate business model data
+const getBusinessModelDescription = (businessId: string): string => {
+  const descriptions: Record<string, string> = {
+    "affiliate-marketing": "Promote other people's products and earn commission on sales. Build an audience and recommend products you trust.",
+    "freelancing": "Offer specialized services to clients on a project or contract basis. Leverage your existing skills for immediate income.",
+    "content-creation": "Create valuable content and monetize through multiple channels including sponsorships, ads, and product sales.",
+    "social-media-agency": "Help businesses grow their social media presence and engagement through strategic content and campaigns.",
+    "online-tutoring": "Share your expertise through 1-on-1 or group coaching programs. Teach skills you've already mastered.",
+    "e-commerce": "Sell physical or digital products through your own online store. Build a brand around products you're passionate about.",
+    "local-service": "Provide services to local businesses and consumers. Bridge the gap between demand and supply in your area.",
+    "ai-marketing-agency": "Leverage AI tools to provide marketing solutions to businesses. Combine technology with marketing expertise.",
+    "copywriting": "Write compelling content for businesses and individuals. Help brands communicate their message effectively.",
+    "youtube-automation": "Create and manage monetized YouTube channels with streamlined content production systems.",
+    "virtual-assistant": "Provide administrative and business support remotely. Help busy entrepreneurs focus on high-value activities.",
+    "high-ticket-sales": "Sell high-value products or services for businesses. Focus on quality relationships and premium offerings.",
+    "saas-development": "Build software applications that solve problems for businesses or consumers. Create recurring revenue streams.",
+    "digital-services": "Offer digital marketing and web services to businesses. Help companies establish their online presence.",
+    "investing-trading": "Generate returns through strategic investment and trading activities. Build wealth through financial markets.",
+    "online-reselling": "Buy and resell products online for profit. Find undervalued items and sell them at market value.",
+    "handmade-goods": "Create and sell handmade products online. Turn your creative skills into a profitable business."
+  };
+  return descriptions[businessId] || "A promising business opportunity that matches your skills and goals.";
+};
+
+const getBusinessModelTimeToProfit = (businessId: string): string => {
+  const timeframes: Record<string, string> = {
+    "affiliate-marketing": "2-6 months",
+    "freelancing": "1-2 weeks",
+    "content-creation": "3-8 months",
+    "social-media-agency": "1-3 months",
+    "online-tutoring": "2-4 weeks",
+    "e-commerce": "2-6 months",
+    "local-service": "1-4 weeks",
+    "ai-marketing-agency": "2-4 months",
+    "copywriting": "1-3 weeks",
+    "youtube-automation": "6-12 months",
+    "virtual-assistant": "1-2 weeks",
+    "high-ticket-sales": "2-6 months",
+    "saas-development": "6-18 months",
+    "digital-services": "1-3 months",
+    "investing-trading": "Ongoing",
+    "online-reselling": "1-4 weeks",
+    "handmade-goods": "2-8 weeks"
+  };
+  return timeframes[businessId] || "2-6 months";
+};
+
+const getBusinessModelStartupCost = (businessId: string): string => {
+  const costs: Record<string, string> = {
+    "affiliate-marketing": "$0-$500",
+    "freelancing": "$0-$200",
+    "content-creation": "$100-$1,000",
+    "social-media-agency": "$200-$800",
+    "online-tutoring": "$0-$300",
+    "e-commerce": "$500-$5,000",
+    "local-service": "$100-$1,000",
+    "ai-marketing-agency": "$300-$1,500",
+    "copywriting": "$0-$200",
+    "youtube-automation": "$500-$3,000",
+    "virtual-assistant": "$0-$500",
+    "high-ticket-sales": "$200-$1,000",
+    "saas-development": "$1,000-$10,000",
+    "digital-services": "$500-$2,000",
+    "investing-trading": "$1,000+",
+    "online-reselling": "$200-$2,000",
+    "handmade-goods": "$100-$1,000"
+  };
+  return costs[businessId] || "$200-$1,000";
+};
+
+const getBusinessModelPotentialIncome = (businessId: string): string => {
+  const incomes: Record<string, string> = {
+    "affiliate-marketing": "$500-$10K+/month",
+    "freelancing": "$1K-$15K+/month",
+    "content-creation": "$500-$20K+/month",
+    "social-media-agency": "$2K-$25K+/month",
+    "online-tutoring": "$500-$8K+/month",
+    "e-commerce": "$1K-$50K+/month",
+    "local-service": "$1K-$20K+/month",
+    "ai-marketing-agency": "$3K-$30K+/month",
+    "copywriting": "$1K-$12K+/month",
+    "youtube-automation": "$500-$15K+/month",
+    "virtual-assistant": "$800-$6K+/month",
+    "high-ticket-sales": "$5K-$50K+/month",
+    "saas-development": "$1K-$100K+/month",
+    "digital-services": "$2K-$20K+/month",
+    "investing-trading": "Variable",
+    "online-reselling": "$500-$10K+/month",
+    "handmade-goods": "$500-$8K+/month"
+  };
+  return incomes[businessId] || "$1K-$10K+/month";
+};
+
 interface FullReportProps {
   quizData: QuizData;
   onBack: () => void;
@@ -596,14 +689,22 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Use advanced scores for accurate fit percentages matching home page
+  // Use advanced scores for accurate fit percentages matching home page - make this immediate
   const topThreePaths = topThreeAdvanced.map(advanced => {
     const personalizedPath = personalizedPaths.find(p => p.id === advanced.id);
-    return personalizedPath ? {
-      ...personalizedPath,
-      fitScore: advanced.fitScore // Use the advanced scoring fit score
-    } : advanced;
-  }).filter(Boolean).slice(0, 3);
+    // Always use the advanced scoring data as base, with personalized path details if available
+    return {
+      id: advanced.id,
+      name: advanced.name,
+      fitScore: advanced.score, // Use the advanced scoring fit score
+      description: personalizedPath?.description || getBusinessModelDescription(advanced.id),
+      timeToProfit: personalizedPath?.timeToProfit || getBusinessModelTimeToProfit(advanced.id),
+      startupCost: personalizedPath?.startupCost || getBusinessModelStartupCost(advanced.id),
+      potentialIncome: personalizedPath?.potentialIncome || getBusinessModelPotentialIncome(advanced.id),
+      category: advanced.category,
+      ...(personalizedPath || {})
+    };
+  }).slice(0, 3);
   
   const worstThreePaths = personalizedPaths.slice(-3).reverse(); // Get worst 3 and reverse for worst-first order
 
