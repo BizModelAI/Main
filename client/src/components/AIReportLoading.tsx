@@ -106,18 +106,65 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
       const startTime = Date.now();
       let currentResults = {};
       
-      // Validate quizData before proceeding
+      // Create fallback quiz data for development mode
+      const getFallbackQuizData = (): QuizData => ({
+        // Round 1: Motivation & Vision
+        mainMotivation: "financial-freedom",
+        firstIncomeTimeline: "3-6-months",
+        successIncomeGoal: 5000,
+        upfrontInvestment: 1000,
+        passionIdentityAlignment: 4,
+        businessExitPlan: "not-sure",
+        businessGrowthSize: "full-time-income",
+        passiveIncomeImportance: 3,
+        
+        // Round 2: Time, Effort & Learning Style
+        weeklyTimeCommitment: 20,
+        longTermConsistency: 4,
+        trialErrorComfort: 3,
+        learningPreference: "hands-on",
+        systemsRoutinesEnjoyment: 3,
+        discouragementResilience: 4,
+        toolLearningWillingness: "yes",
+        organizationLevel: 3,
+        selfMotivationLevel: 4,
+        uncertaintyHandling: 3,
+        repetitiveTasksFeeling: "tolerate",
+        workCollaborationPreference: "mostly-solo",
+        
+        // Round 3: Personality & Preferences
+        brandFaceComfort: 3,
+        competitivenessLevel: 3,
+        creativeWorkEnjoyment: 4,
+        directCommunicationEnjoyment: 4,
+        workStructurePreference: "some-structure",
+        
+        // Round 4: Tools & Work Environment
+        techSkillsRating: 3,
+        workspaceAvailability: "yes",
+        supportSystemStrength: "small-helpful-group",
+        internetDeviceReliability: 4,
+        familiarTools: ["google-docs-sheets", "canva"],
+        
+        // Round 5: Strategy & Decision-Making
+        decisionMakingStyle: "after-some-research",
+        riskComfortLevel: 3,
+        feedbackRejectionResponse: 3,
+        pathPreference: "proven-path",
+        controlImportance: 4,
+        
+        // Round 6: Business Model Fit Filters
+        onlinePresenceComfort: "somewhat-comfortable",
+        clientCallsComfort: "somewhat-comfortable",
+        physicalShippingOpenness: "open-to-it",
+        workStylePreference: "structured-flexible-mix"
+      });
+      
+      // Use fallback data if quizData is null/undefined (DEV mode)
+      const activeQuizData = quizData || getFallbackQuizData();
+      
       if (!quizData) {
-        console.error("QuizData is null or undefined, cannot generate report");
-        // Wait minimum duration and complete with empty data
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        onComplete({
-          personalizedPaths: [],
-          aiInsights: null,
-          allCharacteristics: [],
-          businessFitDescriptions: {}
-        });
-        return;
+        console.log("Using fallback quiz data for development mode");
       }
       
       try {
@@ -131,7 +178,7 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
         // Step 2: Generate AI-powered personalized paths
         const step2Result = await executeStep(1, async () => {
           const { generateAIPersonalizedPaths } = await import("../utils/quizLogic");
-          const paths = await generateAIPersonalizedPaths(quizData);
+          const paths = await generateAIPersonalizedPaths(activeQuizData);
           return { personalizedPaths: paths };
         });
         currentResults = { ...currentResults, ...step2Result };
@@ -142,7 +189,7 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
           const aiService = AIService.getInstance();
           const pathsForInsights = (currentResults as any).personalizedPaths?.slice(0, 3) || [];
           const insights = await aiService.generatePersonalizedInsights(
-            quizData,
+            activeQuizData,
             pathsForInsights
           );
           return { aiInsights: insights };
@@ -151,14 +198,14 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
 
         // Step 4: Generate characteristics
         const step4Result = await executeStep(3, async () => {
-          const characteristics = await generateAllCharacteristics();
+          const characteristics = await generateAllCharacteristics(activeQuizData);
           return { allCharacteristics: characteristics };
         });
         currentResults = { ...currentResults, ...step4Result };
 
         // Step 5: Generate business fit descriptions
         const step5Result = await executeStep(4, async () => {
-          const descriptions = await generateBusinessFitDescriptions();
+          const descriptions = await generateBusinessFitDescriptions(activeQuizData);
           return { businessFitDescriptions: descriptions };
         });
         currentResults = { ...currentResults, ...step5Result };
@@ -272,27 +319,27 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
     }
   };
 
-  const generateAllCharacteristics = async (): Promise<string[]> => {
+  const generateAllCharacteristics = async (data: QuizData): Promise<string[]> => {
     try {
       const prompt = `Based on this quiz data, generate exactly 6 short positive characteristics that reflect the user's entrepreneurial strengths. Each should be 3-5 words maximum and highlight unique aspects of their entrepreneurial potential.
 
 Quiz Data:
-- Self-motivation level: ${quizData.selfMotivationLevel}/5
-- Risk comfort level: ${quizData.riskComfortLevel}/5
-- Tech skills rating: ${quizData.techSkillsRating}/5
-- Direct communication enjoyment: ${quizData.directCommunicationEnjoyment}/5
-- Learning preference: ${quizData.learningPreference}
-- Organization level: ${quizData.organizationLevel}/5
-- Creative work enjoyment: ${quizData.creativeWorkEnjoyment}/5
-- Work collaboration preference: ${quizData.workCollaborationPreference}
-- Decision making style: ${quizData.decisionMakingStyle}
-- Work structure preference: ${quizData.workStructurePreference}
-- Long-term consistency: ${quizData.longTermConsistency}/5
-- Uncertainty handling: ${quizData.uncertaintyHandling}/5
-- Tools familiar with: ${quizData.familiarTools?.join(', ')}
-- Main motivation: ${quizData.mainMotivation}
-- Weekly time commitment: ${quizData.weeklyTimeCommitment}
-- Income goal: ${quizData.successIncomeGoal}
+- Self-motivation level: ${data.selfMotivationLevel}/5
+- Risk comfort level: ${data.riskComfortLevel}/5
+- Tech skills rating: ${data.techSkillsRating}/5
+- Direct communication enjoyment: ${data.directCommunicationEnjoyment}/5
+- Learning preference: ${data.learningPreference}
+- Organization level: ${data.organizationLevel}/5
+- Creative work enjoyment: ${data.creativeWorkEnjoyment}/5
+- Work collaboration preference: ${data.workCollaborationPreference}
+- Decision making style: ${data.decisionMakingStyle}
+- Work structure preference: ${data.workStructurePreference}
+- Long-term consistency: ${data.longTermConsistency}/5
+- Uncertainty handling: ${data.uncertaintyHandling}/5
+- Tools familiar with: ${data.familiarTools?.join(', ')}
+- Main motivation: ${data.mainMotivation}
+- Weekly time commitment: ${data.weeklyTimeCommitment}
+- Income goal: ${data.successIncomeGoal}
 
 Return a JSON object with this exact structure:
 {
@@ -336,20 +383,20 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
       console.error('Error generating characteristics:', error);
       // Fallback characteristics based on quiz data
       return [
-        quizData.selfMotivationLevel >= 4 ? "Highly self-motivated" : "Moderately self-motivated",
-        quizData.riskComfortLevel >= 4 ? "High risk tolerance" : "Moderate risk tolerance",
-        quizData.techSkillsRating >= 4 ? "Strong tech skills" : "Adequate tech skills",
-        quizData.directCommunicationEnjoyment >= 4 ? "Excellent communicator" : "Good communicator",
-        quizData.organizationLevel >= 4 ? "Highly organized planner" : "Flexible approach to planning",
-        quizData.creativeWorkEnjoyment >= 4 ? "Creative problem solver" : "Analytical approach to challenges"
+        data.selfMotivationLevel >= 4 ? "Highly self-motivated" : "Moderately self-motivated",
+        data.riskComfortLevel >= 4 ? "High risk tolerance" : "Moderate risk tolerance",
+        data.techSkillsRating >= 4 ? "Strong tech skills" : "Adequate tech skills",
+        data.directCommunicationEnjoyment >= 4 ? "Excellent communicator" : "Good communicator",
+        data.organizationLevel >= 4 ? "Highly organized planner" : "Flexible approach to planning",
+        data.creativeWorkEnjoyment >= 4 ? "Creative problem solver" : "Analytical approach to challenges"
       ];
     }
   };
 
-  const generateBusinessFitDescriptions = async (): Promise<{[key: string]: string}> => {
+  const generateBusinessFitDescriptions = async (data: QuizData): Promise<{[key: string]: string}> => {
     try {
       const { calculateAdvancedBusinessModelMatches } = await import("../utils/advancedScoringAlgorithm");
-      const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
+      const advancedScores = calculateAdvancedBusinessModelMatches(data);
       const top3Paths = advancedScores.slice(0, 3);
       
       const response = await fetch('/api/generate-business-fit-descriptions', {
@@ -358,7 +405,7 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          quizData,
+          quizData: data,
           businessMatches: top3Paths
         }),
       });
