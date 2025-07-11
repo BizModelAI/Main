@@ -103,7 +103,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail, preloade
   );
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(preloadedReportData?.aiInsights || null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(preloadedReportData?.aiAnalysis || null);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(true);
   const [showAIInsights, setShowAIInsights] = useState(false);
 
   const [showPreview, setShowPreview] = useState(true);
@@ -200,6 +200,60 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail, preloade
     setHasCompletedQuiz(true);
 
   }, [quizData, preloadedReportData, setHasCompletedQuiz]);
+
+  // Generate AI content for results page (basic insights + preview analysis)
+  const generateAIContent = async (paths: BusinessPath[]) => {
+    try {
+      setIsGeneratingAI(true);
+      
+      // Check if we already have AI insights from preloaded data
+      if (preloadedReportData?.aiInsights && preloadedReportData?.aiAnalysis) {
+        console.log("Using preloaded AI content from loading page");
+        setAiInsights(preloadedReportData.aiInsights);
+        setAiAnalysis(preloadedReportData.aiAnalysis);
+        setIsGeneratingAI(false);
+        return;
+      }
+      
+      // Generate fresh content if no preloaded data
+      console.log("Generating fresh AI content from OpenAI for new quiz results...");
+      console.log("Top business model being passed to AI:", paths[0]?.name, "with", paths[0]?.fitScore, "% fit");
+
+      const aiService = AIService.getInstance();
+
+      // Generate basic insights for results page
+      const insights = await aiService.generatePersonalizedInsights(
+        quizData,
+        paths.slice(0, 3),
+      );
+      setAiInsights(insights);
+
+      // Generate detailed AI analysis for full report preview
+      const analysis = await aiService.generateDetailedAnalysis(
+        quizData,
+        paths[0],
+      );
+      setAiAnalysis(analysis);
+
+      // Cache the generated content for subsequent page visits
+      aiCacheManager.cacheAIContent(quizData, insights, analysis, paths[0]);
+      
+    } catch (error) {
+      console.error("Error generating AI content:", error);
+      // Fallback content
+      setAiInsights(generateFallbackInsights());
+      setAiAnalysis(generateFallbackAnalysis());
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  // Generate AI content when personalized paths are loaded
+  useEffect(() => {
+    if (personalizedPaths.length > 0) {
+      generateAIContent(personalizedPaths);
+    }
+  }, [personalizedPaths]);
 
   // Generate full AI content only when user accesses specific pages (on-demand)
   const generateFullAIContent = async (paths: BusinessPath[]) => {
