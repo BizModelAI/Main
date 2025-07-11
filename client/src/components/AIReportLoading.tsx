@@ -103,12 +103,13 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
 
   useEffect(() => {
     const generateReport = async () => {
+      const startTime = Date.now();
       let currentResults = {};
       
       try {
         // Step 1: Analyze profile (immediate)
         const step1Result = await executeStep(0, async () => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1500));
           return { profileAnalyzed: true };
         });
         currentResults = { ...currentResults, ...step1Result };
@@ -150,10 +151,22 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
 
         // Step 6: Finalize report
         const step6Result = await executeStep(5, async () => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1500));
           return { reportFinalized: true };
         });
         currentResults = { ...currentResults, ...step6Result };
+
+        // Ensure minimum 10 seconds duration
+        const elapsedTime = Date.now() - startTime;
+        const minimumDuration = 10000; // 10 seconds
+        
+        if (elapsedTime < minimumDuration) {
+          const remainingTime = minimumDuration - elapsedTime;
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          
+          // Update progress to 100% during final wait
+          setProgress(100);
+        }
 
         // Complete and pass data to parent
         onComplete({
@@ -165,6 +178,17 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
 
       } catch (error) {
         console.error("Error generating report:", error);
+        
+        // Ensure minimum 10 seconds duration even on error
+        const elapsedTime = Date.now() - startTime;
+        const minimumDuration = 10000; // 10 seconds
+        
+        if (elapsedTime < minimumDuration) {
+          const remainingTime = minimumDuration - elapsedTime;
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          setProgress(100);
+        }
+        
         // In case of error, still complete with current data
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
@@ -359,13 +383,13 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen bg-white py-4">
       <div className="max-w-4xl mx-auto px-4 relative">
         {/* Exit Button */}
         {onExit && (
           <motion.button
             onClick={onExit}
-            className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur-sm hover:bg-white/90 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+            className="absolute top-2 left-2 z-10 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -378,14 +402,14 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
         
         {/* Header */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <motion.div
-              className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center"
+              className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center"
               animate={{ 
                 scale: [1, 1.1, 1],
                 rotate: [0, 5, -5, 0]
@@ -396,32 +420,32 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
                 ease: "easeInOut"
               }}
             >
-              <Brain className="h-8 w-8 text-white" />
+              <Brain className="h-6 w-6 text-white" />
             </motion.div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
             AI is Creating Your Personalized Report
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Our advanced AI is analyzing your responses and generating custom insights just for you. This will take about 20-30 seconds.
+            Our advanced AI is analyzing your responses and generating custom insights just for you. This will take about 10-15 seconds.
           </p>
         </motion.div>
 
         {/* Progress Bar */}
         <motion.div 
-          className="mb-12"
+          className="mb-6"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-gray-50 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Progress</span>
               <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-gray-200 rounded-full h-2">
               <motion.div
-                className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full"
                 initial={{ width: "0%" }}
                 animate={{ width: `${progress}%` }}
                 transition={{ 
@@ -436,52 +460,36 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
           </div>
         </motion.div>
 
-        {/* Loading Steps */}
-        <div className="space-y-4">
+        {/* Compact Loading Steps Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
           {steps.map((step, index) => (
             <motion.div
               key={step.id}
-              className={`bg-white rounded-2xl p-6 shadow-lg transition-all duration-300 ${
+              className={`bg-gray-50 rounded-xl p-4 shadow-sm transition-all duration-300 ${
                 step.status === 'active' 
-                  ? 'ring-2 ring-blue-500 shadow-xl' 
+                  ? 'ring-2 ring-blue-500 bg-blue-50' 
                   : step.status === 'completed'
-                  ? 'ring-2 ring-green-500'
+                  ? 'ring-2 ring-green-500 bg-green-50'
                   : 'ring-1 ring-gray-200'
               }`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <div className="flex items-center">
-                <div className="flex-shrink-0 mr-4">
+              <div className="flex items-center mb-2">
+                <div className="flex-shrink-0 mr-3">
                   {getStepIcon(step, index)}
-                </div>
-                <div className="flex-1">
-                  <h3 className={`text-lg font-semibold ${
-                    step.status === 'active' ? 'text-blue-900' : 
-                    step.status === 'completed' ? 'text-green-900' : 
-                    'text-gray-700'
-                  }`}>
-                    {step.title}
-                  </h3>
-                  <p className={`text-sm ${
-                    step.status === 'active' ? 'text-blue-600' : 
-                    step.status === 'completed' ? 'text-green-600' : 
-                    'text-gray-500'
-                  }`}>
-                    {step.description}
-                  </p>
                 </div>
                 {step.status === 'active' && (
                   <motion.div
-                    className="flex space-x-1 ml-4"
+                    className="flex space-x-1 ml-auto"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
                     {[0, 1, 2].map((dot) => (
                       <motion.div
                         key={dot}
-                        className="w-2 h-2 bg-blue-500 rounded-full"
+                        className="w-1.5 h-1.5 bg-blue-500 rounded-full"
                         animate={{
                           scale: [1, 1.2, 1],
                           opacity: [0.5, 1, 0.5]
@@ -496,24 +504,38 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
                   </motion.div>
                 )}
               </div>
+              <h3 className={`text-lg font-semibold mb-1 ${
+                step.status === 'active' ? 'text-blue-900' : 
+                step.status === 'completed' ? 'text-green-900' : 
+                'text-gray-700'
+              }`}>
+                {step.title}
+              </h3>
+              <p className={`text-sm ${
+                step.status === 'active' ? 'text-blue-600' : 
+                step.status === 'completed' ? 'text-green-600' : 
+                'text-gray-500'
+              }`}>
+                {step.description}
+              </p>
             </motion.div>
           ))}
         </div>
 
-        {/* Fun Facts */}
+        {/* Compact Fun Facts */}
         <motion.div 
-          className="mt-12 bg-white rounded-2xl p-6 shadow-lg"
+          className="bg-gray-50 rounded-2xl p-4 shadow-sm"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
             <Lightbulb className="h-5 w-5 text-yellow-500 mr-2" />
             Did you know?
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-start">
-              <div className="text-2xl mr-3">🧠</div>
+              <div className="text-xl mr-3">🧠</div>
               <div>
                 <p className="text-sm text-gray-600">
                   Our AI analyzes over 12 different personality traits and business factors to find your perfect match.
@@ -521,7 +543,7 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
               </div>
             </div>
             <div className="flex items-start">
-              <div className="text-2xl mr-3">🎯</div>
+              <div className="text-xl mr-3">🎯</div>
               <div>
                 <p className="text-sm text-gray-600">
                   Your personalized report is unique to you - no two reports are exactly the same!
