@@ -83,7 +83,7 @@ export class AIScoringService {
     }));
 
     return `
-    Analyze this user's quiz responses and provide business model compatibility scores:
+    Analyze your quiz responses and provide business model compatibility scores:
 
     USER PROFILE:
     - Main Motivation: ${quizData.mainMotivation}

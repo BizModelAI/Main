@@ -148,6 +148,7 @@ Generate a professional analysis explaining why ${topPath.name} is the BEST fit 
 5. Why you should prioritize this over other options
 
 Requirements:
+- Speak directly to the user in second person ("you", "your")
 - Enthusiastic but professional tone
 - Emphasize strong alignment and natural advantages
 - 250-350 words maximum
@@ -156,14 +157,15 @@ Requirements:
           case "Strong Fit":
             return `${baseProfile}
 
-Generate a professional analysis explaining why ${topPath.name} is a STRONG fit for this user, but acknowledge it's not their absolute best match. Focus on:
-1. How their traits align well with this business model
-2. Why this is a solid choice with good potential
-3. Areas where they'll do well
-4. 1-2 sentences about why it's not their #1 best fit
-5. How to maximize success in this model
+Generate a professional analysis explaining why ${topPath.name} is a STRONG fit for you, but acknowledge it's not your absolute best match. Focus on:
+1. How your traits align well with this business model
+2. Why this is a solid choice with good potential for you
+3. Areas where you'll do well
+4. 1-2 sentences about why it's not your #1 best fit
+5. How you can maximize success in this model
 
 Requirements:
+- Speak directly to the user in second person ("you", "your")
 - Positive but realistic tone
 - Show it's a good choice while noting it's not perfect
 - 250-350 words maximum
@@ -172,31 +174,33 @@ Requirements:
           case "Possible Fit":
             return `${baseProfile}
 
-Generate a professional analysis explaining why ${topPath.name} ISN'T the best fit for this user. Focus on:
-1. Specific misalignments between their traits and this business model
-2. Why they should consider other options first
-3. Challenges they would likely face
-4. Why their quiz responses suggest this isn't ideal
-5. What they should focus on instead
+Generate a professional analysis explaining why ${topPath.name} ISN'T the best fit for you. Focus on:
+1. Specific misalignments between your traits and this business model
+2. Why you should consider other options first
+3. Challenges you would likely face
+4. Why your quiz responses suggest this isn't ideal
+5. What you should focus on instead
 
 Requirements:
+- Speak directly to the user in second person ("you", "your")
 - Honest but constructive tone
 - Clearly explain why this isn't recommended
-- Suggest they explore better-fitting options
+- Suggest you explore better-fitting options
 - 250-350 words maximum
 - No markdown formatting`;
 
           case "Poor Fit":
             return `${baseProfile}
 
-Generate a professional analysis explaining why this user should AVOID ${topPath.name}. Focus on:
-1. Clear misalignments between their profile and this business model
-2. Specific reasons why they would struggle
-3. Why they should avoid this path for now
+Generate a professional analysis explaining why you should AVOID ${topPath.name}. Focus on:
+1. Clear misalignments between your profile and this business model
+2. Specific reasons why you would struggle
+3. Why you should avoid this path for now
 4. What fundamental changes would be needed before considering this
-5. Better alternatives to explore instead
+5. Better alternatives for you to explore instead
 
 Requirements:
+- Speak directly to the user in second person ("you", "your")
 - Direct but supportive tone
 - Clearly advise against this path
 - Explain what needs to change before reconsidering
@@ -491,7 +495,7 @@ User Profile:
     
     const topBusinessModel = topPaths[0];
     const prompt = `
-Based on this user profile, create a personalized 2-3 sentence summary that explains why ${topBusinessModel.name} is their perfect business match. Be specific about their personality traits and goals.
+Based on this user profile, create a personalized 2-3 sentence summary that explains why ${topBusinessModel.name} is your perfect business match. Be specific about your personality traits and goals.
 
 ${userProfile}
 
@@ -501,7 +505,7 @@ ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 Additional Context - Other matches:
 ${topPaths.slice(1, 3).map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`).join("\n")}
 
-Write a personalized summary that connects their specific traits to ${topBusinessModel.name}. Be encouraging and specific about why ${topBusinessModel.name} is their best fit.
+Write a personalized summary that connects your specific traits to ${topBusinessModel.name}. Be encouraging and specific about why ${topBusinessModel.name} is your best fit.
     `;
 
     try {
@@ -523,14 +527,14 @@ Write a personalized summary that connects their specific traits to ${topBusines
     console.log("AI Recommendations - Top business model:", topBusinessModel.name);
     
     const prompt = `
-Based on this user profile and their top business match (${topBusinessModel.name}), generate 6 specific, actionable recommendations tailored to their personality and goals for starting ${topBusinessModel.name}.
+Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific, actionable recommendations tailored to your personality and goals for starting ${topBusinessModel.name}.
 
 ${userProfile}
 
 PRIMARY FOCUS - TOP BUSINESS MATCH:
 ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Generate 6 personalized recommendations specifically for ${topBusinessModel.name} that consider their:
+Generate 6 personalized recommendations specifically for ${topBusinessModel.name} that consider your:
 - Specific strengths and preferences
 - Time availability and goals
 - Risk tolerance and tech comfort
@@ -555,14 +559,14 @@ Format as a simple list, each recommendation should be 1-2 sentences and actiona
     console.log("AI Challenges - Top business model:", topBusinessModel.name);
     
     const prompt = `
-Based on this user profile and their top business match (${topBusinessModel.name}), identify 4 specific challenges they might face when starting ${topBusinessModel.name} and how to address them.
+Based on this user profile and your top business match (${topBusinessModel.name}), identify 4 specific challenges you might face when starting ${topBusinessModel.name} and how to address them.
 
 ${userProfile}
 
 PRIMARY FOCUS - TOP BUSINESS MATCH:
 ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Generate 4 potential challenges specifically for ${topBusinessModel.name} that are based on their personality traits, goals, and this specific business path. For each challenge, include a brief solution or mitigation strategy.
+Generate 4 potential challenges specifically for ${topBusinessModel.name} that are based on your personality traits, goals, and this specific business path. For each challenge, include a brief solution or mitigation strategy.
 
 Format as a simple list, each item should be 1-2 sentences and specific to ${topBusinessModel.name}.
     `;
@@ -583,7 +587,7 @@ Format as a simple list, each item should be 1-2 sentences and specific to ${top
     console.log("AI Success Strategies - Top business model:", topBusinessModel.name);
     
     const prompt = `
-Based on this user profile and their top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage their strengths for ${topBusinessModel.name}.
+Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage your strengths for ${topBusinessModel.name}.
 
 ${userProfile}
 
@@ -591,10 +595,10 @@ PRIMARY FOCUS - TOP BUSINESS MATCH:
 ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
 Generate 6 success strategies specifically for ${topBusinessModel.name} that:
-- Leverage their specific strengths and preferences
-- Address their goals and timeline
-- Work with their available time and resources
-- Match their learning and work style
+- Leverage your specific strengths and preferences
+- Address your goals and timeline
+- Work with your available time and resources
+- Match your learning and work style
 - Are specifically tailored to ${topBusinessModel.name}
 
 Format as a simple list, each strategy should be 1-2 sentences and actionable for ${topBusinessModel.name}.
@@ -618,13 +622,13 @@ Format as a simple list, each strategy should be 1-2 sentences and actionable fo
     month6: string[];
   }> {
     const prompt = `
-Based on this user profile and their top business match, create a detailed action plan with specific tasks for Week 1, Month 1, Month 3, and Month 6.
+Based on this user profile and your top business match, create a detailed action plan with specific tasks for Week 1, Month 1, Month 3, and Month 6.
 
 ${userProfile}
 
 Top Business Match: ${topPath.name} (${topPath.fitScore}% match) - ${topPath.description}
 
-Create a personalized action plan that considers their:
+Create a personalized action plan that considers your:
 - Available time and resources
 - Learning style and preferences
 - Goals and timeline
@@ -673,17 +677,17 @@ Month 6:
     console.log("AI Motivational Message - Top business model:", topBusinessModel.name);
     
     const prompt = `
-Based on this user profile and their top business match (${topBusinessModel.name}), write an inspiring and personalized motivational message (2-3 sentences) that:
-- Acknowledges their specific strengths for ${topBusinessModel.name}
-- Connects to their goals and motivation
-- Encourages them to take action in ${topBusinessModel.name}
+Based on this user profile and your top business match (${topBusinessModel.name}), write an inspiring and personalized motivational message (2-3 sentences) that:
+- Acknowledges your specific strengths for ${topBusinessModel.name}
+- Connects to your goals and motivation
+- Encourages you to take action in ${topBusinessModel.name}
 - Feels personal and authentic
 
 ${userProfile}
 
 Top Business Match: ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Write a motivational message that feels like it's coming from a mentor who truly understands them and believes in their potential for ${topBusinessModel.name}.
+Write a motivational message that feels like it's coming from a mentor who truly understands you and believes in your potential for ${topBusinessModel.name}.
     `;
 
     try {
