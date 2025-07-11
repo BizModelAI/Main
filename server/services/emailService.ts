@@ -65,6 +65,9 @@ export class EmailService {
     }
 
     try {
+      console.log(`Attempting to send email to: ${options.to}`);
+      console.log(`Subject: ${options.subject}`);
+      
       const { data, error } = await resend.emails.send({
         from: 'BizModelAI <onboarding@resend.dev>',
         to: [options.to],
@@ -73,14 +76,18 @@ export class EmailService {
       });
 
       if (error) {
-        console.error('Error sending email:', error);
+        console.error('Resend API error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         return false;
       }
 
-      console.log('Email sent successfully:', data);
+      console.log('Email sent successfully to:', options.to);
+      console.log('Email ID:', data?.id);
+      console.log('Email data:', data);
       return true;
     } catch (error) {
       console.error('Error sending email:', error);
+      console.error('Full error details:', JSON.stringify(error, null, 2));
       return false;
     }
   }

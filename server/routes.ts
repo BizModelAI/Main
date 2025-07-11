@@ -912,6 +912,43 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
     }
   });
 
+  // Test email endpoint for debugging
+  app.post("/api/test-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      console.log(`Testing email delivery to: ${email}`);
+      
+      const success = await emailService.sendEmail({
+        to: email,
+        subject: 'BizModelAI Email Test',
+        html: `
+          <html>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+              <h2>Email Test Successful!</h2>
+              <p>This is a test email from BizModelAI to verify email delivery is working.</p>
+              <p>If you received this email, the email system is functioning correctly.</p>
+              <p>Time sent: ${new Date().toISOString()}</p>
+            </body>
+          </html>
+        `
+      });
+
+      if (success) {
+        res.json({ success: true, message: "Test email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send test email" });
+      }
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
