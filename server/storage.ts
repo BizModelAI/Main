@@ -2,12 +2,15 @@ import {
   users,
   quizAttempts,
   payments,
+  unpaidUserEmails,
   type User,
   type InsertUser,
   type QuizAttempt,
   type InsertQuizAttempt,
   type Payment,
   type InsertPayment,
+  type UnpaidUserEmail,
+  type InsertUnpaidUserEmail,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, sql } from "drizzle-orm";
@@ -30,23 +33,32 @@ export interface IStorage {
   createPayment(payment: Omit<InsertPayment, 'id'>): Promise<Payment>;
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
+  
+  // Unpaid user email tracking
+  storeUnpaidUserEmail(sessionId: string, email: string, quizData: any): Promise<UnpaidUserEmail>;
+  getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined>;
+  cleanupExpiredUnpaidEmails(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private quizAttempts: Map<number, QuizAttempt>;
   private payments: Map<number, Payment>;
+  private unpaidUserEmails: Map<string, UnpaidUserEmail>;
   currentId: number;
   currentQuizAttemptId: number;
   currentPaymentId: number;
+  currentUnpaidEmailId: number;
 
   constructor() {
     this.users = new Map();
     this.quizAttempts = new Map();
     this.payments = new Map();
+    this.unpaidUserEmails = new Map();
     this.currentId = 1;
     this.currentQuizAttemptId = 1;
     this.currentPaymentId = 1;
+    this.currentUnpaidEmailId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -185,6 +197,45 @@ export class MemStorage implements IStorage {
       .filter(payment => payment.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
+
+  async storeUnpaidUserEmail(sessionId: string, email: string, quizData: any): Promise<UnpaidUserEmail> {
+    const id = this.currentUnpaidEmailId++;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    
+    const unpaidUserEmail: UnpaidUserEmail = {
+      id,
+      sessionId,
+      email,
+      quizData,
+      createdAt: new Date(),
+      expiresAt,
+    };
+    
+    this.unpaidUserEmails.set(sessionId, unpaidUserEmail);
+    return unpaidUserEmail;
+  }
+
+  async getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined> {
+    const email = this.unpaidUserEmails.get(sessionId);
+    if (!email) return undefined;
+    
+    // Check if expired
+    if (email.expiresAt < new Date()) {
+      this.unpaidUserEmails.delete(sessionId);
+      return undefined;
+    }
+    
+    return email;
+  }
+
+  async cleanupExpiredUnpaidEmails(): Promise<void> {
+    const now = new Date();
+    for (const [sessionId, email] of this.unpaidUserEmails.entries()) {
+      if (email.expiresAt < now) {
+        this.unpaidUserEmails.delete(sessionId);
+      }
+    }
+  }
 }
 
 // Database storage implementation
@@ -302,6 +353,46 @@ export class DatabaseStorage implements IStorage {
       .from(payments)
       .where(eq(payments.userId, userId))
       .orderBy(desc(payments.createdAt));
+  }
+
+  async storeUnpaidUserEmail(sessionId: string, email: string, quizData: any): Promise<UnpaidUserEmail> {
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    
+    // Delete any existing record for this session
+    await db.delete(unpaidUserEmails).where(eq(unpaidUserEmails.sessionId, sessionId));
+    
+    const [newUnpaidUserEmail] = await db
+      .insert(unpaidUserEmails)
+      .values({
+        sessionId,
+        email,
+        quizData,
+        expiresAt,
+      })
+      .returning();
+    
+    return newUnpaidUserEmail;
+  }
+
+  async getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined> {
+    const [email] = await db
+      .select()
+      .from(unpaidUserEmails)
+      .where(eq(unpaidUserEmails.sessionId, sessionId));
+    
+    if (!email) return undefined;
+    
+    // Check if expired
+    if (email.expiresAt < new Date()) {
+      await db.delete(unpaidUserEmails).where(eq(unpaidUserEmails.sessionId, sessionId));
+      return undefined;
+    }
+    
+    return email;
+  }
+
+  async cleanupExpiredUnpaidEmails(): Promise<void> {
+    await db.delete(unpaidUserEmails).where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
   }
 }
 

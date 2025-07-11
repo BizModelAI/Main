@@ -10,6 +10,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { QuizData } from "../types";
+import { getSessionId } from "../../../shared/utils";
 
 interface EmailCaptureProps {
   onEmailSubmit: (email: string) => void;
@@ -96,16 +97,19 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Send quiz results email if quiz data is available
+      // Store email for unpaid users and send quiz results email
       if (quizData) {
-        const response = await fetch('/api/send-quiz-results', {
+        const sessionId = getSessionId();
+        const response = await fetch('/api/email-results', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            sessionId,
             email: email.trim(),
             quizData: quizData,
+            isPaidUser: false // EmailCapture is only for unpaid users
           }),
         });
 

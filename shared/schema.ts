@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email"), // Optional email for paid users
   hasAccessPass: boolean("has_access_pass").default(false).notNull(),
   quizRetakesRemaining: integer("quiz_retakes_remaining").default(0).notNull(),
   totalQuizRetakesUsed: integer("total_quiz_retakes_used").default(0).notNull(),
@@ -35,6 +36,16 @@ export const payments = pgTable("payments", {
   completedAt: timestamp("completed_at"),
 });
 
+// Temporary email tracking for unpaid users (expires after 24 hours)
+export const unpaidUserEmails = pgTable("unpaid_user_emails", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().unique(), // Browser session ID
+  email: text("email").notNull(),
+  quizData: jsonb("quiz_data").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -42,6 +53,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertQuizAttemptSchema = createInsertSchema(quizAttempts);
 export const insertPaymentSchema = createInsertSchema(payments);
+export const insertUnpaidUserEmailSchema = createInsertSchema(unpaidUserEmails);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -49,3 +61,5 @@ export type QuizAttempt = typeof quizAttempts.$inferSelect;
 export type InsertQuizAttempt = z.infer<typeof insertQuizAttemptSchema>;
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type UnpaidUserEmail = typeof unpaidUserEmails.$inferSelect;
+export type InsertUnpaidUserEmail = z.infer<typeof insertUnpaidUserEmailSchema>;

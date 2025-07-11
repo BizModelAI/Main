@@ -840,6 +840,78 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
     }
   });
 
+  // Enhanced email functionality for unpaid users
+  app.post("/api/email-results", async (req, res) => {
+    try {
+      const { sessionId, email, quizData, isPaidUser } = req.body;
+      
+      if (!sessionId || !quizData) {
+        return res.status(400).json({ error: "Missing session ID or quiz data" });
+      }
+
+      // Check if user is paid (has account)
+      if (isPaidUser) {
+        // For paid users, send full report
+        const success = await emailService.sendFullReport(email, quizData);
+        if (success) {
+          res.json({ success: true, message: "Full report sent successfully" });
+        } else {
+          res.status(500).json({ error: "Failed to send full report" });
+        }
+        return;
+      }
+
+      // For unpaid users, check if email already exists for this session
+      const existingEmail = await storage.getUnpaidUserEmail(sessionId);
+      
+      if (existingEmail) {
+        // Email already stored, just send again
+        const success = await emailService.sendQuizResults(existingEmail.email, quizData);
+        if (success) {
+          res.json({ success: true, message: "Results sent to your email again" });
+        } else {
+          res.status(500).json({ error: "Failed to send email" });
+        }
+        return;
+      }
+
+      // New email for unpaid user
+      if (!email) {
+        return res.status(400).json({ error: "Email is required for new users" });
+      }
+
+      // Store the email and send results
+      await storage.storeUnpaidUserEmail(sessionId, email, quizData);
+      const success = await emailService.sendQuizResults(email, quizData);
+      
+      if (success) {
+        res.json({ success: true, message: "Results sent to your email" });
+      } else {
+        res.status(500).json({ error: "Failed to send email" });
+      }
+    } catch (error) {
+      console.error('Error in email-results endpoint:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get stored email for unpaid users
+  app.get("/api/get-stored-email/:sessionId", async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const storedEmail = await storage.getUnpaidUserEmail(sessionId);
+      
+      if (storedEmail) {
+        res.json({ email: storedEmail.email });
+      } else {
+        res.json({ email: null });
+      }
+    } catch (error) {
+      console.error('Error getting stored email:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

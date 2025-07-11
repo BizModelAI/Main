@@ -43,6 +43,8 @@ import AIReportLoading from "./AIReportLoading";
 import { PaywallModal, LockedCardOverlay } from "./PaywallModals";
 import { usePaywall } from "../contexts/PaywallContext";
 import { renderMarkdownContent } from "../utils/markdownUtils";
+import EmailResultsModal from "./EmailResultsModal";
+import { useAuth } from "../contexts/AuthContext";
 
 
 interface ResultsProps {
@@ -87,6 +89,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     "business-model" | "learn-more" | "full-report"
   >("business-model");
   const [pendingAction, setPendingAction] = useState<"download" | "share" | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const {
     hasUnlockedAnalysis,
@@ -95,6 +98,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setHasCompletedQuiz,
     canAccessFullReport,
   } = usePaywall();
+
+  const { user } = useAuth();
 
   useEffect(() => {
     console.log("Results component received quizData:", quizData);
@@ -568,35 +573,8 @@ Business Path Platform - businesspath.com
   };
 
   // Email functionality
-  const handleEmailResults = async () => {
-    if (!userEmail) {
-      alert("Please provide your email address to receive your results.");
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/send-quiz-results', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          quizData: quizData,
-        }),
-      });
-
-      if (response.ok) {
-        alert("✅ Your results have been sent to your email!");
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Email send failed:", errorData);
-        alert("Unable to send email. Please try again or contact support.");
-      }
-    } catch (error) {
-      console.error("Error sending email:", error);
-      alert("Unable to send email. Please try again or contact support.");
-    }
+  const handleEmailResults = () => {
+    setShowEmailModal(true);
   };
 
   // Download functionality
@@ -1609,6 +1587,15 @@ Business Path Platform - businesspath.com
           </motion.div>
         )}
       </div>
+
+      {/* Email Results Modal */}
+      <EmailResultsModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        quizData={quizData}
+        isPaidUser={!!user && hasUnlockedAnalysis}
+        userEmail={userEmail}
+      />
 
       {/* Paywall Modal */}
       <PaywallModal
