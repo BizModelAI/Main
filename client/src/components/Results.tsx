@@ -1617,7 +1617,7 @@ Business Path Platform - businesspath.com
         isOpen={showEmailModal}
         onClose={() => setShowEmailModal(false)}
         quizData={quizData}
-        isPaidUser={!!user && hasMadeAnyPayment()}
+        isPaidUser={hasUnlockedAnalysis || hasMadeAnyPayment()}
         userEmail={userEmail}
       />
 
