@@ -231,10 +231,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
       { id: "fit-analysis", label: `Why ${business?.name || business?.title || "This Business"} Fits You`, icon: Target },
       { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
-      { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
+      { id: "pros-cons", label: `Pros & Cons of ${business?.name || business?.title || "This Business"}`, icon: Award },
       { id: "income-potential", label: "Income Potential", icon: TrendingUp },
+      { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
       { id: "required-skills", label: "Required Skills", icon: Brain },
-      { id: "pros-cons", label: `Advantages & Challenges of ${business?.name || business?.title || "This Business"}`, icon: Award },
       { id: "getting-started", label: "Getting Started", icon: Zap },
       { id: "action-plan", label: "Action Plan", icon: Calendar },
     ];
@@ -309,10 +309,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
     { id: "fit-analysis", label: `Why ${business?.name || business?.title || "This Business"} Fits You`, icon: Target },
     { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
-    { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
+    { id: "pros-cons", label: `Pros & Cons of ${business?.name || business?.title || "This Business"}`, icon: Award },
     { id: "income-potential", label: "Income Potential", icon: TrendingUp },
+    { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
     { id: "required-skills", label: "Required Skills", icon: Brain },
-    { id: "pros-cons", label: `Advantages & Challenges of ${business?.name || business?.title || "This Business"}`, icon: Award },
     { id: "getting-started", label: "Getting Started", icon: Zap },
     { id: "action-plan", label: "Action Plan", icon: Calendar },
   ];
@@ -754,6 +754,111 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
               )}
             </section>
 
+            {/* Pros & Cons */}
+            <section
+              id="pros-cons"
+              className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300"
+            >
+              <div className="flex items-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl flex items-center justify-center mr-4">
+                  <Award className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  Pros & Cons of {business?.name || business?.title}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
+                    Key Advantages
+                  </h3>
+                  <ul className="space-y-4">
+                    {business.pros?.map((pro: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                        <span className="text-gray-700">{pro}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <AlertTriangle className="h-6 w-6 text-orange-500 mr-3" />
+                    Potential Challenges
+                  </h3>
+                  <ul className="space-y-4">
+                    {business.cons?.map((con: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <AlertTriangle className="h-5 w-5 text-orange-500 mr-3 mt-1 flex-shrink-0" />
+                        <span className="text-gray-700">{con}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* Income Potential */}
+            <section
+              id="income-potential"
+              className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300"
+            >
+              <div className="flex items-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mr-4">
+                  <TrendingUp className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  Income Potential & Timeline
+                </h2>
+              </div>
+
+              {business.averageIncome && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="text-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
+                    <div className="text-2xl font-bold text-gray-900 mb-2">
+                      {business.averageIncome.beginner}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium">
+                      Beginner (0-6 months)
+                    </div>
+                  </div>
+                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {business.averageIncome.intermediate}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium">
+                      Intermediate (6-18 months)
+                    </div>
+                  </div>
+                  <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
+                    <div className="text-2xl font-bold text-green-600 mb-2">
+                      {business.averageIncome.advanced}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium">
+                      Advanced (18+ months)
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* AI-Powered Income Projections */}
+              <IncomeProjectionChart 
+                businessId={businessId || ''}
+                businessModel={business.name}
+                quizData={quizData}
+              />
+
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-8 mt-8">
+                <h3 className="text-xl font-bold text-blue-900 mb-4">
+                  Market Size & Opportunity
+                </h3>
+                <p className="text-blue-800 text-lg">{business.marketSize}</p>
+              </div>
+            </section>
+
             {/* Common Mistakes to Avoid */}
             <section
               id="common-mistakes"
@@ -821,69 +926,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   </div>
                 ))}
               </div>
-
-
             </section>
-
-            {/* Income Potential */}
-            <section
-              id="income-potential"
-              className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300"
-            >
-              <div className="flex items-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mr-4">
-                  <TrendingUp className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  Income Potential & Timeline
-                </h2>
-              </div>
-
-              {business.averageIncome && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  <div className="text-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
-                    <div className="text-2xl font-bold text-gray-900 mb-2">
-                      {business.averageIncome.beginner}
-                    </div>
-                    <div className="text-sm text-gray-600 font-medium">
-                      Beginner (0-6 months)
-                    </div>
-                  </div>
-                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
-                      {business.averageIncome.intermediate}
-                    </div>
-                    <div className="text-sm text-gray-600 font-medium">
-                      Intermediate (6-18 months)
-                    </div>
-                  </div>
-                  <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
-                    <div className="text-2xl font-bold text-green-600 mb-2">
-                      {business.averageIncome.advanced}
-                    </div>
-                    <div className="text-sm text-gray-600 font-medium">
-                      Advanced (18+ months)
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* AI-Powered Income Projections */}
-              <IncomeProjectionChart 
-                businessId={businessId || ''}
-                businessModel={business.name}
-                quizData={quizData}
-              />
-
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-8 mt-8">
-                <h3 className="text-xl font-bold text-blue-900 mb-4">
-                  Market Size & Opportunity
-                </h3>
-                <p className="text-blue-800 text-lg">{business.marketSize}</p>
-              </div>
-            </section>
-
-
 
             {/* Required Skills */}
             <section
