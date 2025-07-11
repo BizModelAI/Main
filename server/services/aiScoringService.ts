@@ -1,6 +1,6 @@
 import OpenAI from "openai";
-import { QuizData, BusinessPath } from "../../shared/types";
-import { businessPaths } from "../../client/src/data/businessPaths";
+import { QuizData, BusinessPath } from "../../shared/types.js";
+import { businessPaths } from "../../client/src/data/businessPaths.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 

@@ -1,11 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { generateBusinessResources } from "./services/resourceService";
-import { pdfService } from "./services/pdfService";
-import { emailService } from "./services/emailService";
-import { aiScoringService } from "./services/aiScoringService";
-import { personalityAnalysisService } from "./services/personalityAnalysisService";
+import { storage } from "./storage.js";
+import { generateBusinessResources } from "./services/resourceService.js";
+import { pdfService } from "./services/pdfService.js";
+import { emailService } from "./services/emailService.js";
+import { aiScoringService } from "./services/aiScoringService.js";
+import { personalityAnalysisService } from "./services/personalityAnalysisService.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here

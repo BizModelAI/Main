@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { QuizData } from "../../shared/types";
+import { QuizData } from "../../shared/types.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 

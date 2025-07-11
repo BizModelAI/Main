@@ -12,7 +12,7 @@ import {
   type UnpaidUserEmail,
   type InsertUnpaidUserEmail,
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, desc, count, sql } from "drizzle-orm";
 
 export interface IStorage {

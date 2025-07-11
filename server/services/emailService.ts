@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
-import type { QuizData } from '../../shared/types';
-import { calculateAllBusinessModelMatches } from '../../shared/scoring';
-import { calculatePersonalityScores, getPersonalityDescription } from '../../shared/personalityScoring';
+import type { QuizData } from '../../shared/types.js';
+import { calculateAllBusinessModelMatches } from '../../shared/scoring.js';
+import { calculatePersonalityScores, getPersonalityDescription } from '../../shared/personalityScoring.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
