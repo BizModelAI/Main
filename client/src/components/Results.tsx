@@ -442,12 +442,22 @@ Business Path Platform - businesspath.com
       setShowUnlockModal(true);
       return;
     }
-    setShowFullReport(true);
-    // Scroll to top of page immediately and then again after DOM update
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
+    
+    // Show loading screen if this is the first time viewing the full report
+    // or if we don't have preloaded data
+    if (!loadedReportData) {
+      setShowAILoading(true);
+      // Scroll to top of page immediately
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      // If we have preloaded data, go directly to the full report
+      setShowFullReport(true);
+      // Scroll to top of page immediately and then again after DOM update
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 50);
+    }
   };
 
   const handleLearnMore = (path: BusinessPath) => {
