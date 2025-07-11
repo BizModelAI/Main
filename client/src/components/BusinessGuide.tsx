@@ -1577,6 +1577,26 @@ const BusinessGuide: React.FC<BusinessGuideProps> = ({ quizData }) => {
               )}
             </section>
 
+            {/* Dashboard Link */}
+            <section className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg border border-blue-200 p-8 text-center">
+              <div className="flex items-center justify-center mb-4">
+                <BarChart3 className="h-8 w-8 text-blue-600 mr-3" />
+                <h2 className="text-2xl font-bold text-gray-900">Continue Your Journey</h2>
+              </div>
+              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                Ready to explore more business opportunities or track your progress? Visit your dashboard to see all your recommendations and manage your business journey.
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/dashboard')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto"
+              >
+                <BarChart3 className="h-5 w-5" />
+                Go to Dashboard
+                <ArrowRight className="h-5 w-5" />
+              </motion.button>
+            </section>
 
           </div>
         </div>
