@@ -22,7 +22,6 @@ interface AIReportLoadingProps {
   onComplete: (data: {
     personalizedPaths: BusinessPath[];
     aiInsights: any;
-    aiAnalysis: any;
     allCharacteristics: string[];
     businessFitDescriptions: {[key: string]: string};
   }) => void;
@@ -184,28 +183,16 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
         });
         currentResults = { ...currentResults, ...step2Result };
 
-        // Step 3: Generate AI insights for Results page
+        // Step 3: Generate AI insights
         const step3Result = await executeStep(2, async () => {
           const { AIService } = await import("../utils/aiService");
           const aiService = AIService.getInstance();
           const pathsForInsights = (currentResults as any).personalizedPaths?.slice(0, 3) || [];
-          
-          // Generate comprehensive AI insights for Results page
           const insights = await aiService.generatePersonalizedInsights(
             activeQuizData,
             pathsForInsights
           );
-          
-          // Also generate detailed analysis for full report preview
-          const analysis = await aiService.generateDetailedAnalysis(
-            activeQuizData,
-            pathsForInsights[0]
-          );
-          
-          return { 
-            aiInsights: insights,
-            aiAnalysis: analysis 
-          };
+          return { aiInsights: insights };
         });
         currentResults = { ...currentResults, ...step3Result };
 
@@ -246,7 +233,6 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
           aiInsights: (currentResults as any).aiInsights || null,
-          aiAnalysis: (currentResults as any).aiAnalysis || null,
           allCharacteristics: (currentResults as any).allCharacteristics || [],
           businessFitDescriptions: (currentResults as any).businessFitDescriptions || {}
         });
@@ -268,7 +254,6 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
           aiInsights: (currentResults as any).aiInsights || null,
-          aiAnalysis: (currentResults as any).aiAnalysis || null,
           allCharacteristics: (currentResults as any).allCharacteristics || [],
           businessFitDescriptions: (currentResults as any).businessFitDescriptions || {}
         });
