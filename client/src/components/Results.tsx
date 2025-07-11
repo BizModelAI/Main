@@ -120,6 +120,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setHasUnlockedAnalysis,
     setHasCompletedQuiz,
     canAccessFullReport,
+    hasMadeAnyPayment,
   } = usePaywall();
 
   const { user } = useAuth();
@@ -514,6 +515,8 @@ Business Path Platform - businesspath.com
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setHasUnlockedAnalysis(true);
+    // Set flag to indicate any payment has been made
+    localStorage.setItem("hasAnyPayment", "true");
     setShowPreview(false);
     setShowUnlockModal(false);
     setIsProcessingPayment(false);
@@ -568,6 +571,8 @@ Business Path Platform - businesspath.com
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setHasUnlockedAnalysis(true);
+    // Set flag to indicate any payment has been made
+    localStorage.setItem("hasAnyPayment", "true");
     setShowPreview(false);
     setShowUnlockModal(false);
     setIsProcessingPayment(false);
@@ -1612,7 +1617,7 @@ Business Path Platform - businesspath.com
         isOpen={showEmailModal}
         onClose={() => setShowEmailModal(false)}
         quizData={quizData}
-        isPaidUser={!!user && hasUnlockedAnalysis}
+        isPaidUser={!!user && hasMadeAnyPayment()}
         userEmail={userEmail}
       />
 

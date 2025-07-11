@@ -8,6 +8,7 @@ interface PaywallContextType {
   isUnlocked: () => boolean;
   canAccessBusinessModel: (modelId?: string) => boolean;
   canAccessFullReport: () => boolean;
+  hasMadeAnyPayment: () => boolean;
 }
 
 const PaywallContext = createContext<PaywallContextType | undefined>(undefined);
@@ -64,6 +65,16 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
     return hasCompletedQuiz && hasUnlockedAnalysis;
   };
 
+  const hasMadeAnyPayment = () => {
+    // Check for any payment-related flags in localStorage
+    const hasUnlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";
+    const hasBusinessAccess = localStorage.getItem("hasBusinessAccess") === "true";
+    const hasPaidDownload = localStorage.getItem("hasPaidDownload") === "true";
+    const hasAnyPayment = localStorage.getItem("hasAnyPayment") === "true";
+    
+    return hasUnlocked || hasBusinessAccess || hasPaidDownload || hasAnyPayment;
+  };
+
   return (
     <PaywallContext.Provider
       value={{
@@ -74,6 +85,7 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
         isUnlocked,
         canAccessBusinessModel,
         canAccessFullReport,
+        hasMadeAnyPayment,
       }}
     >
       {children}

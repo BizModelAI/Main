@@ -165,6 +165,8 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
     } else if (paywallType === "learn-more") {
       // Simulate payment and unlock access
       setHasUnlockedAnalysis(true);
+      // Set flag to indicate any payment has been made
+      localStorage.setItem("hasAnyPayment", "true");
       setShowPaywallModal(false);
       // Navigate to the business model page
       navigate(`/business/${selectedBusinessId}`);
