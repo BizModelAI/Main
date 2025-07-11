@@ -231,7 +231,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
       { id: "fit-analysis", label: `Why ${business?.name || business?.title || "This Business"} Fits You`, icon: Target },
       { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
-      { id: "pros-cons", label: `Pros & Cons of ${business?.name || business?.title || "This Business"}`, icon: Award },
       { id: "income-potential", label: "Income Potential", icon: TrendingUp },
       { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
       { id: "required-skills", label: "Required Skills", icon: Brain },
@@ -309,7 +308,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
     { id: "fit-analysis", label: `Why ${business?.name || business?.title || "This Business"} Fits You`, icon: Target },
     { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
-    { id: "pros-cons", label: `Pros & Cons of ${business?.name || business?.title || "This Business"}`, icon: Award },
     { id: "income-potential", label: "Income Potential", icon: TrendingUp },
     { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
     { id: "required-skills", label: "Required Skills", icon: Brain },
@@ -1089,52 +1087,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
 
 
 
-            {/* Pros & Challenges */}
-            <section
-              id="pros-cons"
-              className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300"
-            >
-              <div className="flex items-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl flex items-center justify-center mr-4">
-                  <Award className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                  Advantages & Challenges of {business?.name || business?.title || "This Business"}
-                </h2>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                    <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
-                    Key Advantages
-                  </h3>
-                  <ul className="space-y-4">
-                    {business.pros?.map((pro: string, index: number) => (
-                      <li key={index} className="flex items-start">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
-                        <span className="text-gray-700">{pro}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                    <AlertTriangle className="h-6 w-6 text-orange-500 mr-3" />
-                    Potential Challenges
-                  </h3>
-                  <ul className="space-y-4">
-                    {business.cons?.map((con: string, index: number) => (
-                      <li key={index} className="flex items-start">
-                        <AlertTriangle className="h-5 w-5 text-orange-500 mr-3 mt-1 flex-shrink-0" />
-                        <span className="text-gray-700">{con}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </section>
 
 
 
