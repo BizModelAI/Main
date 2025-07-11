@@ -64,6 +64,40 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   const { hasCompletedQuiz, canAccessBusinessModel, setHasUnlockedAnalysis } =
     usePaywall();
 
+  // Calculate fit category based on actual quiz data if available
+  const fitCategory = useMemo(() => {
+    if (!quizData || !businessId) return "Best Fit";
+    
+    const businessMatches = calculateAdvancedBusinessModelMatches(quizData);
+    const matchingBusiness = businessMatches.find(b => b.id === businessId);
+    const fitScore = matchingBusiness?.score || 0;
+    
+    console.log(`Fit score for ${businessId}: ${fitScore}%`);
+    
+    if (fitScore >= 70) return "Best Fit";
+    if (fitScore >= 50) return "Strong Fit";
+    if (fitScore >= 30) return "Possible Fit";
+    return "Poor Fit";
+  }, [quizData, businessId]);
+
+  // Generate the appropriate title based on fit category
+  const getFitTitle = (category: string, businessName: string): string => {
+    switch (category) {
+      case "Best Fit":
+        return `Why ${businessName} Is the Best Fit For You`;
+      case "Strong Fit":
+        return `Why ${businessName} Is a Strong Fit For You`;
+      case "Possible Fit":
+        return `Why ${businessName} Isn't the Best Fit For You`;
+      case "Poor Fit":
+        return `Why You Should Avoid ${businessName}`;
+      default:
+        return `Why ${businessName} Fits You`;
+    }
+  };
+
+
+
 
 
   // Generate and cache AI analysis for paid users
@@ -304,43 +338,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   }
 
   const business = businessPath || businessModel;
-  
-  // Get fit category for the business model
-  const getFitCategory = (fitScore: number): string => {
-    if (fitScore >= 70) return "Best Fit";
-    if (fitScore >= 50) return "Strong Fit";
-    if (fitScore >= 30) return "Possible Fit";
-    return "Poor Fit";
-  };
-
-  // Calculate fit category based on actual quiz data if available
-  const fitCategory = useMemo(() => {
-    if (!quizData || !businessId) return "Best Fit";
-    
-    const businessMatches = calculateAdvancedBusinessModelMatches(quizData);
-    const matchingBusiness = businessMatches.find(b => b.id === businessId);
-    const fitScore = matchingBusiness?.score || 0;
-    
-    console.log(`Fit score for ${businessId}: ${fitScore}%`);
-    
-    return getFitCategory(fitScore);
-  }, [quizData, businessId]);
-  
-  // Generate the appropriate title based on fit category
-  const getFitTitle = (category: string, businessName: string): string => {
-    switch (category) {
-      case "Best Fit":
-        return `Why ${businessName} Is the Best Fit For You`;
-      case "Strong Fit":
-        return `Why ${businessName} Is a Strong Fit For You`;
-      case "Possible Fit":
-        return `Why ${businessName} Isn't the Best Fit For You`;
-      case "Poor Fit":
-        return `Why You Should Avoid ${businessName}`;
-      default:
-        return `Why ${businessName} Fits You`;
-    }
-  };
 
   // Sidebar navigation items - now defined after business is available
   const getSidebarItems = () => [
