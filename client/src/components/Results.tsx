@@ -104,6 +104,10 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   useEffect(() => {
     console.log("Results component received quizData:", quizData);
     
+    // Clear AI cache for fresh quiz results
+    aiCacheManager.clearCacheForQuiz(quizData);
+    console.log("AI cache cleared for new quiz results");
+    
     // Trigger confetti blast only on first visit to results page
     const confettiKey = `confetti_shown_${userEmail || 'anonymous'}`;
     const hasShownConfetti = localStorage.getItem(confettiKey);
@@ -175,28 +179,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // Generate AI content for results page (basic insights + preview analysis)
   const generateAIContent = async (paths: BusinessPath[]) => {
     try {
-      // Show loading screen before starting AI generation
-
       setIsGeneratingAI(true);
       
-      // Check cache first (but allow manual override)
-      const cachedContent = aiCacheManager.getCachedAIContent(quizData);
-      const forceRefresh = localStorage.getItem('force-ai-refresh') === 'true';
-      
-      if (cachedContent.insights && cachedContent.analysis && !forceRefresh) {
-        console.log("Using cached AI content");
-        setAiInsights(cachedContent.insights);
-        setAiAnalysis(cachedContent.analysis);
-        setIsGeneratingAI(false);
+      // Since we cleared the cache when the quiz was taken, always generate fresh content
+      console.log("Generating fresh AI content from OpenAI for new quiz results...");
+      console.log("Top business model being passed to AI:", paths[0]?.name, "with", paths[0]?.fitScore, "% fit");
 
-        return;
-      }
-
-      // Clear force refresh flag
-      localStorage.removeItem('force-ai-refresh');
-      console.log("Generating fresh AI content from OpenAI...");
-
-      // Generate new content if not cached
       const aiService = AIService.getInstance();
 
       // Generate basic insights for results page
@@ -213,7 +201,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       );
       setAiAnalysis(analysis);
 
-      // Cache the generated content
+      // Cache the generated content for subsequent page visits
       aiCacheManager.cacheAIContent(quizData, insights, analysis, paths[0]);
       
     } catch (error) {
@@ -223,8 +211,6 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       setAiAnalysis(generateFallbackAnalysis());
     } finally {
       setIsGeneratingAI(false);
-      // Hide loading screen after AI generation completes
-
     }
   };
 

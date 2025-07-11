@@ -252,25 +252,32 @@ User Profile:
     userProfile: string,
     topPaths: any[],
   ): Promise<string> {
+    // Debug logging to ensure we have the correct top business model
+    console.log("AI Summary - Top business paths:", topPaths.map(p => `${p.name} (${p.fitScore}%)`));
+    
+    const topBusinessModel = topPaths[0];
     const prompt = `
-Based on this user profile, create a personalized 2-3 sentence summary that explains why their top business match is perfect for them. Be specific about their personality traits and goals.
+Based on this user profile, create a personalized 2-3 sentence summary that explains why ${topBusinessModel.name} is their perfect business match. Be specific about their personality traits and goals.
 
 ${userProfile}
 
-Top Business Matches:
-${topPaths.map((path, i) => `${i + 1}. ${path.name} (${path.fitScore}% match) - ${path.description}`).join("\n")}
+FOCUS ON THIS TOP BUSINESS MATCH:
+${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Write a personalized summary that connects their specific traits to their top business match. Be encouraging and specific.
+Additional Context - Other matches:
+${topPaths.slice(1, 3).map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`).join("\n")}
+
+Write a personalized summary that connects their specific traits to ${topBusinessModel.name}. Be encouraging and specific about why ${topBusinessModel.name} is their best fit.
     `;
 
     try {
       const content = await this.makeOpenAIRequest(prompt, 200, 0.7);
       return (
         content ||
-        "Your unique combination of traits makes you well-suited for entrepreneurial success."
+        `Your unique combination of traits makes you perfectly suited for ${topBusinessModel.name} success.`
       );
     } catch (error) {
-      return "Your unique combination of traits makes you well-suited for entrepreneurial success.";
+      return `Your unique combination of traits makes you perfectly suited for ${topBusinessModel.name} success.`;
     }
   }
 
@@ -278,21 +285,24 @@ Write a personalized summary that connects their specific traits to their top bu
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
+    const topBusinessModel = topPaths[0];
+    console.log("AI Recommendations - Top business model:", topBusinessModel.name);
+    
     const prompt = `
-Based on this user profile and their top business matches, generate 6 specific, actionable recommendations tailored to their personality and goals.
+Based on this user profile and their top business match (${topBusinessModel.name}), generate 6 specific, actionable recommendations tailored to their personality and goals for starting ${topBusinessModel.name}.
 
 ${userProfile}
 
-Top Business Matches:
-${topPaths.map((path, i) => `${i + 1}. ${path.name} (${path.fitScore}% match)`).join("\n")}
+PRIMARY FOCUS - TOP BUSINESS MATCH:
+${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Generate 6 personalized recommendations that consider their:
+Generate 6 personalized recommendations specifically for ${topBusinessModel.name} that consider their:
 - Specific strengths and preferences
 - Time availability and goals
 - Risk tolerance and tech comfort
 - Learning style and motivation level
 
-Format as a simple list, each recommendation should be 1-2 sentences and actionable.
+Format as a simple list, each recommendation should be 1-2 sentences and actionable for ${topBusinessModel.name}.
     `;
 
     try {
@@ -307,17 +317,20 @@ Format as a simple list, each recommendation should be 1-2 sentences and actiona
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
+    const topBusinessModel = topPaths[0];
+    console.log("AI Challenges - Top business model:", topBusinessModel.name);
+    
     const prompt = `
-Based on this user profile and their top business matches, identify 4 specific challenges they might face and how to address them.
+Based on this user profile and their top business match (${topBusinessModel.name}), identify 4 specific challenges they might face when starting ${topBusinessModel.name} and how to address them.
 
 ${userProfile}
 
-Top Business Matches:
-${topPaths.map((path, i) => `${i + 1}. ${path.name} (${path.fitScore}% match)`).join("\n")}
+PRIMARY FOCUS - TOP BUSINESS MATCH:
+${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Generate 4 potential challenges that are specific to their personality traits, goals, and chosen business path. For each challenge, include a brief solution or mitigation strategy.
+Generate 4 potential challenges specifically for ${topBusinessModel.name} that are based on their personality traits, goals, and this specific business path. For each challenge, include a brief solution or mitigation strategy.
 
-Format as a simple list, each item should be 1-2 sentences.
+Format as a simple list, each item should be 1-2 sentences and specific to ${topBusinessModel.name}.
     `;
 
     try {
@@ -332,21 +345,25 @@ Format as a simple list, each item should be 1-2 sentences.
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
+    const topBusinessModel = topPaths[0];
+    console.log("AI Success Strategies - Top business model:", topBusinessModel.name);
+    
     const prompt = `
-Based on this user profile and their top business matches, generate 6 specific success strategies that leverage their strengths.
+Based on this user profile and their top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage their strengths for ${topBusinessModel.name}.
 
 ${userProfile}
 
-Top Business Matches:
-${topPaths.map((path, i) => `${i + 1}. ${path.name} (${path.fitScore}% match)`).join("\n")}
+PRIMARY FOCUS - TOP BUSINESS MATCH:
+${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Generate 6 success strategies that:
+Generate 6 success strategies specifically for ${topBusinessModel.name} that:
 - Leverage their specific strengths and preferences
 - Address their goals and timeline
 - Work with their available time and resources
 - Match their learning and work style
+- Are specifically tailored to ${topBusinessModel.name}
 
-Format as a simple list, each strategy should be 1-2 sentences and actionable.
+Format as a simple list, each strategy should be 1-2 sentences and actionable for ${topBusinessModel.name}.
     `;
 
     try {
@@ -418,28 +435,31 @@ Month 6:
     userProfile: string,
     topPaths: any[],
   ): Promise<string> {
+    const topBusinessModel = topPaths[0];
+    console.log("AI Motivational Message - Top business model:", topBusinessModel.name);
+    
     const prompt = `
-Based on this user profile and their business matches, write an inspiring and personalized motivational message (2-3 sentences) that:
-- Acknowledges their specific strengths
+Based on this user profile and their top business match (${topBusinessModel.name}), write an inspiring and personalized motivational message (2-3 sentences) that:
+- Acknowledges their specific strengths for ${topBusinessModel.name}
 - Connects to their goals and motivation
-- Encourages them to take action
+- Encourages them to take action in ${topBusinessModel.name}
 - Feels personal and authentic
 
 ${userProfile}
 
-Top Business Match: ${topPaths[0].name} (${topPaths[0].fitScore}% match)
+Top Business Match: ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
-Write a motivational message that feels like it's coming from a mentor who truly understands them.
+Write a motivational message that feels like it's coming from a mentor who truly understands them and believes in their potential for ${topBusinessModel.name}.
     `;
 
     try {
       const content = await this.makeOpenAIRequest(prompt, 150, 0.8);
       return (
         content ||
-        "Your unique combination of skills and drive positions you perfectly for entrepreneurial success. Trust in your abilities and take that first step."
+        `Your unique combination of skills and drive positions you perfectly for ${topBusinessModel.name} success. Trust in your abilities and take that first step.`
       );
     } catch (error) {
-      return "Your unique combination of skills and drive positions you perfectly for entrepreneurial success. Trust in your abilities and take that first step.";
+      return `Your unique combination of skills and drive positions you perfectly for ${topBusinessModel.name} success. Trust in your abilities and take that first step.`;
     }
   }
 
