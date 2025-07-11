@@ -274,6 +274,157 @@ export class EmailService {
     };
   }
 
+  private getPersonalizedPaths(quizData: QuizData): Array<{ id: string; name: string; description: string; fitScore: number; difficulty: string; timeToProfit: string; startupCost: string; potentialIncome: string }> {
+    // Use the same scoring algorithm as the frontend
+    const scoredBusinessModels = calculateAllBusinessModelMatches(quizData);
+    
+    // Map business model data with details
+    const businessModelData: { [key: string]: { 
+      id: string; 
+      description: string; 
+      difficulty: string; 
+      timeToProfit: string; 
+      startupCost: string; 
+      potentialIncome: string;
+    }} = {
+      'Affiliate Marketing': {
+        id: 'affiliate-marketing',
+        description: 'Promote other people\'s products and earn commission on sales. Build trust with your audience and recommend products you genuinely believe in.',
+        difficulty: 'Easy',
+        timeToProfit: '3-6 months',
+        startupCost: '$0-$500',
+        potentialIncome: '$500-$10,000+/month'
+      },
+      'Content Creation / UGC': {
+        id: 'content-creation',
+        description: 'Create valuable content and monetize through multiple channels. Share your expertise, entertain, or educate your audience.',
+        difficulty: 'Medium',
+        timeToProfit: '6-12 months',
+        startupCost: '$200-$1,500',
+        potentialIncome: '$1,000-$50,000+/month'
+      },
+      'Online Tutoring / Coaching': {
+        id: 'online-tutoring',
+        description: 'Share your expertise through 1-on-1 or group coaching programs. Help others achieve their goals while building a profitable business.',
+        difficulty: 'Medium',
+        timeToProfit: '2-4 months',
+        startupCost: '$100-$1,000',
+        potentialIncome: '$2,000-$25,000+/month'
+      },
+      'E-commerce Brand Building': {
+        id: 'e-commerce',
+        description: 'Sell physical or digital products through your own online store. Build a brand and create products people love.',
+        difficulty: 'Hard',
+        timeToProfit: '6-18 months',
+        startupCost: '$1,000-$10,000',
+        potentialIncome: '$2,000-$100,000+/month'
+      },
+      'Freelancing': {
+        id: 'freelancing',
+        description: 'Offer your skills and services to clients on a project basis. Turn your expertise into immediate income.',
+        difficulty: 'Easy',
+        timeToProfit: '1-3 months',
+        startupCost: '$0-$500',
+        potentialIncome: '$1,000-$15,000+/month'
+      },
+      'Copywriting / Ghostwriting': {
+        id: 'copywriting',
+        description: 'Write compelling content for businesses and individuals. Help others communicate their message effectively.',
+        difficulty: 'Medium',
+        timeToProfit: '2-6 months',
+        startupCost: '$0-$500',
+        potentialIncome: '$1,500-$20,000+/month'
+      },
+      'Social Media Marketing Agency': {
+        id: 'social-media-agency',
+        description: 'Help businesses grow their social media presence. Manage accounts, create content, and drive engagement.',
+        difficulty: 'Medium',
+        timeToProfit: '3-6 months',
+        startupCost: '$500-$2,000',
+        potentialIncome: '$2,000-$30,000+/month'
+      },
+      'Virtual Assistant': {
+        id: 'virtual-assistant',
+        description: 'Provide administrative and business support remotely. Help entrepreneurs and businesses stay organized and efficient.',
+        difficulty: 'Easy',
+        timeToProfit: '1-2 months',
+        startupCost: '$0-$300',
+        potentialIncome: '$800-$5,000+/month'
+      },
+      'High-Ticket Sales / Closing': {
+        id: 'high-ticket-sales',
+        description: 'Sell high-value products or services for businesses. Master the art of persuasion and earn substantial commissions.',
+        difficulty: 'Hard',
+        timeToProfit: '3-9 months',
+        startupCost: '$500-$2,000',
+        potentialIncome: '$5,000-$50,000+/month'
+      },
+      'AI Marketing Agency': {
+        id: 'ai-marketing-agency',
+        description: 'Leverage AI tools to provide marketing solutions. Stay ahead of the curve with cutting-edge technology.',
+        difficulty: 'Medium',
+        timeToProfit: '3-6 months',
+        startupCost: '$300-$1,500',
+        potentialIncome: '$2,000-$25,000+/month'
+      },
+      'Digital Services Agency': {
+        id: 'digital-services-agency',
+        description: 'Offer digital marketing and web services. Help businesses establish and grow their online presence.',
+        difficulty: 'Medium',
+        timeToProfit: '3-6 months',
+        startupCost: '$500-$2,000',
+        potentialIncome: '$2,000-$30,000+/month'
+      },
+      'YouTube Automation Channels': {
+        id: 'youtube-automation',
+        description: 'Create and manage monetized YouTube channels. Build passive income through content creation and optimization.',
+        difficulty: 'Hard',
+        timeToProfit: '6-18 months',
+        startupCost: '$1,000-$5,000',
+        potentialIncome: '$1,000-$20,000+/month'
+      },
+      'Investing / Trading': {
+        id: 'investing',
+        description: 'Generate income through financial markets. Build wealth through strategic investments and trading strategies.',
+        difficulty: 'Hard',
+        timeToProfit: '6-24 months',
+        startupCost: '$1,000-$10,000',
+        potentialIncome: '$500-$50,000+/month'
+      },
+      'Online Reselling': {
+        id: 'online-reselling',
+        description: 'Buy and resell products online for profit. Find profitable products and scale your reselling business.',
+        difficulty: 'Easy',
+        timeToProfit: '1-3 months',
+        startupCost: '$500-$2,000',
+        potentialIncome: '$1,000-$10,000+/month'
+      },
+      'Handmade Goods': {
+        id: 'handmade-goods',
+        description: 'Create and sell handcrafted products. Turn your creative skills into a profitable business.',
+        difficulty: 'Medium',
+        timeToProfit: '3-6 months',
+        startupCost: '$200-$1,500',
+        potentialIncome: '$500-$8,000+/month'
+      }
+    };
+
+    // Map scored models to detailed business paths
+    return scoredBusinessModels.map(model => {
+      const modelData = businessModelData[model.name];
+      return {
+        id: modelData?.id || model.name.toLowerCase().replace(/\s+/g, '-'),
+        name: model.name,
+        description: modelData?.description || 'A business model tailored to your skills and goals',
+        fitScore: Math.round(model.score),
+        difficulty: modelData?.difficulty || 'Medium',
+        timeToProfit: modelData?.timeToProfit || '3-6 months',
+        startupCost: modelData?.startupCost || '$100-$1,000',
+        potentialIncome: modelData?.potentialIncome || '$1,000-$10,000+/month'
+      };
+    });
+  }
+
   private generateWelcomeHTML(): string {
     return `
       <!DOCTYPE html>
@@ -337,6 +488,9 @@ export class EmailService {
   }
 
   private generateFullReportHTML(quizData: QuizData): string {
+    const personalizedPaths = this.getPersonalizedPaths(quizData);
+    const top3Paths = personalizedPaths.slice(0, 3);
+    
     return `
       <!DOCTYPE html>
       <html>
@@ -350,46 +504,181 @@ export class EmailService {
             ${this.getBrighterStyles()}
           </style>
         </head>
-        <body>
-          <div class="email-container">
-            <div class="header">
-              <div class="logo"></div>
-              <h1>Your Complete Business Report</h1>
-              <p>Comprehensive insights and actionable strategies</p>
+        <body style="margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F8FAFC !important; color: #000000 !important;">
+          <div class="email-container" style="max-width: 800px; margin: 0 auto; background: #FFFFFF !important; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); border: 1px solid #E5E7EB;">
+            <div class="header" style="background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%); color: white !important; padding: 50px 40px; text-align: center; position: relative; overflow: hidden;">
+              <div class="logo" style="width: 70px; height: 70px; background: #7C3AED; border-radius: 50%; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);"></div>
+              <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 12px; position: relative; z-index: 1; color: white !important;">Your Complete Business Report</h1>
+              <p style="font-size: 18px; opacity: 0.95; position: relative; z-index: 1; color: white !important;">Comprehensive insights and actionable strategies</p>
             </div>
             
-            <div class="content">
-              <div class="section">
-                <h2 class="section-title">Report Contents</h2>
-                <ul class="steps-list">
-                  <li>Detailed personality and skills analysis</li>
-                  <li>Top 5 business models ranked by fit score</li>
-                  <li>Step-by-step implementation roadmaps</li>
-                  <li>Income projections and timeline expectations</li>
-                  <li>Curated resources and tools for each path</li>
-                  <li>Risk assessment and mitigation strategies</li>
-                </ul>
+            <div class="content" style="padding: 50px 40px; background: #FFFFFF !important; color: #000000 !important;">
+              
+              <!-- AI-Generated Insights Section -->
+              <div class="section" style="margin-bottom: 40px;">
+                <h2 class="section-title" style="font-size: 24px; font-weight: 600; color: #000000 !important; margin-bottom: 20px; display: flex; align-items: center;">
+                  ✨ Your AI-Generated Insights
+                </h2>
+                <div class="ai-insights-card" style="background: linear-gradient(135deg, #7C3AED 0%, #2563EB 100%); border-radius: 16px; padding: 30px; margin-bottom: 30px; color: white !important;">
+                  <div class="insights-content" style="color: white !important;">
+                    <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px; color: white !important;">
+                      <strong>Personalized Analysis:</strong> Based on your comprehensive assessment, <strong>${top3Paths[0].name}</strong> achieves a <strong>${top3Paths[0].fitScore}%</strong> compatibility score with your unique profile. Your goals, personality traits, and available resources align perfectly with this business model's requirements and potential outcomes.
+                    </p>
+                    <p style="font-size: 16px; line-height: 1.6; margin-bottom: 20px; color: white !important;">
+                      With your <strong>${this.formatMotivation(quizData.mainMotivation)}</strong> motivation and <strong>${getIncomeRangeLabel(quizData.successIncomeGoal)}</strong> income goal, you're positioned for success in the ${quizData.successIncomeGoal >= 5000 ? 'high-growth' : 'sustainable income'} category. Your ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} weekly commitment shows ${quizData.weeklyTimeCommitment >= 20 ? 'strong dedication' : 'balanced approach'} to building your business.
+                    </p>
+                    <p style="font-size: 16px; line-height: 1.6; color: white !important;">
+                      Your ${quizData.techSkillsRating}/5 tech skills rating and ${quizData.learningPreference} learning preference indicate you're ${quizData.techSkillsRating >= 4 ? 'technically capable and ready for advanced strategies' : 'perfectly positioned for user-friendly business models'}. This combination creates an ideal foundation for ${top3Paths[0].name} success.
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div class="cta-container">
-                <a href="${process.env.FRONTEND_URL || 'https://bizmodelai.com'}/results" class="cta-button">
-                  Download Your PDF Report →
-                </a>
-                <p style="margin-top: 12px; font-size: 14px; color: #6B7280;">
-                  Your comprehensive business strategy guide
+              <!-- Top 3 Business Models Section -->
+              <div class="section" style="margin-bottom: 40px;">
+                <h2 class="section-title" style="font-size: 24px; font-weight: 600; color: #000000 !important; margin-bottom: 20px; display: flex; align-items: center;">
+                  🎯 Your Top 3 Business Matches
+                </h2>
+                
+                ${top3Paths.map((path, index) => `
+                  <div class="business-card" style="background: #FFFFFF !important; border: 2px solid ${index === 0 ? '#F59E0B' : '#E5E7EB'}; border-radius: 16px; padding: 30px; margin-bottom: 24px; ${index === 0 ? 'background: linear-gradient(135deg, #FEF3C7 0%, #FCD34D 5%, #FFFFFF 10%) !important;' : ''}">
+                    <div class="card-header" style="display: flex; align-items: center; margin-bottom: 20px;">
+                      ${index === 0 ? '<div class="rank-badge" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white !important; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 12px;">BEST FIT</div>' : `<div class="rank-badge" style="background: #E5E7EB; color: #6B7280 !important; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 12px;">#${index + 1}</div>`}
+                      <div class="score-badge" style="background: linear-gradient(135deg, #2563EB, #7C3AED); color: white !important; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px;">${path.fitScore}% Match</div>
+                    </div>
+                    
+                    <h3 style="font-size: 20px; font-weight: 700; color: #000000 !important; margin-bottom: 12px;">${path.name}</h3>
+                    <p style="font-size: 16px; color: #4B5563 !important; margin-bottom: 20px; line-height: 1.5;">${path.description}</p>
+                    
+                    <div class="path-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                      <div class="detail-item" style="background: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB;">
+                        <div style="font-size: 12px; color: #6B7280 !important; margin-bottom: 4px;">Difficulty</div>
+                        <div style="font-weight: 600; color: #000000 !important;">${path.difficulty}</div>
+                      </div>
+                      <div class="detail-item" style="background: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB;">
+                        <div style="font-size: 12px; color: #6B7280 !important; margin-bottom: 4px;">Time to Profit</div>
+                        <div style="font-weight: 600; color: #000000 !important;">${path.timeToProfit}</div>
+                      </div>
+                      <div class="detail-item" style="background: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB;">
+                        <div style="font-size: 12px; color: #6B7280 !important; margin-bottom: 4px;">Startup Cost</div>
+                        <div style="font-weight: 600; color: #000000 !important;">${path.startupCost}</div>
+                      </div>
+                      <div class="detail-item" style="background: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB;">
+                        <div style="font-size: 12px; color: #6B7280 !important; margin-bottom: 4px;">Income Potential</div>
+                        <div style="font-weight: 600; color: #000000 !important;">${path.potentialIncome}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="cta-button-container" style="text-align: center; margin-top: 20px;">
+                      <a href="${process.env.FRONTEND_URL || 'https://bizmodelai.com'}/business-model/${path.id}" style="display: inline-block; background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%); color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                        Learn More About ${path.name} →
+                      </a>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Key Recommendations Section -->
+              <div class="section" style="margin-bottom: 40px;">
+                <h2 class="section-title" style="font-size: 24px; font-weight: 600; color: #000000 !important; margin-bottom: 20px; display: flex; align-items: center;">
+                  💡 Key Recommendations
+                </h2>
+                <div class="recommendations-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                  <div class="recommendation-card" style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 12px; padding: 20px;">
+                    <h4 style="font-weight: 600; color: #0369A1 !important; margin-bottom: 8px; display: flex; align-items: center;">
+                      🎯 Best Strategy
+                    </h4>
+                    <p style="color: #1E40AF !important; font-size: 14px; line-height: 1.5;">
+                      ${quizData.techSkillsRating >= 4 ? 'Leverage your strong technical skills to build automated systems and scalable solutions' : 'Focus on proven, user-friendly methods that don\'t require advanced technical knowledge'}
+                    </p>
+                  </div>
+                  <div class="recommendation-card" style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 20px;">
+                    <h4 style="font-weight: 600; color: #047857 !important; margin-bottom: 8px; display: flex; align-items: center;">
+                      ⚡ Quick Win
+                    </h4>
+                    <p style="color: #065F46 !important; font-size: 14px; line-height: 1.5;">
+                      ${quizData.learningPreference === 'hands-on' ? 'Start with a small pilot project to learn by doing and build momentum quickly' : 'Invest time in comprehensive learning before launching to ensure solid foundation'}
+                    </p>
+                  </div>
+                  <div class="recommendation-card" style="background: #FEF3C7; border: 1px solid #FDE047; border-radius: 12px; padding: 20px;">
+                    <h4 style="font-weight: 600; color: #92400E !important; margin-bottom: 8px; display: flex; align-items: center;">
+                      🚀 Growth Path
+                    </h4>
+                    <p style="color: #78350F !important; font-size: 14px; line-height: 1.5;">
+                      ${quizData.riskComfortLevel >= 4 ? 'Your high risk tolerance allows for aggressive growth strategies and innovative approaches' : 'Focus on steady, proven growth methods that minimize risk while building confidence'}
+                    </p>
+                  </div>
+                  <div class="recommendation-card" style="background: #F3E8FF; border: 1px solid #D8B4FE; border-radius: 12px; padding: 20px;">
+                    <h4 style="font-weight: 600; color: #7C2D12 !important; margin-bottom: 8px; display: flex; align-items: center;">
+                      🎪 Timeline
+                    </h4>
+                    <p style="color: #6B21A8 !important; font-size: 14px; line-height: 1.5;">
+                      With ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} weekly commitment, expect ${quizData.weeklyTimeCommitment >= 20 ? 'accelerated progress and faster results' : 'steady progress with sustainable growth'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Your Business Profile Section -->
+              <div class="section" style="margin-bottom: 40px;">
+                <h2 class="section-title" style="font-size: 24px; font-weight: 600; color: #000000 !important; margin-bottom: 20px; display: flex; align-items: center;">
+                  📊 Your Business Profile
+                </h2>
+                <div class="profile-card" style="background: #FFFFFF !important; border: 1px solid #E5E7EB; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+                  <div class="profile-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="profile-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #F3F4F6;">
+                      <span class="profile-label" style="font-weight: 500; color: #6B7280 !important; font-size: 15px;">Main Motivation</span>
+                      <span class="profile-value" style="font-weight: 600; color: #000000 !important; font-size: 15px;">${this.formatMotivation(quizData.mainMotivation)}</span>
+                    </div>
+                    <div class="profile-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #F3F4F6;">
+                      <span class="profile-label" style="font-weight: 500; color: #6B7280 !important; font-size: 15px;">Income Goal</span>
+                      <span class="profile-value" style="font-weight: 600; color: #000000 !important; font-size: 15px;">${getIncomeRangeLabel(quizData.successIncomeGoal)}</span>
+                    </div>
+                    <div class="profile-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #F3F4F6;">
+                      <span class="profile-label" style="font-weight: 500; color: #6B7280 !important; font-size: 15px;">Timeline</span>
+                      <span class="profile-value" style="font-weight: 600; color: #000000 !important; font-size: 15px;">${this.formatTimeline(quizData.firstIncomeTimeline)}</span>
+                    </div>
+                    <div class="profile-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #F3F4F6;">
+                      <span class="profile-label" style="font-weight: 500; color: #6B7280 !important; font-size: 15px;">Investment Budget</span>
+                      <span class="profile-value" style="font-weight: 600; color: #000000 !important; font-size: 15px;">${getInvestmentRangeLabel(quizData.upfrontInvestment)}</span>
+                    </div>
+                    <div class="profile-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #F3F4F6;">
+                      <span class="profile-label" style="font-weight: 500; color: #6B7280 !important; font-size: 15px;">Weekly Commitment</span>
+                      <span class="profile-value" style="font-weight: 600; color: #000000 !important; font-size: 15px;">${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}</span>
+                    </div>
+                    <div class="profile-item" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
+                      <span class="profile-label" style="font-weight: 500; color: #6B7280 !important; font-size: 15px;">Tech Skills</span>
+                      <span class="profile-value" style="font-weight: 600; color: #000000 !important; font-size: 15px;">${quizData.techSkillsRating}/5</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Call to Action -->
+              <div class="cta-container" style="text-align: center; padding: 40px 30px; background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%); border-radius: 16px; border: 1px solid #E5E7EB; margin-top: 20px;">
+                <h3 style="font-size: 24px; font-weight: 700; color: #000000 !important; margin-bottom: 12px;">Ready to Start Your Journey?</h3>
+                <p style="font-size: 16px; color: #6B7280 !important; margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                  Access your full interactive report with detailed business model guides, income projections, and step-by-step action plans.
                 </p>
+                <a href="${process.env.FRONTEND_URL || 'https://bizmodelai.com'}/results" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%); color: white !important; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; text-align: center; margin: 10px; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);">
+                  View Full Interactive Report →
+                </a>
+                <br>
+                <a href="${process.env.FRONTEND_URL || 'https://bizmodelai.com'}/business-model/${top3Paths[0].id}" style="display: inline-block; background: #FFFFFF; color: #2563EB !important; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 14px; border: 2px solid #2563EB; margin: 10px;">
+                  Start with ${top3Paths[0].name} →
+                </a>
               </div>
             </div>
 
-            <div class="footer">
-              <div class="footer-logo">BizModelAI</div>
-              <div class="footer-tagline">Your AI-Powered Business Discovery Platform</div>
-              <div class="footer-disclaimer">
-                This detailed report is personalized just for you.<br>
-                Start building your business with confidence.
+            <div class="footer" style="background: #FFFFFF !important; padding: 40px; text-align: center; border-top: 1px solid #F3F4F6;">
+              <div class="footer-logo" style="font-size: 20px; font-weight: 700; color: #000000 !important; margin-bottom: 10px;">BizModelAI</div>
+              <div class="footer-tagline" style="color: #6B7280 !important; font-size: 16px; margin-bottom: 20px;">Your AI-Powered Business Discovery Platform</div>
+              <div class="footer-disclaimer" style="font-size: 14px; color: #9CA3AF !important; line-height: 1.5; margin-bottom: 16px;">
+                This comprehensive report is personalized just for you based on your quiz responses.<br>
+                Start building your business with confidence using these tailored insights.
               </div>
-              <div class="footer-unsubscribe">
-                <a href="${process.env.FRONTEND_URL || 'https://bizmodelai.com'}/unsubscribe" class="unsubscribe-link">
+              <div class="footer-unsubscribe" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #F3F4F6;">
+                <a href="${process.env.FRONTEND_URL || 'https://bizmodelai.com'}/unsubscribe" class="unsubscribe-link" style="color: #6B7280 !important; text-decoration: none; font-size: 14px; padding: 8px 16px; border-radius: 6px;">
                   Unsubscribe
                 </a>
               </div>
