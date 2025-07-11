@@ -393,9 +393,9 @@ const QuizWithNavigation: React.FC<{
   const { user } = useAuth();
 
   const handleQuizComplete = (data: QuizData) => {
-    console.log("Quiz completed, navigating to loading page");
+    console.log("Quiz completed, showing congratulations");
     setQuizData(data);
-    navigate("/loading");
+    setShowCongratulations(true);
   };
 
   const handleCongratulationsComplete = (email?: string) => {

@@ -101,6 +101,168 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
 
   const [steps, setSteps] = useState<LoadingStep[]>(loadingSteps);
 
+  // Generate all 6 characteristics with OpenAI
+  const generateAllCharacteristics = async (quizData: QuizData): Promise<string[]> => {
+    try {
+      const prompt = `Based on this quiz data, generate exactly 6 short positive characteristics that reflect the user's entrepreneurial strengths. Each should be 3-5 words maximum and highlight unique aspects of their entrepreneurial potential.
+
+Quiz Data:
+- Self-motivation level: ${quizData.selfMotivationLevel}/5
+- Risk comfort level: ${quizData.riskComfortLevel}/5
+- Tech skills rating: ${quizData.techSkillsRating}/5
+- Direct communication enjoyment: ${quizData.directCommunicationEnjoyment}/5
+- Learning preference: ${quizData.learningPreference}
+- Organization level: ${quizData.organizationLevel}/5
+- Creative work enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Work collaboration preference: ${quizData.workCollaborationPreference}
+- Decision making style: ${quizData.decisionMakingStyle}
+- Work structure preference: ${quizData.workStructurePreference}
+- Long-term consistency: ${quizData.longTermConsistency}/5
+- Uncertainty handling: ${quizData.uncertaintyHandling}/5
+- Tools familiar with: ${quizData.familiarTools?.join(', ')}
+- Main motivation: ${quizData.mainMotivation}
+- Weekly time commitment: ${quizData.weeklyTimeCommitment}
+- Income goal: ${quizData.successIncomeGoal}
+
+Return a JSON object with this exact structure:
+{
+  "characteristics": ["characteristic 1", "characteristic 2", "characteristic 3", "characteristic 4", "characteristic 5", "characteristic 6"]
+}
+
+Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", "Tech-savvy innovator", "Clear communicator", "Organized planner", "Creative problem solver"]}`;
+
+      const response = await fetch('/api/openai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          maxTokens: 200,
+          temperature: 0.7,
+          responseFormat: { type: 'json_object' }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate characteristics');
+      }
+
+      const data = await response.json();
+      
+      // Clean up the response content (remove markdown code blocks if present)
+      let cleanContent = data.content;
+      if (cleanContent.includes('```json')) {
+        cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```/g, '');
+      }
+      
+      const parsed = JSON.parse(cleanContent);
+      if (parsed && parsed.characteristics && Array.isArray(parsed.characteristics) && parsed.characteristics.length === 6) {
+        return parsed.characteristics;
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error generating all characteristics:', error);
+      // Fallback characteristics based on quiz data
+      const fallbackCharacteristics = [
+        quizData.selfMotivationLevel >= 4 ? "Highly self-motivated" : "Moderately self-motivated",
+        quizData.riskComfortLevel >= 4 ? "High risk tolerance" : "Moderate risk tolerance",
+        quizData.techSkillsRating >= 4 ? "Strong tech skills" : "Adequate tech skills",
+        quizData.directCommunicationEnjoyment >= 4 ? "Excellent communicator" : "Good communicator",
+        quizData.organizationLevel >= 4 ? "Highly organized planner" : "Flexible approach to planning",
+        quizData.creativeWorkEnjoyment >= 4 ? "Creative problem solver" : "Analytical approach to challenges"
+      ];
+      
+      return fallbackCharacteristics;
+    }
+  };
+
+  // Generate business fit descriptions
+  const generateBusinessFitDescriptions = async (quizData: QuizData): Promise<{[key: string]: string}> => {
+    try {
+      const { calculateAdvancedBusinessModelMatches } = await import("../utils/advancedScoringAlgorithm");
+      const topThreeAdvanced = calculateAdvancedBusinessModelMatches(quizData);
+      
+      const businessModels = topThreeAdvanced.slice(0, 3).map(match => ({
+        id: match.id,
+        name: match.name,
+        score: match.score
+      }));
+
+      const prompt = `Based on the quiz data and business model matches, generate personalized explanations for why each business model fits this user. Focus on specific aspects of their profile that align with each model.
+
+Quiz Data Summary:
+- Self-motivation: ${quizData.selfMotivationLevel}/5
+- Risk tolerance: ${quizData.riskComfortLevel}/5
+- Tech skills: ${quizData.techSkillsRating}/5
+- Time commitment: ${quizData.weeklyTimeCommitment} hours/week
+- Income goal: ${quizData.successIncomeGoal}
+- Learning preference: ${quizData.learningPreference}
+- Work collaboration: ${quizData.workCollaborationPreference}
+
+Business Models:
+${businessModels.map(model => `- ${model.name} (${model.score}% fit)`).join('\n')}
+
+For each business model, write a 2-3 sentence explanation of why it fits this user's profile. Focus on specific strengths and alignments.
+
+Return JSON format:
+{
+  "descriptions": [
+    {"businessId": "business-id", "description": "explanation here"},
+    {"businessId": "business-id", "description": "explanation here"},
+    {"businessId": "business-id", "description": "explanation here"}
+  ]
+}`;
+
+      const response = await fetch('/api/openai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          maxTokens: 800,
+          temperature: 0.7,
+          responseFormat: { type: 'json_object' }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate business fit descriptions');
+      }
+
+      const data = await response.json();
+      let cleanContent = data.content;
+      if (cleanContent.includes('```json')) {
+        cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```/g, '');
+      }
+      
+      const parsed = JSON.parse(cleanContent);
+      const descriptionsMap: {[key: string]: string} = {};
+      
+      if (parsed && parsed.descriptions && Array.isArray(parsed.descriptions)) {
+        parsed.descriptions.forEach((desc: {businessId: string, description: string}) => {
+          descriptionsMap[desc.businessId] = desc.description;
+        });
+      }
+      
+      return descriptionsMap;
+    } catch (error) {
+      console.error('Error generating business fit descriptions:', error);
+      // Set fallback descriptions
+      const fallbackDescriptions: {[key: string]: string} = {};
+      const { calculateAdvancedBusinessModelMatches } = await import("../utils/advancedScoringAlgorithm");
+      const topThreeAdvanced = calculateAdvancedBusinessModelMatches(quizData);
+      
+      topThreeAdvanced.slice(0, 3).forEach((match, index) => {
+        fallbackDescriptions[match.id] = `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a ${index === 0 ? 'perfect' : index === 1 ? 'excellent' : 'good'} match for your entrepreneurial journey.`;
+      });
+      
+      return fallbackDescriptions;
+    }
+  };
+
   useEffect(() => {
     const generateReport = async () => {
       const startTime = Date.now();
@@ -319,108 +481,9 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
     }
   };
 
-  const generateAllCharacteristics = async (data: QuizData): Promise<string[]> => {
-    try {
-      const prompt = `Based on this quiz data, generate exactly 6 short positive characteristics that reflect the user's entrepreneurial strengths. Each should be 3-5 words maximum and highlight unique aspects of their entrepreneurial potential.
 
-Quiz Data:
-- Self-motivation level: ${data.selfMotivationLevel}/5
-- Risk comfort level: ${data.riskComfortLevel}/5
-- Tech skills rating: ${data.techSkillsRating}/5
-- Direct communication enjoyment: ${data.directCommunicationEnjoyment}/5
-- Learning preference: ${data.learningPreference}
-- Organization level: ${data.organizationLevel}/5
-- Creative work enjoyment: ${data.creativeWorkEnjoyment}/5
-- Work collaboration preference: ${data.workCollaborationPreference}
-- Decision making style: ${data.decisionMakingStyle}
-- Work structure preference: ${data.workStructurePreference}
-- Long-term consistency: ${data.longTermConsistency}/5
-- Uncertainty handling: ${data.uncertaintyHandling}/5
-- Tools familiar with: ${data.familiarTools?.join(', ')}
-- Main motivation: ${data.mainMotivation}
-- Weekly time commitment: ${data.weeklyTimeCommitment}
-- Income goal: ${data.successIncomeGoal}
 
-Return a JSON object with this exact structure:
-{
-  "characteristics": ["characteristic 1", "characteristic 2", "characteristic 3", "characteristic 4", "characteristic 5", "characteristic 6"]
-}
 
-Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", "Tech-savvy innovator", "Clear communicator", "Organized planner", "Creative problem solver"]}`;
-
-      const response = await fetch('/api/openai-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          maxTokens: 200,
-          temperature: 0.7,
-          responseFormat: { type: 'json_object' }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate characteristics');
-      }
-
-      const data = await response.json();
-      
-      // Clean up the response content (remove markdown code blocks if present)
-      let cleanContent = data.content;
-      if (cleanContent.includes('```json')) {
-        cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```/g, '');
-      }
-      
-      const parsed = JSON.parse(cleanContent);
-      if (parsed && parsed.characteristics && Array.isArray(parsed.characteristics) && parsed.characteristics.length === 6) {
-        return parsed.characteristics;
-      } else {
-        throw new Error('Invalid response format');
-      }
-    } catch (error) {
-      console.error('Error generating characteristics:', error);
-      // Fallback characteristics based on quiz data
-      return [
-        data.selfMotivationLevel >= 4 ? "Highly self-motivated" : "Moderately self-motivated",
-        data.riskComfortLevel >= 4 ? "High risk tolerance" : "Moderate risk tolerance",
-        data.techSkillsRating >= 4 ? "Strong tech skills" : "Adequate tech skills",
-        data.directCommunicationEnjoyment >= 4 ? "Excellent communicator" : "Good communicator",
-        data.organizationLevel >= 4 ? "Highly organized planner" : "Flexible approach to planning",
-        data.creativeWorkEnjoyment >= 4 ? "Creative problem solver" : "Analytical approach to challenges"
-      ];
-    }
-  };
-
-  const generateBusinessFitDescriptions = async (data: QuizData): Promise<{[key: string]: string}> => {
-    try {
-      const { calculateAdvancedBusinessModelMatches } = await import("../utils/advancedScoringAlgorithm");
-      const advancedScores = calculateAdvancedBusinessModelMatches(data);
-      const top3Paths = advancedScores.slice(0, 3);
-      
-      const response = await fetch('/api/generate-business-fit-descriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          quizData: data,
-          businessMatches: top3Paths
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate business fit descriptions');
-      }
-
-      const data = await response.json();
-      return data.descriptions || {};
-    } catch (error) {
-      console.error('Error generating business fit descriptions:', error);
-      return {};
-    }
-  };
 
   const getStepIcon = (step: LoadingStep, index: number) => {
     const IconComponent = step.icon;

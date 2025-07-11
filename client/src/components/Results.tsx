@@ -532,13 +532,13 @@ Business Path Platform - businesspath.com
           window.scrollTo({ top: 0, behavior: 'instant' });
         }, 0);
       } else if (paywallType === "full-report") {
-        // Show the full report directly without loading screen
-        setShowFullReport(true);
+        // Show the AI loading page first to generate all OpenAI content
+        setShowAILoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: 'instant' });
       } else {
-        // Default fallback to full report
-        setShowFullReport(true);
+        // Default fallback to AI loading page
+        setShowAILoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
