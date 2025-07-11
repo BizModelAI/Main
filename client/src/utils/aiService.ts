@@ -140,12 +140,12 @@ Business Model: ${topPath.name} (${topPath.fitScore}% fit - ${category})`;
           case "Best Fit":
             return `${baseProfile}
 
-Generate a professional analysis explaining why ${topPath.name} is the BEST fit for this user. Focus on:
-1. How their personality traits perfectly align with this business model
-2. Why this is their ideal entrepreneurial path
-3. Specific advantages they have in this field
-4. How their profile gives them competitive advantages
-5. Why they should prioritize this over other options
+Generate a professional analysis explaining why ${topPath.name} is the BEST fit for you. Focus on:
+1. How your personality traits perfectly align with this business model
+2. Why this is your ideal entrepreneurial path
+3. Specific advantages you have in this field
+4. How your profile gives you competitive advantages
+5. Why you should prioritize this over other options
 
 Requirements:
 - Enthusiastic but professional tone
@@ -400,7 +400,7 @@ Category: ${category}`;
         if (category === "Best Fit" || category === "Strong Fit") {
           return `${baseInfo}
 
-Based on the user's quiz responses, generate exactly 4 success predictors explaining why they are likely to succeed in ${topPath.name}. Each point should:
+Based on your quiz responses, generate exactly 4 success predictors explaining why you are likely to succeed in ${topPath.name}. Each point should:
 1. Reference specific quiz answers or personality traits
 2. Explain how that trait leads to success in this business model
 3. Be concrete and actionable
@@ -410,7 +410,7 @@ Format as a simple list with each point on a new line, no numbers or bullets.`;
         } else {
           return `${baseInfo}
 
-Based on the user's quiz responses, generate exactly 4 struggle points explaining why they are likely to face challenges in ${topPath.name}. Each point should:
+Based on your quiz responses, generate exactly 4 struggle points explaining why you are likely to face challenges in ${topPath.name}. Each point should:
 1. Reference specific quiz answers or personality traits  
 2. Explain how that trait creates challenges in this business model
 3. Be honest but constructive
