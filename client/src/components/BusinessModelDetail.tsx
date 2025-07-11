@@ -44,6 +44,48 @@ import { businessTools, defaultBusinessTools, BusinessTool } from "../data/busin
 import { IncomeProjectionChart } from './IncomeProjectionChart';
 import { renderMarkdownContent } from "../utils/markdownUtils";
 
+// Generate psychological fit description based on fit category
+const getPsychologicalFitDescription = (category: string, businessName: string, quizData: QuizData, businessId: string): string => {
+  const traits = calculateBusinessModelTraits(quizData);
+  const idealTraits = getIdealTraits(businessId || '');
+  
+  switch (category) {
+    case "Best Fit":
+    case "Strong Fit":
+      const strongAreas = [];
+      if (traits.riskTolerance >= idealTraits.riskTolerance - 15) strongAreas.push("risk tolerance");
+      if (traits.selfMotivation >= idealTraits.selfMotivation - 15) strongAreas.push("self-motivation");
+      if (traits.techComfort >= idealTraits.techComfort - 15) strongAreas.push("tech comfort");
+      if (traits.consistency >= idealTraits.consistency - 15) strongAreas.push("consistency");
+      if (traits.learningAgility >= idealTraits.learningAgility - 15) strongAreas.push("learning agility");
+      
+      return `Your personality profile compares favorably with the average successful ${businessName} entrepreneur. You show particularly strong alignment in ${strongAreas.slice(0, 2).join(" and ")}, which are key indicators of success in this field. Your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'solid self-motivation'} and ${quizData.toolLearningWillingness === 'yes' ? 'eagerness to learn new tools' : 'willingness to adapt'} position you well for this business model.`;
+      
+    case "Possible Fit":
+      const gapAreas = [];
+      if (traits.riskTolerance < idealTraits.riskTolerance - 20) gapAreas.push("risk tolerance");
+      if (traits.selfMotivation < idealTraits.selfMotivation - 20) gapAreas.push("self-motivation");
+      if (traits.techComfort < idealTraits.techComfort - 20) gapAreas.push("tech comfort");
+      if (traits.consistency < idealTraits.consistency - 20) gapAreas.push("consistency");
+      if (traits.learningAgility < idealTraits.learningAgility - 20) gapAreas.push("learning agility");
+      
+      return `Your personality profile shows some alignment with successful ${businessName} entrepreneurs, but there are gaps in key areas. You may face challenges with ${gapAreas.slice(0, 2).join(" and ")}, which could impact your success in this field. While not impossible, you would need to focus on developing these areas to increase your chances of success.`;
+      
+    case "Poor Fit":
+      const majorGaps = [];
+      if (traits.riskTolerance < idealTraits.riskTolerance - 30) majorGaps.push("risk tolerance");
+      if (traits.selfMotivation < idealTraits.selfMotivation - 30) majorGaps.push("self-motivation");
+      if (traits.techComfort < idealTraits.techComfort - 30) majorGaps.push("tech comfort");
+      if (traits.consistency < idealTraits.consistency - 30) majorGaps.push("consistency");
+      if (traits.learningAgility < idealTraits.learningAgility - 30) majorGaps.push("learning agility");
+      
+      return `Your personality profile shows significant misalignment with successful ${businessName} entrepreneurs. There are substantial gaps in ${majorGaps.slice(0, 2).join(" and ")}, which are critical for success in this field. The challenges you would face make this business model particularly difficult for your current profile, and you might want to consider other options that better match your strengths.`;
+      
+    default:
+      return `Your personality profile has been analyzed against successful ${businessName} entrepreneurs.`;
+  }
+};
+
 interface BusinessModelDetailProps {
   quizData?: QuizData | null;
 }
@@ -95,6 +137,8 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         return `Why ${businessName} Fits You`;
     }
   };
+
+
 
 
 
@@ -739,7 +783,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                         <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
                           <div className="flex justify-between items-center mb-2">
                             <span className="font-medium text-gray-900">{trait.trait}</span>
-                            <span className="text-sm font-bold text-blue-600">{trait.yourScore}%</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div 
@@ -767,7 +810,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                         <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-green-50 rounded-xl border border-gray-200">
                           <div className="flex justify-between items-center mb-2">
                             <span className="font-medium text-gray-900">{trait.trait}</span>
-                            <span className="text-sm font-bold text-green-600">{trait.score}%</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div 
@@ -784,13 +826,15 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   {/* Overall match summary */}
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
                     <h4 className="text-lg font-semibold text-blue-900 mb-3">
-                      Your Overall Psychological Fit: {businessPath?.fitScore || 85}%
+                      Your Overall Psychological Fit: {
+                        fitCategory === "Best Fit" ? "Excellent!" :
+                        fitCategory === "Strong Fit" ? "Strong" :
+                        fitCategory === "Possible Fit" ? "Okay" :
+                        "Poor"
+                      }
                     </h4>
                     <p className="text-blue-800 leading-relaxed">
-                      Your personality profile shows strong alignment with successful {business.name || business.title} entrepreneurs. 
-                      Your {quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'developing self-motivation'} and 
-                      {quizData.toolLearningWillingness === 'yes' ? ' eagerness to learn new tools' : ' willingness to learn'} are 
-                      particularly well-suited for this business model.
+                      {getPsychologicalFitDescription(fitCategory, business.name || business.title, quizData, businessId || '')}
                     </p>
                   </div>
                 </>
