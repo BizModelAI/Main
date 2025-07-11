@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,6 +27,7 @@ import {
   Loader,
   Lock,
   Crown,
+  X,
 } from "lucide-react";
 import { QuizData, BusinessPath, AIAnalysis } from "../types";
 import { businessPaths } from "../data/businessPaths";
@@ -312,7 +313,18 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     return "Poor Fit";
   };
 
-  const fitCategory = businessPath?.fitScore ? getFitCategory(businessPath.fitScore) : "Best Fit";
+  // Calculate fit category based on actual quiz data if available
+  const fitCategory = useMemo(() => {
+    if (!quizData || !businessId) return "Best Fit";
+    
+    const businessMatches = calculateAdvancedBusinessModelMatches(quizData);
+    const matchingBusiness = businessMatches.find(b => b.id === businessId);
+    const fitScore = matchingBusiness?.score || 0;
+    
+    console.log(`Fit score for ${businessId}: ${fitScore}%`);
+    
+    return getFitCategory(fitScore);
+  }, [quizData, businessId]);
   
   // Generate the appropriate title based on fit category
   const getFitTitle = (category: string, businessName: string): string => {
@@ -635,12 +647,12 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
 
                       <div className={`rounded-2xl p-6 border ${
                         fitCategory === "Possible Fit" || fitCategory === "Poor Fit"
-                          ? "bg-gradient-to-br from-red-50/40 to-pink-50/40 border-red-200/40"
+                          ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200"
                           : "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
                       }`}>
                         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                           {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
-                            <AlertTriangle className="h-6 w-6 text-red-500 mr-2" />
+                            <X className="h-6 w-6 text-red-500 mr-2" />
                           ) : (
                             <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
                           )}
@@ -654,7 +666,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             (predictor: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
-                                  <AlertTriangle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                                  <X className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
                                 ) : (
                                   <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                                 )}
