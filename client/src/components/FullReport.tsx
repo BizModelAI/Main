@@ -244,6 +244,11 @@ const FullReport: React.FC<FullReportProps> = ({
     { id: "overview", label: "Executive Summary", icon: BarChart3 },
     { id: "ai-analysis", label: "AI Personalized Analysis", icon: Brain },
     { id: "personality-snapshot", label: "Personality Snapshot", icon: Users },
+    {
+      id: "strengths-challenges",
+      label: "Strengths & Challenges",
+      icon: Award,
+    },
     { id: "top-matches", label: "Your Top 3 Matches", icon: Target },
     {
       id: "business-to-avoid",
@@ -260,11 +265,6 @@ const FullReport: React.FC<FullReportProps> = ({
       id: "market-trends",
       label: "Market Trends & Opportunities",
       icon: TrendingUp,
-    },
-    {
-      id: "strengths-challenges",
-      label: "Strengths & Challenges",
-      icon: Award,
     },
     { id: "next-steps", label: "Next Steps", icon: Zap },
   ];
@@ -953,43 +953,58 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                     );
                   })}
                 </div>
-                
-                {/* Personality Summary */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Your Entrepreneurial Profile Summary
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6">
+
+              </section>
+
+              {/* Strengths & Challenges */}
+              <section
+                id="strengths-challenges"
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
+              >
+                <div className="flex items-center mb-6">
+                  <Award className="h-6 w-6 text-yellow-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Strengths & Challenges
+                  </h2>
+                </div>
+
+                {!isLoadingInsights && aiInsights && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Top Strengths:</h4>
-                      <ul className="space-y-1">
-                        {Object.entries(personalityScores)
-                          .sort(([,a], [,b]) => b - a)
-                          .slice(0, 3)
-                          .map(([key, value]) => (
-                            <li key={key} className="flex items-center text-sm text-gray-700">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                        Your Strengths
+                      </h3>
+                      <ul className="space-y-3">
+                        {aiInsights.successStrategies
+                          ?.slice(0, 4)
+                          .map((strategy: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <Star className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                              <span className="text-gray-700">{strategy}</span>
                             </li>
                           ))}
                       </ul>
                     </div>
+
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Growth Areas:</h4>
-                      <ul className="space-y-1">
-                        {Object.entries(personalityScores)
-                          .sort(([,a], [,b]) => a - b)
-                          .slice(0, 3)
-                          .map(([key, value]) => (
-                            <li key={key} className="flex items-center text-sm text-gray-700">
-                              <AlertTriangle className="h-4 w-4 text-yellow-500 mr-2" />
-                              <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
+                        Potential Challenges
+                      </h3>
+                      <ul className="space-y-3">
+                        {aiInsights.potentialChallenges?.map(
+                          (challenge: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <AlertTriangle className="h-4 w-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
+                              <span className="text-gray-700">{challenge}</span>
                             </li>
-                          ))}
+                          ),
+                        )}
                       </ul>
                     </div>
                   </div>
-                </div>
+                )}
               </section>
 
               {/* Top 3 Matches */}
@@ -1677,56 +1692,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                 </div>
               </section>
 
-              {/* Strengths & Challenges */}
-              <section
-                id="strengths-challenges"
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
-              >
-                <div className="flex items-center mb-6">
-                  <Award className="h-6 w-6 text-yellow-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Strengths & Challenges
-                  </h2>
-                </div>
 
-                {!isLoadingInsights && aiInsights && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        Your Strengths
-                      </h3>
-                      <ul className="space-y-3">
-                        {aiInsights.successStrategies
-                          ?.slice(0, 4)
-                          .map((strategy: string, index: number) => (
-                            <li key={index} className="flex items-start">
-                              <Star className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                              <span className="text-gray-700">{strategy}</span>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
-                        Potential Challenges
-                      </h3>
-                      <ul className="space-y-3">
-                        {aiInsights.potentialChallenges?.map(
-                          (challenge: string, index: number) => (
-                            <li key={index} className="flex items-start">
-                              <AlertTriangle className="h-4 w-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                              <span className="text-gray-700">{challenge}</span>
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </section>
 
 
 
