@@ -303,11 +303,37 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   }
 
   const business = businessPath || businessModel;
+  
+  // Get fit category for the business model
+  const getFitCategory = (fitScore: number): string => {
+    if (fitScore >= 70) return "Best Fit";
+    if (fitScore >= 50) return "Strong Fit";
+    if (fitScore >= 30) return "Possible Fit";
+    return "Poor Fit";
+  };
+
+  const fitCategory = businessPath?.fitScore ? getFitCategory(businessPath.fitScore) : "Best Fit";
+  
+  // Generate the appropriate title based on fit category
+  const getFitTitle = (category: string, businessName: string): string => {
+    switch (category) {
+      case "Best Fit":
+        return `Why ${businessName} Is the Best Fit For You`;
+      case "Strong Fit":
+        return `Why ${businessName} Is a Strong Fit For You`;
+      case "Possible Fit":
+        return `Why ${businessName} Isn't the Best Fit For You`;
+      case "Poor Fit":
+        return `Why You Should Avoid ${businessName}`;
+      default:
+        return `Why ${businessName} Fits You`;
+    }
+  };
 
   // Sidebar navigation items - now defined after business is available
   const getSidebarItems = () => [
     { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
-    { id: "fit-analysis", label: `Why ${business?.name || business?.title || "This Business"} Fits You`, icon: Target },
+    { id: "fit-analysis", label: getFitTitle(fitCategory, business?.name || business?.title || "This Business"), icon: Target },
     { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
     { id: "income-potential", label: "Income Potential", icon: TrendingUp },
     { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
@@ -550,7 +576,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                     <Target className="h-8 w-8 text-white" />
                   </div>
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                    Why {business?.name || business?.title || "This Business"} Fits You
+                    {getFitTitle(fitCategory, business?.name || business?.title || "This Business")}
                   </h2>
                 </div>
 
@@ -578,16 +604,28 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-200">
+                      <div className={`rounded-2xl p-6 border ${
+                        fitCategory === "Possible Fit" || fitCategory === "Poor Fit"
+                          ? "bg-gradient-to-br from-red-50 to-pink-50 border-red-200"
+                          : "bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
+                      }`}>
                         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                          <Star className="h-6 w-6 text-yellow-500 mr-2" />
+                          {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                            <AlertTriangle className="h-6 w-6 text-red-500 mr-2" />
+                          ) : (
+                            <Star className="h-6 w-6 text-yellow-500 mr-2" />
+                          )}
                           Key Insights
                         </h3>
                         <ul className="space-y-3">
                           {aiAnalysis.keyInsights?.map(
                             (insight: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                <Star className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
+                                {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                                  <AlertTriangle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                                ) : (
+                                  <Star className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
+                                )}
                                 <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(insight)} />
                               </li>
                             ),
@@ -595,16 +633,31 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                         </ul>
                       </div>
 
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                      <div className={`rounded-2xl p-6 border ${
+                        fitCategory === "Possible Fit" || fitCategory === "Poor Fit"
+                          ? "bg-gradient-to-br from-red-50/40 to-pink-50/40 border-red-200/40"
+                          : "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+                      }`}>
                         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                          <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
-                          Success Predictors
+                          {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                            <AlertTriangle className="h-6 w-6 text-red-500 mr-2" />
+                          ) : (
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
+                          )}
+                          {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" 
+                            ? "Why You Might Struggle" 
+                            : "Success Predictors"
+                          }
                         </h3>
                         <ul className="space-y-3">
                           {aiAnalysis.successPredictors?.map(
                             (predictor: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                                  <AlertTriangle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                                ) : (
+                                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                )}
                                 <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(predictor)} />
                               </li>
                             ),

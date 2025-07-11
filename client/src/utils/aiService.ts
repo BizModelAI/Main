@@ -112,11 +112,19 @@ export class AIService {
     topPath: BusinessPath,
   ): Promise<AIAnalysis> {
     try {
+      // Determine fit category
+      const getFitCategory = (fitScore: number): string => {
+        if (fitScore >= 70) return "Best Fit";
+        if (fitScore >= 50) return "Strong Fit";
+        if (fitScore >= 30) return "Possible Fit";
+        return "Poor Fit";
+      };
 
-      // Create a comprehensive prompt for detailed analysis
-      const prompt = `
-Based on this user's quiz responses and their top business match (${topPath.name}), generate a comprehensive business model analysis.
+      const fitCategory = getFitCategory(topPath.fitScore);
 
+      // Create category-specific prompts
+      const getPromptForCategory = (category: string): string => {
+        const baseProfile = `
 User Profile Summary:
 - Main Motivation: ${quizData.mainMotivation}
 - Income Goal: $${quizData.successIncomeGoal}/month
@@ -126,33 +134,188 @@ User Profile Summary:
 - Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
 - Creative Enjoyment: ${quizData.creativeWorkEnjoyment}/5
 
-Top Business Match: ${topPath.name} (${topPath.fitScore}% fit)
+Business Model: ${topPath.name} (${topPath.fitScore}% fit - ${category})`;
 
-Generate a professional business analysis in plain text format (no markdown, no asterisks, no bold formatting) that explains:
-1. Why this business model is specifically suited to their personality and goals
-2. How their unique combination of traits creates advantages in this field
-3. Specific strategies they should use based on their profile
-4. Timeline expectations based on their commitment level
-5. How to leverage their strengths and mitigate weaknesses
+        switch (category) {
+          case "Best Fit":
+            return `${baseProfile}
+
+Generate a professional analysis explaining why ${topPath.name} is the BEST fit for this user. Focus on:
+1. How their personality traits perfectly align with this business model
+2. Why this is their ideal entrepreneurial path
+3. Specific advantages they have in this field
+4. How their profile gives them competitive advantages
+5. Why they should prioritize this over other options
 
 Requirements:
-- Write in a professional, consultative tone
-- Use clear, direct language without excessive enthusiasm
-- No markdown formatting (no **, no #, no bullet points)
+- Enthusiastic but professional tone
+- Emphasize strong alignment and natural advantages
 - 250-350 words maximum
-- Focus on actionable insights and realistic expectations
-      `;
+- No markdown formatting`;
 
+          case "Strong Fit":
+            return `${baseProfile}
+
+Generate a professional analysis explaining why ${topPath.name} is a STRONG fit for this user, but acknowledge it's not their absolute best match. Focus on:
+1. How their traits align well with this business model
+2. Why this is a solid choice with good potential
+3. Areas where they'll do well
+4. 1-2 sentences about why it's not their #1 best fit
+5. How to maximize success in this model
+
+Requirements:
+- Positive but realistic tone
+- Show it's a good choice while noting it's not perfect
+- 250-350 words maximum
+- No markdown formatting`;
+
+          case "Possible Fit":
+            return `${baseProfile}
+
+Generate a professional analysis explaining why ${topPath.name} ISN'T the best fit for this user. Focus on:
+1. Specific misalignments between their traits and this business model
+2. Why they should consider other options first
+3. Challenges they would likely face
+4. Why their quiz responses suggest this isn't ideal
+5. What they should focus on instead
+
+Requirements:
+- Honest but constructive tone
+- Clearly explain why this isn't recommended
+- Suggest they explore better-fitting options
+- 250-350 words maximum
+- No markdown formatting`;
+
+          case "Poor Fit":
+            return `${baseProfile}
+
+Generate a professional analysis explaining why this user should AVOID ${topPath.name}. Focus on:
+1. Clear misalignments between their profile and this business model
+2. Specific reasons why they would struggle
+3. Why they should avoid this path for now
+4. What fundamental changes would be needed before considering this
+5. Better alternatives to explore instead
+
+Requirements:
+- Direct but supportive tone
+- Clearly advise against this path
+- Explain what needs to change before reconsidering
+- 250-350 words maximum
+- No markdown formatting`;
+
+          default:
+            return `${baseProfile}
+
+Generate a professional business analysis about ${topPath.name} for this user.`;
+        }
+      };
+
+      const prompt = getPromptForCategory(fitCategory);
       const fullAnalysis = await this.makeOpenAIRequest(prompt, 500, 0.7);
+
+      // Generate category-specific insights and predictors
+      const getCategorySpecificContent = (category: string) => {
+        switch (category) {
+          case "Best Fit":
+            return {
+              keyInsights: [
+                `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance aligns perfectly with ${topPath.name}`,
+                `With ${quizData.weeklyTimeCommitment} hours/week, you can realistically achieve ${topPath.timeToProfit}`,
+                `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 4 ? "excellent" : "adequate"} for this path`,
+                `Communication style matches the ${quizData.directCommunicationEnjoyment >= 4 ? "high" : "moderate"} interaction requirements`,
+              ],
+              successPredictors: [
+                quizData.selfMotivationLevel >= 4
+                  ? "High self-motivation indicates strong success potential"
+                  : null,
+                quizData.longTermConsistency >= 4
+                  ? "Excellent consistency track record"
+                  : null,
+                quizData.riskComfortLevel >= 3
+                  ? "Comfortable risk tolerance for entrepreneurship"
+                  : null,
+                `Your personality profile shows ${topPath.fitScore}% alignment with successful entrepreneurs in this field`,
+              ].filter(Boolean) as string[],
+            };
+
+          case "Strong Fit":
+            return {
+              keyInsights: [
+                `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance works well with ${topPath.name}`,
+                `With ${quizData.weeklyTimeCommitment} hours/week, you can make good progress toward ${topPath.timeToProfit}`,
+                `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 3 ? "solid" : "workable"} for this path`,
+                `While not your perfect match, this path offers strong potential for success`,
+              ],
+              successPredictors: [
+                quizData.selfMotivationLevel >= 3
+                  ? "Good self-motivation supports success in this field"
+                  : null,
+                quizData.longTermConsistency >= 3
+                  ? "Solid consistency will help you build momentum"
+                  : null,
+                `Your ${topPath.fitScore}% compatibility shows good alignment, though other paths may be even better`,
+                "With focused effort, you can overcome the minor gaps in this match",
+              ].filter(Boolean) as string[],
+            };
+
+          case "Possible Fit":
+            return {
+              keyInsights: [
+                `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance may clash with ${topPath.name} requirements`,
+                `With ${quizData.weeklyTimeCommitment} hours/week, progress may be slower than ideal`,
+                `Your tech comfort level (${quizData.techSkillsRating}/5) could be a limiting factor`,
+                `Several aspects of your profile suggest other paths would be more suitable`,
+              ],
+              successPredictors: [
+                "Limited alignment means you'd need to work harder to overcome natural disadvantages",
+                quizData.selfMotivationLevel <= 2
+                  ? "Lower self-motivation makes independent business challenging"
+                  : null,
+                quizData.longTermConsistency <= 2
+                  ? "Consistency challenges could hurt long-term success"
+                  : null,
+                `Your ${topPath.fitScore}% compatibility indicates significant misalignment with this path`,
+              ].filter(Boolean) as string[],
+            };
+
+          case "Poor Fit":
+            return {
+              keyInsights: [
+                `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance conflicts with ${topPath.name} demands`,
+                `With ${quizData.weeklyTimeCommitment} hours/week, you lack the time commitment this path requires`,
+                `Your tech comfort level (${quizData.techSkillsRating}/5) is insufficient for this business model`,
+                `Multiple factors in your profile indicate this path is not recommended`,
+              ],
+              successPredictors: [
+                "Significant misalignment suggests high probability of struggle and failure",
+                quizData.selfMotivationLevel <= 2
+                  ? "Low self-motivation makes this independent path particularly challenging"
+                  : null,
+                quizData.longTermConsistency <= 2
+                  ? "Consistency issues would severely impact success"
+                  : null,
+                `Your ${topPath.fitScore}% compatibility shows this path should be avoided`,
+              ].filter(Boolean) as string[],
+            };
+
+          default:
+            return {
+              keyInsights: [
+                `Your profile shows moderate alignment with ${topPath.name}`,
+                `Consider exploring this path with careful planning`,
+              ],
+              successPredictors: [
+                "Standard business skills and dedication will be important",
+              ],
+            };
+        }
+      };
+
+      const categoryContent = getCategorySpecificContent(fitCategory);
 
       return {
         fullAnalysis,
-        keyInsights: [
-          `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance aligns perfectly with ${topPath.name}`,
-          `With ${quizData.weeklyTimeCommitment} hours/week, you can realistically achieve ${topPath.timeToProfit}`,
-          `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 4 ? "excellent" : "adequate"} for this path`,
-          `Communication style matches the ${quizData.directCommunicationEnjoyment >= 4 ? "high" : "moderate"} interaction requirements`,
-        ],
+        keyInsights: categoryContent.keyInsights,
         personalizedRecommendations: [
           `Start with ${quizData.upfrontInvestment <= 500 ? "free tools and gradual investment" : "proven tools and systems"}`,
           `Focus on ${quizData.creativeWorkEnjoyment >= 4 ? "creative differentiation" : "systematic execution"}`,
@@ -169,17 +332,7 @@ Requirements:
             ? "Limited time may slow initial progress"
             : null,
         ].filter(Boolean) as string[],
-        successPredictors: [
-          quizData.selfMotivationLevel >= 4
-            ? "High self-motivation indicates strong success potential"
-            : null,
-          quizData.longTermConsistency >= 4
-            ? "Excellent consistency track record"
-            : null,
-          quizData.riskComfortLevel >= 3
-            ? "Comfortable risk tolerance for entrepreneurship"
-            : null,
-        ].filter(Boolean) as string[],
+        successPredictors: categoryContent.successPredictors,
       };
     } catch (error) {
       console.error("Error generating detailed analysis:", error);
