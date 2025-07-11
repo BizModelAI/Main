@@ -41,6 +41,7 @@ import { PaywallModal } from "./PaywallModals";
 import { SkillsAnalysisService, SkillsAnalysis } from "../utils/skillsAnalysis";
 import { businessTools, defaultBusinessTools, BusinessTool } from "../data/businessTools";
 import { IncomeProjectionChart } from './IncomeProjectionChart';
+import { renderMarkdownContent } from "../utils/markdownUtils";
 
 interface BusinessModelDetailProps {
   quizData?: QuizData | null;
@@ -569,7 +570,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           .map((paragraph, index) => {
                             const trimmedParagraph = paragraph.trim();
                             if (trimmedParagraph) {
-                              return <p key={index}>{trimmedParagraph}</p>;
+                              return <p key={index} dangerouslySetInnerHTML={renderMarkdownContent(trimmedParagraph)} />;
                             }
                             return null;
                           })}
@@ -587,7 +588,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             (insight: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 <Star className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
-                                <span className="text-gray-700">{insight}</span>
+                                <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(insight)} />
                               </li>
                             ),
                           )}
@@ -604,9 +605,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             (predictor: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                                <span className="text-gray-700">
-                                  {predictor}
-                                </span>
+                                <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(predictor)} />
                               </li>
                             ),
                           )}

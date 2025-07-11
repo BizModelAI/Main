@@ -28,6 +28,7 @@ import { calculateAdvancedBusinessModelMatches } from "../utils/advancedScoringA
 import { AIService } from "../utils/aiService";
 import { useNavigate } from "react-router-dom";
 import { calculatePersonalityScores, getPersonalityDescription } from "../../../shared/personalityScoring";
+import { renderMarkdownContent } from "../utils/markdownUtils";
 
 // Helper functions to convert stored numbers back to original quiz ranges
 const getIncomeRangeLabel = (value: number): string => {
@@ -857,9 +858,10 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                               <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
                             </div>
                           ) : (
-                            <div className="whitespace-pre-line">
-                              {personalizedInsights}
-                            </div>
+                            <div 
+                              className="whitespace-pre-line"
+                              dangerouslySetInnerHTML={renderMarkdownContent(personalizedInsights)}
+                            />
                           )}
                         </div>
                       </div>
@@ -1079,12 +1081,13 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
                             </div>
                           </div>
                         ) : (
-                          <div className="text-blue-800 text-sm whitespace-pre-line">
-                            {businessFitDescriptions[path.id] || 
+                          <div 
+                            className="text-blue-800 text-sm whitespace-pre-line"
+                            dangerouslySetInnerHTML={renderMarkdownContent(businessFitDescriptions[path.id] || 
                               `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a ${index === 0 ? 'perfect' : index === 1 ? 'excellent' : 'good'} match for your entrepreneurial journey.
 
-${index === 0 ? 'As your top match, this path offers the best alignment with your goals and preferences.' : index === 1 ? 'This represents a strong secondary option that complements your primary strengths.' : 'This provides a solid alternative path that matches your core capabilities.'} Your ${quizData.learningPreference?.replace('-', ' ')} learning style and ${quizData.workStructurePreference?.replace('-', ' ')} work preference make this business model particularly suitable for your success.`}
-                          </div>
+${index === 0 ? 'As your top match, this path offers the best alignment with your goals and preferences.' : index === 1 ? 'This represents a strong secondary option that complements your primary strengths.' : 'This provides a solid alternative path that matches your core capabilities.'} Your ${quizData.learningPreference?.replace('-', ' ')} learning style and ${quizData.workStructurePreference?.replace('-', ' ')} work preference make this business model particularly suitable for your success.`)}
+                          />
                         )}
                       </div>
 

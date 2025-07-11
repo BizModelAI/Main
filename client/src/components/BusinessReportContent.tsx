@@ -24,6 +24,7 @@ import {
   Compass
 } from 'lucide-react';
 import { QuizData, AIAnalysis, BusinessPath } from '../types';
+import { renderMarkdownContent } from '../utils/markdownUtils';
 
 interface BusinessReportContentProps {
   quizData: QuizData;
@@ -74,12 +75,12 @@ const BusinessReportContent: React.FC<BusinessReportContentProps> = ({
           {content.map((item, index) => (
             <li key={index} className="flex items-start">
               <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-              <span className="leading-relaxed">{item}</span>
+              <span className="leading-relaxed" dangerouslySetInnerHTML={renderMarkdownContent(item)} />
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-gray-700 leading-relaxed text-lg">{content}</p>
+        <p className="text-gray-700 leading-relaxed text-lg" dangerouslySetInnerHTML={renderMarkdownContent(content)} />
       )}
     </motion.div>
   );
@@ -102,7 +103,7 @@ const BusinessReportContent: React.FC<BusinessReportContentProps> = ({
         {tasks.map((task, index) => (
           <li key={index} className="flex items-start">
             <ArrowRight className="h-4 w-4 text-blue-500 mr-3 flex-shrink-0 mt-1" />
-            <span className="leading-relaxed">{task}</span>
+            <span className="leading-relaxed" dangerouslySetInnerHTML={renderMarkdownContent(task)} />
           </li>
         ))}
       </ul>

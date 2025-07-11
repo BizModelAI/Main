@@ -42,6 +42,7 @@ import FullReport from "./FullReport";
 import AIReportLoading from "./AIReportLoading";
 import { PaywallModal, LockedCardOverlay } from "./PaywallModals";
 import { usePaywall } from "../contexts/PaywallContext";
+import { renderMarkdownContent } from "../utils/markdownUtils";
 
 
 interface ResultsProps {
@@ -858,7 +859,7 @@ Business Path Platform - businesspath.com
                                       className="flex items-start"
                                     >
                                       <CheckCircle className="h-4 w-4 text-green-300 mr-2 mt-0.5 flex-shrink-0" />
-                                      <span className="text-sm">{insight}</span>
+                                      <span className="text-sm" dangerouslySetInnerHTML={renderMarkdownContent(insight)} />
                                     </li>
                                   ),
                                 )}
@@ -878,9 +879,7 @@ Business Path Platform - businesspath.com
                                       className="flex items-start"
                                     >
                                       <Star className="h-4 w-4 text-yellow-300 mr-2 mt-0.5 flex-shrink-0" />
-                                      <span className="text-sm">
-                                        {predictor}
-                                      </span>
+                                      <span className="text-sm" dangerouslySetInnerHTML={renderMarkdownContent(predictor)} />
                                     </li>
                                   ),
                                 )}
