@@ -164,6 +164,25 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       localStorage.setItem("hasAnyPayment", "true");
       localStorage.setItem("devBypass", "true");
 
+      // Save quiz data from localStorage to user's account
+      const savedQuizData = localStorage.getItem("quizData");
+      if (savedQuizData) {
+        try {
+          const quizData = JSON.parse(savedQuizData);
+          await fetch("/api/auth/save-quiz-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ quizData }),
+          });
+          console.log("Quiz data saved to dev user account");
+        } catch (error) {
+          console.error("Error saving quiz data:", error);
+        }
+      }
+
       setIsProcessing(false);
       onSuccess();
     } catch (err: any) {
