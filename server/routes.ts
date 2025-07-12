@@ -699,6 +699,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             parseInt(retakesGranted) || 5,
           );
 
+          // If there's quiz data in session storage, save it to the user's account
+          // This will be implemented with a separate endpoint for saving quiz data
+
           console.log(`Payment completed: ${type} for user ${userId}`);
           break;
 
