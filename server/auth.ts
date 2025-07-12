@@ -99,7 +99,9 @@ export function setupAuthRoutes(app: Express) {
 
       // Store temporary account data (no real account created yet)
       // We'll create the actual account only after successful payment
-      const sessionId = req.sessionID || `temp_${Date.now()}_${Math.random()}`;
+      const sessionId =
+        req.sessionID ||
+        `temp_${Date.now()}_${Math.random().toString(36).substring(2)}`;
 
       // Get quiz data from request or localStorage indication
       const quizData = req.body.quizData || {};
