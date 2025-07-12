@@ -95,16 +95,16 @@ export class AIScoringService {
     - Timeline: ${quizData.firstIncomeTimeline}
     - Budget: $${quizData.upfrontInvestment}
     - Weekly Time: ${quizData.weeklyTimeCommitment} hours
-    - Tech Skills: ${quizData.techSkillsRating}/5
-    - Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
-    - Risk Tolerance: ${quizData.riskComfortLevel}/5
-    - Self Motivation: ${quizData.selfMotivationLevel}/5
-    - Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+        - Tech Skills: ${this.getRatingDescription(quizData.techSkillsRating)}
+    - Communication Comfort: ${this.getRatingDescription(quizData.directCommunicationEnjoyment)}
+    - Risk Tolerance: ${this.getRatingDescription(quizData.riskComfortLevel)}
+    - Self Motivation: ${this.getRatingDescription(quizData.selfMotivationLevel)}
+    - Creative Work Enjoyment: ${this.getRatingDescription(quizData.creativeWorkEnjoyment)}
     - Work Style: ${quizData.workCollaborationPreference}
     - Learning Preference: ${quizData.learningPreference}
-    - Brand Face Comfort: ${quizData.brandFaceComfort}/5
-    - Organization Level: ${quizData.organizationLevel}/5
-    - Consistency Level: ${quizData.longTermConsistency}/5
+        - Brand Face Comfort: ${this.getRatingDescription(quizData.brandFaceComfort)}
+    - Organization Level: ${this.getRatingDescription(quizData.organizationLevel)}
+    - Consistency Level: ${this.getRatingDescription(quizData.longTermConsistency)}
 
     BUSINESS MODELS TO ANALYZE:
     ${JSON.stringify(businessModels, null, 2)}
