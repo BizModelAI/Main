@@ -130,6 +130,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
   const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [skillsAnalysis, setSkillsAnalysis] = useState<SkillsAnalysis | null>(
     null,
   );
