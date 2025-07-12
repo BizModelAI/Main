@@ -617,6 +617,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe webhook endpoint
+  app.post("/api/stripe/webhook", async (req, res) => {
+    const sig = req.headers["stripe-signature"] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      console.error("Stripe webhook secret not configured");
+      return res.status(400).send("Webhook secret not configured");
+    }
+
+    let event: Stripe.Event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return res.status(400).send(`Webhook Error: ${err}`);
+    }
+
+    try {
+      switch (event.type) {
+        case "payment_intent.succeeded":
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+          console.log("Payment succeeded:", paymentIntent.id);
+
+          // Get metadata from payment intent
+          const { userId, type, retakesGranted } = paymentIntent.metadata;
+
+          if (!userId || !type) {
+            console.error(
+              "Missing metadata in payment intent:",
+              paymentIntent.id,
+            );
+            break;
+          }
+
+          // Find the payment record in our database
+          const payments = await storage.getPaymentsByUser(parseInt(userId));
+          const payment = payments.find(
+            (p) => p.stripePaymentIntentId === paymentIntent.id,
+          );
+
+          if (!payment) {
+            console.error(
+              "Payment record not found for Stripe payment:",
+              paymentIntent.id,
+            );
+            break;
+          }
+
+          // Complete the payment in our system
+          await storage.completePayment(
+            payment.id,
+            parseInt(retakesGranted) || 5,
+          );
+
+          console.log(`Payment completed: ${type} for user ${userId}`);
+          break;
+
+        case "payment_intent.payment_failed":
+          const failedPayment = event.data.object as Stripe.PaymentIntent;
+          console.log("Payment failed:", failedPayment.id);
+
+          // Could update payment status to failed in database here
+          break;
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
   // Business resources endpoint
   app.get("/api/business-resources/:businessModel", async (req, res) => {
     try {
