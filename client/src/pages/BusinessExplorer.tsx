@@ -138,7 +138,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
       return businessModels.map((model) => ({
         ...model,
         fitScore: 0,
-        fitCategory: null,
+        fitCategory: undefined,
       }));
     }
 
