@@ -928,4 +928,12 @@ Write a motivational message that feels like it's coming from a mentor who truly
         "Your unique combination of skills, motivation, and strategic thinking creates the perfect foundation for entrepreneurial success. Trust in your abilities, stay consistent with your efforts, and remember that every successful entrepreneur started exactly where you are now.",
     };
   }
+
+  private getRatingDescription(rating: number): string {
+    if (rating >= 4.5) return "Very High";
+    if (rating >= 4) return "High";
+    if (rating >= 3) return "Moderate";
+    if (rating >= 2) return "Low";
+    return "Very Low";
+  }
 }
