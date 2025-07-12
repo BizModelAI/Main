@@ -189,10 +189,16 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
       // User has paid, navigate directly
       navigate(`/business/${businessId}`);
     } else {
-      // User has completed quiz but hasn't paid, show paywall
+      // User has completed quiz but hasn't paid
       setSelectedBusinessId(businessId);
       setPaywallType("learn-more");
-      setShowPaywallModal(true);
+
+      // Force account creation for new users
+      if (!user) {
+        setShowPaymentModal(true);
+      } else {
+        setShowPaywallModal(true);
+      }
     }
   };
 
