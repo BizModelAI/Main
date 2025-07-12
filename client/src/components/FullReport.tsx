@@ -855,7 +855,21 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
     })
     .slice(0, 3);
 
-  const worstThreePaths = personalizedPaths.slice(-3).reverse(); // Get worst 3 and reverse for worst-first order
+  // Get the worst 3 business models based on actual scoring
+  const allBusinessMatches = calculateAdvancedBusinessModelMatches(quizData);
+  const worstThreePaths = allBusinessMatches
+    .slice(-3) // Get bottom 3 (lowest scores)
+    .reverse() // Reverse to show worst-first order
+    .map((match) => ({
+      id: match.id,
+      name: match.name,
+      fitScore: match.score,
+      description: getBusinessModelDescription(match.id),
+      timeToProfit: getBusinessModelTimeToProfit(match.id),
+      startupCost: getBusinessModelStartupCost(match.id),
+      potentialIncome: getBusinessModelPotentialIncome(match.id),
+      category: match.category,
+    }));
 
   const handleGetStarted = (businessId: string) => {
     navigate(`/business/${businessId}`);
