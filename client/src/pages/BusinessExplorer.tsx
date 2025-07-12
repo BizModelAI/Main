@@ -82,6 +82,27 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     }
   };
 
+  // Fetch quiz data for authenticated users
+  useEffect(() => {
+    const fetchQuizData = async () => {
+      if (!user || propQuizData) return; // If no user or already have quiz data, skip
+
+      setIsLoadingQuizData(true);
+      try {
+        const latestQuizData = await getLatestQuizData();
+        if (latestQuizData) {
+          setQuizData(latestQuizData);
+        }
+      } catch (error) {
+        console.error("Error fetching quiz data:", error);
+      } finally {
+        setIsLoadingQuizData(false);
+      }
+    };
+
+    fetchQuizData();
+  }, [user, propQuizData, getLatestQuizData]);
+
   // Load consistent scoring algorithm paths
   useEffect(() => {
     if (!quizData || !hasUnlockedAnalysis) return;
