@@ -316,7 +316,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             </motion.div>
 
             {/* Dev Bypass Button */}
-            {process.env.NODE_ENV === "development" && (
+            {import.meta.env.MODE === "development" && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
