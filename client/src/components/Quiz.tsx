@@ -392,7 +392,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
     } else {
       setTimeout(async () => {
         console.log("Quiz completed with data:", formData);
-        
+
         // Record the quiz attempt if userId is provided
         if (userId) {
           try {
@@ -405,12 +405,13 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             console.error("Failed to record quiz attempt:", error);
             toast({
               title: "Warning",
-              description: "Quiz completed but there was an issue saving your attempt.",
+              description:
+                "Quiz completed but there was an issue saving your attempt.",
               variant: "destructive",
             });
           }
         }
-        
+
         onComplete(formData as QuizData);
         setIsAnimating(false);
       }, 300);
@@ -1013,6 +1014,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
           }}
           className="bg-red-500 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl hover:bg-red-600 transition-all duration-300 transform hover:scale-105 border-2 border-white"
           style={{ zIndex: 9999 }}
+          hidden
         >
           🚀 SKIP TO RESULTS (DEV)
         </button>
