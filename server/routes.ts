@@ -6,6 +6,11 @@ import { pdfService } from "./services/pdfService.js";
 import { emailService } from "./services/emailService.js";
 import { aiScoringService } from "./services/aiScoringService.js";
 import { personalityAnalysisService } from "./services/personalityAnalysisService.js";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2024-11-20.acacia",
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
@@ -442,12 +447,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
 
       if (!canTakeQuiz) {
-        return res
-          .status(403)
-          .json({
-            error:
-              "No quiz retakes remaining. Purchase more retakes to continue.",
-          });
+        return res.status(403).json({
+          error:
+            "No quiz retakes remaining. Purchase more retakes to continue.",
+        });
       }
 
       // Record the quiz attempt
