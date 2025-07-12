@@ -77,6 +77,20 @@ export function setupAuthRoutes(app: Express) {
           .json({ error: "Email, password, and name are required" });
       }
 
+      // Basic email validation
+      if (!email.includes("@") || email.length < 5) {
+        return res
+          .status(400)
+          .json({ error: "Please enter a valid email address" });
+      }
+
+      // Password validation
+      if (password.length < 6) {
+        return res
+          .status(400)
+          .json({ error: "Password must be at least 6 characters long" });
+      }
+
       // Check if user already exists as a paid user
       const existingUser = await storage.getUserByUsername(email);
       if (existingUser) {
