@@ -1,13 +1,15 @@
-import { QuizData, BusinessPath } from '../types';
-import { businessPaths } from '../data/businessPaths';
+import { QuizData, BusinessPath } from "../types";
+import { businessPaths } from "../data/businessPaths";
 
 // AI-powered business fit analysis
-export async function generateAIPersonalizedPaths(data: QuizData): Promise<BusinessPath[]> {
+export async function generateAIPersonalizedPaths(
+  data: QuizData,
+): Promise<BusinessPath[]> {
   try {
-    const response = await fetch('/api/ai-business-fit-analysis', {
-      method: 'POST',
+    const response = await fetch("/api/ai-business-fit-analysis", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ quizData: data }),
     });
@@ -17,15 +19,15 @@ export async function generateAIPersonalizedPaths(data: QuizData): Promise<Busin
     }
 
     const analysis = await response.json();
-    
+
     // Convert the AI analysis to BusinessPath format
     return analysis.topMatches.map((match: any) => ({
       ...match.businessPath,
       aiAnalysis: match.analysis,
-      fitScore: match.analysis.fitScore
+      fitScore: match.analysis.fitScore,
     }));
   } catch (error) {
-    console.error('AI analysis failed, using fallback scoring:', error);
+    console.error("AI analysis failed, using fallback scoring:", error);
     return generatePersonalizedPaths(data);
   }
 }
@@ -33,21 +35,37 @@ export async function generateAIPersonalizedPaths(data: QuizData): Promise<Busin
 // Enhanced fallback scoring algorithm
 export function calculateFitScore(pathId: string, data: QuizData): number {
   let score = 0; // Start with 0 and build up
-  
+
   // Helper function to get value from new or legacy field
   const getValue = (newField: any, legacyField: any, defaultValue: any = 0) => {
-    return newField !== undefined ? newField : (legacyField !== undefined ? legacyField : defaultValue);
+    return newField !== undefined
+      ? newField
+      : legacyField !== undefined
+        ? legacyField
+        : defaultValue;
   };
 
   // Extract key data points
   const incomeGoal = getValue(data.successIncomeGoal, data.incomeGoal, 1000);
-  const timeToIncome = getValue(data.firstIncomeTimeline, data.timeToFirstIncome, '3-6-months');
+  const timeToIncome = getValue(
+    data.firstIncomeTimeline,
+    data.timeToFirstIncome,
+    "3-6-months",
+  );
   const budget = getValue(data.upfrontInvestment, data.startupBudget, 0);
-  const timeCommitment = getValue(data.weeklyTimeCommitment, data.timeCommitment, 20);
+  const timeCommitment = getValue(
+    data.weeklyTimeCommitment,
+    data.timeCommitment,
+    20,
+  );
   const techSkills = getValue(data.techSkillsRating, data.technologyComfort, 3);
-  const selfMotivation = getValue(data.selfMotivationLevel, data.selfMotivation, 3);
+  const selfMotivation = getValue(
+    data.selfMotivationLevel,
+    data.selfMotivation,
+    3,
+  );
   const riskTolerance = getValue(data.riskComfortLevel, data.riskTolerance, 3);
-  
+
   // Create a weighted scoring system with multiple factors
   const factors = {
     income: 0,
@@ -59,100 +77,173 @@ export function calculateFitScore(pathId: string, data: QuizData): number {
     riskTolerance: 0,
     timeCommitment: 0,
     motivation: 0,
-    workStyle: 0
+    workStyle: 0,
   };
 
   // Calculate factor scores based on business path requirements
   switch (pathId) {
-    case 'affiliate-marketing':
+    case "affiliate-marketing":
       factors.income = getIncomeMatch(incomeGoal, 1000, 8000); // Sweet spot: $1K-$8K
-      factors.timeline = getTimelineMatch(timeToIncome, ['3-6-months', '6-12-months', 'no-rush']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "3-6-months",
+        "6-12-months",
+        "no-rush",
+      ]);
       factors.budget = getBudgetMatch(budget, 0, 500); // Low budget friendly
       factors.skills = getSkillsMatch(techSkills, 2, 4); // Medium tech skills
-      factors.communication = getCommunicationMatch(data.directCommunicationEnjoyment, 2, 4); // Some communication
+      factors.communication = getCommunicationMatch(
+        data.directCommunicationEnjoyment,
+        2,
+        4,
+      ); // Some communication
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 3, 5); // Creative work
       factors.riskTolerance = getRiskMatch(riskTolerance, 2, 4); // Medium risk
       factors.timeCommitment = getTimeMatch(timeCommitment, 10, 30); // Flexible time
       factors.motivation = getMotivationMatch(selfMotivation, 3, 5); // Self-motivated
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['solo-only', 'mostly-solo']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "solo-only",
+        "mostly-solo",
+      ]);
       break;
 
-    case 'freelancing':
+    case "freelancing":
       factors.income = getIncomeMatch(incomeGoal, 2000, 10000);
-      factors.timeline = getTimelineMatch(timeToIncome, ['under-1-month', '1-3-months']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "under-1-month",
+        "1-3-months",
+      ]);
       factors.budget = getBudgetMatch(budget, 0, 200);
       factors.skills = getSkillsMatch(techSkills, 3, 5);
-      factors.communication = getCommunicationMatch(data.directCommunicationEnjoyment, 3, 5);
+      factors.communication = getCommunicationMatch(
+        data.directCommunicationEnjoyment,
+        3,
+        5,
+      );
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 2, 5);
       factors.riskTolerance = getRiskMatch(riskTolerance, 2, 4);
       factors.timeCommitment = getTimeMatch(timeCommitment, 15, 40);
       factors.motivation = getMotivationMatch(selfMotivation, 4, 5);
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['solo-only', 'mostly-solo']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "solo-only",
+        "mostly-solo",
+      ]);
       break;
 
-    case 'e-commerce-dropshipping':
+    case "e-commerce-dropshipping":
       factors.income = getIncomeMatch(incomeGoal, 3000, 15000);
-      factors.timeline = getTimelineMatch(timeToIncome, ['3-6-months', '6-12-months']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "3-6-months",
+        "6-12-months",
+      ]);
       factors.budget = getBudgetMatch(budget, 500, 2000);
       factors.skills = getSkillsMatch(techSkills, 3, 5);
-      factors.communication = getCommunicationMatch(data.directCommunicationEnjoyment, 2, 4);
+      factors.communication = getCommunicationMatch(
+        data.directCommunicationEnjoyment,
+        2,
+        4,
+      );
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 3, 5);
       factors.riskTolerance = getRiskMatch(riskTolerance, 3, 5);
       factors.timeCommitment = getTimeMatch(timeCommitment, 20, 50);
       factors.motivation = getMotivationMatch(selfMotivation, 3, 5);
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['solo-only', 'mostly-solo']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "solo-only",
+        "mostly-solo",
+      ]);
       break;
 
-    case 'content-creation-ugc':
+    case "content-creation-ugc":
       factors.income = getIncomeMatch(incomeGoal, 1000, 6000);
-      factors.timeline = getTimelineMatch(timeToIncome, ['6-12-months', '1-year-plus', 'no-rush']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "6-12-months",
+        "1-year-plus",
+        "no-rush",
+      ]);
       factors.budget = getBudgetMatch(budget, 0, 500);
       factors.skills = getSkillsMatch(techSkills, 2, 4);
-      factors.communication = getCommunicationMatch(data.brandFaceComfort, 4, 5);
+      factors.communication = getCommunicationMatch(
+        data.brandFaceComfort,
+        4,
+        5,
+      );
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 4, 5);
       factors.riskTolerance = getRiskMatch(riskTolerance, 2, 4);
       factors.timeCommitment = getTimeMatch(timeCommitment, 10, 30);
       factors.motivation = getMotivationMatch(selfMotivation, 3, 5);
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['solo-only', 'mostly-solo']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "solo-only",
+        "mostly-solo",
+      ]);
       break;
 
-    case 'app-saas-development':
+    case "app-saas-development":
       factors.income = getIncomeMatch(incomeGoal, 5000, 50000);
-      factors.timeline = getTimelineMatch(timeToIncome, ['6-12-months', '1-year-plus']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "6-12-months",
+        "1-year-plus",
+      ]);
       factors.budget = getBudgetMatch(budget, 0, 1000);
       factors.skills = getSkillsMatch(techSkills, 4, 5);
-      factors.communication = getCommunicationMatch(data.directCommunicationEnjoyment, 2, 4);
+      factors.communication = getCommunicationMatch(
+        data.directCommunicationEnjoyment,
+        2,
+        4,
+      );
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 3, 5);
       factors.riskTolerance = getRiskMatch(riskTolerance, 3, 5);
       factors.timeCommitment = getTimeMatch(timeCommitment, 30, 60);
       factors.motivation = getMotivationMatch(selfMotivation, 4, 5);
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['solo-only', 'mostly-solo']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "solo-only",
+        "mostly-solo",
+      ]);
       break;
 
-    case 'high-ticket-sales':
+    case "high-ticket-sales":
       factors.income = getIncomeMatch(incomeGoal, 5000, 25000);
-      factors.timeline = getTimelineMatch(timeToIncome, ['under-1-month', '1-3-months']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "under-1-month",
+        "1-3-months",
+      ]);
       factors.budget = getBudgetMatch(budget, 0, 1000);
       factors.skills = getSkillsMatch(techSkills, 2, 4);
-      factors.communication = getCommunicationMatch(data.directCommunicationEnjoyment, 4, 5);
+      factors.communication = getCommunicationMatch(
+        data.directCommunicationEnjoyment,
+        4,
+        5,
+      );
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 2, 4);
       factors.riskTolerance = getRiskMatch(riskTolerance, 4, 5);
       factors.timeCommitment = getTimeMatch(timeCommitment, 20, 50);
       factors.motivation = getMotivationMatch(selfMotivation, 4, 5);
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['solo-only', 'mostly-solo', 'team-focused']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "solo-only",
+        "mostly-solo",
+        "team-focused",
+      ]);
       break;
 
-    case 'online-coaching-consulting':
+    case "online-coaching-consulting":
       factors.income = getIncomeMatch(incomeGoal, 2000, 15000);
-      factors.timeline = getTimelineMatch(timeToIncome, ['1-3-months', '3-6-months']);
+      factors.timeline = getTimelineMatch(timeToIncome, [
+        "1-3-months",
+        "3-6-months",
+      ]);
       factors.budget = getBudgetMatch(budget, 0, 500);
       factors.skills = getSkillsMatch(techSkills, 2, 4);
-      factors.communication = getCommunicationMatch(data.directCommunicationEnjoyment, 4, 5);
+      factors.communication = getCommunicationMatch(
+        data.directCommunicationEnjoyment,
+        4,
+        5,
+      );
       factors.creativity = getCreativityMatch(data.creativeWorkEnjoyment, 3, 5);
       factors.riskTolerance = getRiskMatch(riskTolerance, 3, 5);
       factors.timeCommitment = getTimeMatch(timeCommitment, 15, 40);
       factors.motivation = getMotivationMatch(selfMotivation, 4, 5);
-      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, ['team-focused', 'balanced']);
+      factors.workStyle = getWorkStyleMatch(data.workCollaborationPreference, [
+        "team-focused",
+        "balanced",
+      ]);
       break;
 
     default:
@@ -173,23 +264,27 @@ export function calculateFitScore(pathId: string, data: QuizData): number {
   const weights = {
     income: 0.15,
     timeline: 0.12,
-    budget: 0.10,
+    budget: 0.1,
     skills: 0.15,
     communication: 0.12,
-    creativity: 0.10,
-    riskTolerance: 0.10,
+    creativity: 0.1,
+    riskTolerance: 0.1,
     timeCommitment: 0.08,
     motivation: 0.05,
-    workStyle: 0.03
+    workStyle: 0.03,
   };
 
   score = Object.keys(factors).reduce((total, key) => {
-    return total + (factors[key] * weights[key] * 100);
+    const factorKey = key as keyof typeof factors;
+    const weightKey = key as keyof typeof weights;
+    return total + factors[factorKey] * weights[weightKey] * 100;
   }, 0);
 
   // Apply penalties for major mismatches
-  if (data.clientCallsComfort === 'no' && 
-      ['high-ticket-sales', 'online-coaching-consulting'].includes(pathId)) {
+  if (
+    data.clientCallsComfort === "no" &&
+    ["high-ticket-sales", "online-coaching-consulting"].includes(pathId)
+  ) {
     score -= 20;
   }
 
@@ -220,7 +315,11 @@ function getSkillsMatch(actual: number, min: number, max: number): number {
   return Math.max(0.8, 1 - (actual - max) / 2);
 }
 
-function getCommunicationMatch(actual: number, min: number, max: number): number {
+function getCommunicationMatch(
+  actual: number,
+  min: number,
+  max: number,
+): number {
   if (!actual) return 0.5;
   if (actual >= min && actual <= max) return 1;
   if (actual < min) return Math.max(0, actual / min);
@@ -258,24 +357,35 @@ function getWorkStyleMatch(actual: string, preferred: string[]): number {
 }
 
 export function generatePersonalizedPaths(data: QuizData): BusinessPath[] {
-  const paths = businessPaths.map(path => ({
+  const paths = businessPaths.map((path) => ({
     ...path,
-    fitScore: calculateFitScore(path.id, data)
+    fitScore: calculateFitScore(path.id, data),
   }));
-  
+
   return paths.sort((a, b) => b.fitScore - a.fitScore);
 }
 
-export function getNextAdaptiveQuestion(currentStep: number, data: Partial<QuizData>): boolean {
+export function getNextAdaptiveQuestion(
+  currentStep: number,
+  data: Partial<QuizData>,
+): boolean {
   // Logic to determine if adaptive questions should be shown
-  
-  if (currentStep === 4 && data.upfrontInvestment && data.upfrontInvestment > 500) {
+
+  if (
+    currentStep === 4 &&
+    data.upfrontInvestment &&
+    data.upfrontInvestment > 500
+  ) {
     return true; // Show inventory comfort question
   }
-  
-  if (currentStep === 12 && (data.familiarTools?.includes('canva') || (data.creativeWorkEnjoyment && data.creativeWorkEnjoyment >= 4))) {
+
+  if (
+    currentStep === 12 &&
+    (data.familiarTools?.includes("canva") ||
+      (data.creativeWorkEnjoyment && data.creativeWorkEnjoyment >= 4))
+  ) {
     return true; // Show digital content comfort question
   }
-  
+
   return false;
 }
