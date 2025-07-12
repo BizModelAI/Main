@@ -258,6 +258,9 @@ const FullReport: React.FC<FullReportProps> = ({
   const [businessFitDescriptions, setBusinessFitDescriptions] = useState<{
     [key: string]: string;
   }>({});
+  const [businessAvoidDescriptions, setBusinessAvoidDescriptions] = useState<{
+    [key: string]: string;
+  }>({});
   const [isLoadingDescriptions, setIsLoadingDescriptions] = useState(true);
 
   const navigate = useNavigate();
