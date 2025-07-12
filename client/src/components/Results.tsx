@@ -581,6 +581,59 @@ Business Path Platform - businesspath.com
     setShowFullReport(true);
   };
 
+  // New payment handler that forces account creation
+  const handlePaymentWithAccount = () => {
+    // If user is already logged in, use old flow for now
+    if (user) {
+      handlePayment();
+      return;
+    }
+
+    // Force account creation for new users
+    setShowPaymentModal(true);
+    setShowUnlockModal(false);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+
+    // Execute pending action if user paid for download/share
+    if (pendingAction === "download") {
+      executeDownloadAction();
+      setPendingAction(null);
+    } else if (pendingAction === "share") {
+      executeShareAction();
+      setPendingAction(null);
+    } else {
+      // Route based on which button was clicked
+      if (paywallType === "learn-more" && selectedPath) {
+        // Navigate to "How business model X works for you" page
+        navigate(`/business/${selectedPath.id}`);
+        // Scroll to top after navigation
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }, 0);
+      } else if (paywallType === "business-model" && selectedPath) {
+        // Navigate to business model guide page
+        navigate(`/guide/${selectedPath.id}`);
+        // Scroll to top after navigation
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }, 0);
+      } else if (paywallType === "full-report") {
+        // Show the AI loading page first to generate all OpenAI content
+        setShowAILoading(true);
+        // Scroll to top of page immediately
+        window.scrollTo({ top: 0, behavior: "instant" });
+      } else {
+        // Default fallback to AI loading page
+        setShowAILoading(true);
+        // Scroll to top of page immediately
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+    }
+  };
+
   const handlePayment = async () => {
     setIsProcessingPayment(true);
 
