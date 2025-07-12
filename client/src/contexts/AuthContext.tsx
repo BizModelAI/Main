@@ -8,13 +8,19 @@ interface User {
   name?: string;
   hasAccessPass: boolean;
   quizRetakesRemaining: number;
+  isTemporary?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    name: string,
+    quizData?: any,
+  ) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   getLatestQuizData: () => Promise<QuizData | null>;
@@ -100,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     email: string,
     password: string,
     name: string,
+    quizData?: any,
   ): Promise<void> => {
     setIsLoading(true);
     try {
@@ -109,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, quizData }),
       });
 
       const data = await response.json();
