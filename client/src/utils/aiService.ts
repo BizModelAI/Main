@@ -355,8 +355,9 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
       console.error("Error generating detailed analysis:", error);
       // Only fallback for clear API/network errors
       if (
-        error.message.includes("Server error") ||
-        error.message.includes("fetch")
+        error instanceof Error &&
+        (error.message.includes("Server error") ||
+          error.message.includes("fetch"))
       ) {
         console.log("Server/network error - using fallback analysis");
         return this.generateFallbackAnalysis(quizData, topPath);
