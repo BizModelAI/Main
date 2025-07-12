@@ -361,12 +361,14 @@ const LoadingPageWrapper: React.FC<{
 
   return (
     <div className="relative">
-      <LoadingPage
-        quizData={quizData}
-        userEmail={userEmail}
-        onComplete={handleAILoadingComplete}
-        onExit={() => navigate("/quiz")}
-      />
+      {quizData && (
+        <LoadingPage
+          quizData={quizData}
+          userEmail={userEmail}
+          onComplete={handleAILoadingComplete}
+          onExit={() => navigate("/quiz")}
+        />
+      )}
       {showCongratulations && quizData && (
         <EmailCapture
           onEmailSubmit={handleCongratulationsComplete}
