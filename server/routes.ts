@@ -975,8 +975,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 User Quiz Data:
 - Main Motivation: ${quizData.mainMotivation}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
-- Income Goal: $${quizData.successIncomeGoal}/month
+- Weekly Time Commitment: ${getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
+- Income Goal: ${getIncomeGoalRange(quizData.successIncomeGoal)}
 - Tech Skills Rating: ${getRatingDescription(quizData.techSkillsRating)}
 - Risk Comfort Level: ${getRatingDescription(quizData.riskComfortLevel)}
 - Self-Motivation Level: ${getRatingDescription(quizData.selfMotivationLevel)}
@@ -985,7 +985,7 @@ User Quiz Data:
 - Work Structure Preference: ${quizData.workStructurePreference}
 - Learning Preference: ${quizData.learningPreference}
 - First Income Timeline: ${quizData.firstIncomeTimeline}
-- Upfront Investment: $${quizData.upfrontInvestment}
+- Upfront Investment: ${getInvestmentRange(quizData.upfrontInvestment)}
 - Brand Face Comfort: ${getRatingDescription(quizData.brandFaceComfort)}
 - Long-term Consistency: ${getRatingDescription(quizData.longTermConsistency)}
 - Trial & Error Comfort: ${getRatingDescription(quizData.trialErrorComfort)}
@@ -1094,8 +1094,8 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
 
 User Quiz Data:
 - Main Motivation: ${quizData.mainMotivation}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
-- Income Goal: $${quizData.successIncomeGoal}/month
+- Weekly Time Commitment: ${getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
+- Income Goal: ${getIncomeGoalRange(quizData.successIncomeGoal)}
 - Tech Skills Rating: ${getRatingDescription(quizData.techSkillsRating)}
 - Risk Comfort Level: ${getRatingDescription(quizData.riskComfortLevel)}
 - Self-Motivation Level: ${getRatingDescription(quizData.selfMotivationLevel)}
@@ -1104,7 +1104,7 @@ User Quiz Data:
 - Work Structure Preference: ${quizData.workStructurePreference}
 - Learning Preference: ${quizData.learningPreference}
 - First Income Timeline: ${quizData.firstIncomeTimeline}
-- Upfront Investment: $${quizData.upfrontInvestment}
+- Upfront Investment: ${getInvestmentRange(quizData.upfrontInvestment)}
 - Brand Face Comfort: ${getRatingDescription(quizData.brandFaceComfort)}
 - Long-term Consistency: ${getRatingDescription(quizData.longTermConsistency)}
 - Trial & Error Comfort: ${getRatingDescription(quizData.trialErrorComfort)}
