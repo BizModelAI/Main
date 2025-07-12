@@ -573,41 +573,6 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
       }
     };
 
-    // Generate personalized three-paragraph insights
-    const generatePersonalizedInsights = async () => {
-      try {
-        const topPath = topThreeAdvanced[0]; // Get the top business path
-        const response = await fetch("/api/generate-personalized-insights", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            quizData,
-            topBusinessPath: topPath,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to generate personalized insights");
-        }
-
-        const data = await response.json();
-        setPersonalizedInsights(data.insights);
-      } catch (error) {
-        console.error("Error generating personalized insights:", error);
-        // Set fallback insights using quiz data
-        const fallbackInsights = `Your assessment reveals a unique entrepreneurial profile that strongly aligns with ${topThreeAdvanced[0]?.name}. With a self-motivation level of ${quizData.selfMotivationLevel}/5 and ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} available, you demonstrate the commitment level necessary for business success. Your ${quizData.workStructurePreference?.replace("-", " ")} approach to work structure, combined with your ${quizData.learningPreference?.replace("-", " ")} learning style, creates an ideal foundation for the systematic approach required in your top-matched business model.
-
-Your income goal of ${getIncomeRangeLabel(quizData.successIncomeGoal)} within a ${quizData.firstIncomeTimeline?.replace("-", " ")} timeframe is highly achievable given your risk comfort level of ${quizData.riskComfortLevel}/5 and available investment budget of ${getInvestmentRangeLabel(quizData.upfrontInvestment)}. This combination suggests you have realistic expectations while maintaining the ambition necessary for entrepreneurial growth. Your ${quizData.mainMotivation?.replace("-", " ")} motivation aligns perfectly with the income potential and lifestyle flexibility offered by your recommended business paths.
-
-Based on your technical comfort level (${quizData.techSkillsRating}/5), communication preferences, and ${quizData.passionIdentityAlignment >= 4 ? "strong desire for passion-aligned work" : "practical approach to business"}, you're positioned for accelerated success. Your ${quizData.decisionMakingStyle?.replace("-", " ")} decision-making style and ${quizData.longTermConsistency >= 4 ? "excellent" : "good"} track record with long-term goals indicate you'll navigate the initial challenges effectively. The convergence of your skills, motivation, and market timing creates a compelling opportunity for sustainable business growth.`;
-        setPersonalizedInsights(fallbackInsights);
-      } finally {
-        setIsLoadingPersonalizedInsights(false);
-      }
-    };
-
     // Generate detailed business fit descriptions
     const generateBusinessFitDescriptions = async () => {
       try {
