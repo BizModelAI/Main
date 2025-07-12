@@ -63,7 +63,7 @@ export const PDFReportPage: React.FC = () => {
   }
 
   return (
-    <PDFReport
+    <PDFReportFull
       quizData={reportData.quizData}
       userEmail={reportData.userEmail}
     />
