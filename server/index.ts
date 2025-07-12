@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { registerRoutes } from "./routes.js";
 import { setupAuthRoutes } from "./auth.js";
 import { setupVite, serveStatic, log } from "./vite.js";
+import { storage } from "./storage.js";
 
 const app = express();
 
