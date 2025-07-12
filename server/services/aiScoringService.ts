@@ -89,12 +89,12 @@ export class AIScoringService {
     return `
     Analyze your quiz responses and provide business model compatibility scores:
 
-    USER PROFILE:
+        USER PROFILE:
     - Main Motivation: ${quizData.mainMotivation}
-    - Income Goal: $${quizData.successIncomeGoal}/month
+    - Income Goal: ${this.getIncomeGoalRange(quizData.successIncomeGoal)}
     - Timeline: ${quizData.firstIncomeTimeline}
-    - Budget: $${quizData.upfrontInvestment}
-    - Weekly Time: ${quizData.weeklyTimeCommitment} hours
+    - Budget: ${this.getInvestmentRange(quizData.upfrontInvestment)}
+    - Weekly Time: ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
         - Tech Skills: ${this.getRatingDescription(quizData.techSkillsRating)}
     - Communication Comfort: ${this.getRatingDescription(quizData.directCommunicationEnjoyment)}
     - Risk Tolerance: ${this.getRatingDescription(quizData.riskComfortLevel)}
