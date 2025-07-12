@@ -714,6 +714,9 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
 
           // Generate business fit descriptions
           generateBusinessFitDescriptions();
+
+          // Generate business avoid descriptions
+          generateBusinessAvoidDescriptions();
         } catch (error) {
           console.error(
             "Failed to load AI paths in Full Report, using fallback:",
@@ -727,6 +730,9 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
 
           // Generate business fit descriptions
           generateBusinessFitDescriptions();
+
+          // Generate business avoid descriptions
+          generateBusinessAvoidDescriptions();
         }
       };
 
