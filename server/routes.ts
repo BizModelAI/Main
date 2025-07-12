@@ -981,6 +981,123 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
     }
   });
 
+  // Generate detailed "Why This Doesn't Fit Your Current Profile" descriptions for bottom 3 business matches
+  app.post("/api/generate-business-avoid-descriptions", async (req, res) => {
+    try {
+      const { quizData, businessMatches } = req.body;
+
+      if (!quizData || !businessMatches || !Array.isArray(businessMatches)) {
+        return res
+          .status(400)
+          .json({ error: "Missing or invalid quiz data or business matches" });
+      }
+
+      const descriptions = [];
+
+      for (let i = 0; i < businessMatches.length; i++) {
+        const match = businessMatches[i];
+        const rank = i + 1;
+
+        const prompt = `Based on this user's quiz responses, generate a detailed "Why This Doesn't Fit Your Current Profile" description for their ${rank === 1 ? "lowest scoring" : rank === 2 ? "second lowest scoring" : "third lowest scoring"} business match.
+
+User Quiz Data:
+- Main Motivation: ${quizData.mainMotivation}
+- Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
+- Income Goal: $${quizData.successIncomeGoal}/month
+- Tech Skills Rating: ${quizData.techSkillsRating}/5
+- Risk Comfort Level: ${quizData.riskComfortLevel}/5
+- Self-Motivation Level: ${quizData.selfMotivationLevel}/5
+- Direct Communication Enjoyment: ${quizData.directCommunicationEnjoyment}/5
+- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Work Structure Preference: ${quizData.workStructurePreference}
+- Learning Preference: ${quizData.learningPreference}
+- First Income Timeline: ${quizData.firstIncomeTimeline}
+- Upfront Investment: $${quizData.upfrontInvestment}
+- Brand Face Comfort: ${quizData.brandFaceComfort}/5
+- Long-term Consistency: ${quizData.longTermConsistency}/5
+- Trial & Error Comfort: ${quizData.trialErrorComfort}/5
+- Organization Level: ${quizData.organizationLevel}/5
+- Uncertainty Handling: ${quizData.uncertaintyHandling}/5
+- Work Collaboration Preference: ${quizData.workCollaborationPreference}
+- Decision Making Style: ${quizData.decisionMakingStyle}
+- Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
+
+Business Match:
+- Name: ${match.name}
+- Fit Score: ${match.fitScore}%
+- Description: ${match.description}
+- Time to Profit: ${match.timeToProfit}
+- Startup Cost: ${match.startupCost}
+- Potential Income: ${match.potentialIncome}
+
+Generate a detailed personalized analysis of at least 6 sentences explaining why this business model doesn't fit this user's current profile. Write it as a cohesive paragraph, not bullet points. Be specific about:
+1. What specific personality traits, goals, or preferences conflict with this business model
+2. Which exact quiz responses indicate poor alignment with this path
+3. How their skills, time availability, or risk tolerance don't match the requirements
+4. What challenges they would likely face based on their specific profile
+5. Why their learning style and work preferences would struggle with this business approach
+6. What would need to change in their profile before this could become viable
+
+Reference specific quiz data points and explain the misalignments. Be honest but constructive. Write in a supportive tone that helps them understand why focusing on better-matched opportunities would be wiser.`;
+
+        const openaiResponse = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are an expert business consultant specializing in entrepreneurial personality matching. Generate personalized, specific explanations for why certain business models don't fit individual users based on their quiz responses. Be honest but constructive, helping users understand misalignments.",
+                },
+                {
+                  role: "user",
+                  content: prompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 500,
+            }),
+          },
+        );
+
+        if (!openaiResponse.ok) {
+          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        }
+
+        const data = await openaiResponse.json();
+        const content = data.choices[0].message.content;
+
+        descriptions.push({
+          businessId: match.id,
+          description:
+            content ||
+            `This business model doesn't align well with your current profile. Your ${quizData.riskComfortLevel <= 2 ? "lower risk tolerance" : "risk preferences"} and ${quizData.weeklyTimeCommitment} hours/week availability suggest other business models would be more suitable. Your ${quizData.techSkillsRating}/5 technical skills and ${quizData.selfMotivationLevel}/5 self-motivation level indicate potential challenges with this path. Consider focusing on business models that better match your strengths and current situation.`,
+        });
+      }
+
+      res.json({ descriptions });
+    } catch (error) {
+      console.error("Error generating business avoid descriptions:", error);
+
+      // Return fallback descriptions
+      const fallbackDescriptions = req.body.businessMatches.map(
+        (match: any, index: number) => ({
+          businessId: match.id,
+          description: `This business model scored ${match.fitScore}% for your profile, indicating significant misalignment with your current goals, skills, and preferences. Based on your quiz responses, you would likely face substantial challenges in this field that could impact your success. Consider focusing on higher-scoring business models that better match your natural strengths and current situation.`,
+        }),
+      );
+
+      res.json({ descriptions: fallbackDescriptions });
+    }
+  });
+
   // Enhanced email functionality for unpaid users
   app.post("/api/email-results", async (req, res) => {
     try {
