@@ -524,6 +524,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save quiz data for authenticated user after payment
+  app.post("/api/auth/save-quiz-data", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { quizData } = req.body;
+      if (!quizData) {
+        return res.status(400).json({ error: "Quiz data is required" });
+      }
+
+      // Save quiz data to user's account
+      const attempt = await storage.recordQuizAttempt({
+        userId: req.session.userId,
+        quizData,
+      });
+
+      res.json({ success: true, attemptId: attempt.id });
+    } catch (error) {
+      console.error("Error saving quiz data:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/create-access-pass-payment", async (req, res) => {
     try {
       const { userId } = req.body;
