@@ -1411,63 +1411,24 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                         <h4 className="font-semibold text-red-900 mb-2">
                           Why This Doesn't Fit Your Current Profile
                         </h4>
-                        <ul className="text-red-800 text-sm space-y-1">
-                          {path.fitScore < 30 && (
-                            <>
-                              <li>
-                                • Requires skills or preferences that don't
-                                align with your current profile
-                              </li>
-                              <li>
-                                • Time commitment or income timeline doesn't
-                                match your goals
-                              </li>
-                              <li>
-                                • Risk level or investment requirements are
-                                misaligned
-                              </li>
-                            </>
-                          )}
-                          {path.fitScore >= 30 && path.fitScore < 50 && (
-                            <>
-                              <li>
-                                • Some aspects align, but key requirements don't
-                                match your strengths
-                              </li>
-                              <li>
-                                • Better options available that suit your
-                                profile more closely
-                              </li>
-                              <li>
-                                • May require significant skill development
-                                before becoming viable
-                              </li>
-                            </>
-                          )}
-                          {path.id === "app-saas-development" &&
-                            quizData.techSkillsRating < 4 && (
-                              <li>
-                                • Requires advanced technical skills (your
-                                current level: {quizData.techSkillsRating}/5)
-                              </li>
+                        {isLoadingDescriptions ? (
+                          <div className="text-red-800 text-sm">
+                            <div className="animate-pulse">
+                              <div className="h-4 bg-red-200 rounded w-full mb-2"></div>
+                              <div className="h-4 bg-red-200 rounded w-3/4 mb-2"></div>
+                              <div className="h-4 bg-red-200 rounded w-5/6 mb-2"></div>
+                              <div className="h-4 bg-red-200 rounded w-4/5"></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className="text-red-800 text-sm whitespace-pre-line"
+                            dangerouslySetInnerHTML={renderMarkdownContent(
+                              businessAvoidDescriptions[path.id] ||
+                                `This business model scored ${path.fitScore}% for your profile, indicating significant misalignment with your current goals, skills, and preferences. Based on your quiz responses, you would likely face substantial challenges in this field that could impact your success. Consider focusing on higher-scoring business models that better match your natural strengths and current situation. Your ${quizData.riskComfortLevel <= 2 ? "lower risk tolerance" : "risk preferences"} and ${quizData.weeklyTimeCommitment} hours/week availability suggest other business models would be more suitable for your entrepreneurial journey. Focus on the business models that scored higher in your assessment for the best chance of success.`,
                             )}
-                          {path.id === "high-ticket-sales" &&
-                            quizData.directCommunicationEnjoyment < 4 && (
-                              <li>
-                                • Requires high comfort with direct
-                                communication (your level:{" "}
-                                {quizData.directCommunicationEnjoyment}/5)
-                              </li>
-                            )}
-                          {path.id === "content-creation-ugc" &&
-                            quizData.brandFaceComfort < 3 && (
-                              <li>
-                                • Requires comfort being the face of a brand
-                                (your comfort level: {quizData.brandFaceComfort}
-                                /5)
-                              </li>
-                            )}
-                        </ul>
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
