@@ -234,7 +234,7 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
             )}
 
             {!isPaidUser && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                 <p className="text-blue-700 text-sm">
                   <strong>Preview Only:</strong> This email contains a summary
                   of your results. Upgrade to get your complete analysis with
