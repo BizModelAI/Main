@@ -246,19 +246,19 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                   step === "account"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                     : "bg-green-600 text-white"
                 }`}
               >
                 {step === "account" ? "1" : <CheckCircle className="h-4 w-4" />}
               </div>
               <div
-                className={`w-12 h-1 mx-2 ${step === "payment" ? "bg-blue-600" : "bg-gray-300"}`}
+                className={`w-12 h-1 mx-2 rounded-full ${step === "payment" ? "bg-gradient-to-r from-blue-600 to-purple-600" : "bg-gray-300"}`}
               ></div>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                   step === "payment"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                     : "bg-gray-300 text-gray-600"
                 }`}
               >
@@ -268,7 +268,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
             {/* Error message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
                 <p className="text-red-800 text-sm">{error}</p>
               </div>
             )}
@@ -288,7 +288,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Enter your full name"
                       required
                     />
@@ -307,7 +307,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Enter your email"
                       required
                     />
@@ -326,7 +326,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Create a password"
                       required
                     />
@@ -359,7 +359,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                           confirmPassword: e.target.value,
                         })
                       }
-                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Confirm your password"
                       required
                     />
@@ -382,7 +382,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isProcessing ? (
                     <>
@@ -400,7 +400,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     type="button"
                     onClick={handleDevBypass}
                     disabled={isProcessing}
-                    className="w-full bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="w-full bg-gray-600 text-white py-2 rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
                     🔧 DEV: Bypass Payment (Remove in Prod)
                   </button>
@@ -422,7 +422,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setStep("account")}
-                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
                   >
                     Back
                   </button>
@@ -434,7 +434,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     type="button"
                     onClick={handleDevBypass}
                     disabled={isProcessing}
-                    className="w-full bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="w-full bg-gray-600 text-white py-2 rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
                     🔧 DEV: Bypass Payment (Remove in Prod)
                   </button>
