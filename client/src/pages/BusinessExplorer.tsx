@@ -33,6 +33,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   const [selectedFitCategory, setSelectedFitCategory] = useState<string>("All");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paywallType, setPaywallType] = useState<
     "quiz-required" | "learn-more"
   >("quiz-required");
