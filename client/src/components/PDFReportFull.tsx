@@ -870,8 +870,12 @@ function calculateMotivation(data: QuizData): number {
 function calculateFeedbackResilience(data: QuizData): number {
   let score = 0.5;
 
-  if (data.feedbackResilience && data.feedbackResilience >= 4) score += 0.3;
-  else if (data.feedbackResilience && data.feedbackResilience <= 2)
+  if (data.feedbackRejectionResponse && data.feedbackRejectionResponse >= 4)
+    score += 0.3;
+  else if (
+    data.feedbackRejectionResponse &&
+    data.feedbackRejectionResponse <= 2
+  )
     score -= 0.3;
 
   if (data.discouragementResilience && data.discouragementResilience >= 4)
