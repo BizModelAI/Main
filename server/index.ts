@@ -12,13 +12,16 @@ const MemoryStoreSession = MemoryStore(session);
 
 const app = express();
 
-// Session configuration
+// Session configuration with persistent storage
 app.use(
   session({
     secret:
       process.env.SESSION_SECRET || "your-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
