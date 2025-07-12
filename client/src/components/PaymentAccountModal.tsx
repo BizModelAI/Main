@@ -7,7 +7,6 @@ import {
   Eye,
   EyeOff,
   Loader,
-  CreditCard,
   User,
   Mail,
 } from "lucide-react";
@@ -43,9 +42,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     password: "",
     confirmPassword: "",
   });
-
-  // Payment state
-  const [paymentError, setPaymentError] = useState("");
 
   const { signup, user } = useAuth();
   const { setHasUnlockedAnalysis } = usePaywall();
@@ -107,17 +103,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     return true;
   };
 
-  const handlePaymentSuccess = () => {
-    setHasUnlockedAnalysis(true);
-    localStorage.setItem("hasAnyPayment", "true");
-    onSuccess();
-  };
-
-  const handlePaymentError = (errorMessage: string) => {
-    setPaymentError(errorMessage);
-    setError(errorMessage);
-  };
-
   const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -135,28 +120,14 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     }
   };
 
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const handlePaymentSuccess = () => {
+    setHasUnlockedAnalysis(true);
+    localStorage.setItem("hasAnyPayment", "true");
+    onSuccess();
+  };
 
-    if (!validatePaymentForm()) return;
-
-    setIsProcessing(true);
-    try {
-      // Here we would integrate with Stripe
-      // For now, simulate the payment process
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mark as unlocked
-      setHasUnlockedAnalysis(true);
-      localStorage.setItem("hasAnyPayment", "true");
-
-      setIsProcessing(false);
-      onSuccess();
-    } catch (err: any) {
-      setError(err.message || "Payment failed");
-      setIsProcessing(false);
-    }
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage);
   };
 
   const handleDevBypass = async () => {
@@ -179,29 +150,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       setError(err.message || "Dev bypass failed");
       setIsProcessing(false);
     }
-  };
-
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    if (parts.length) {
-      return parts.join(" ");
-    } else {
-      return v;
-    }
-  };
-
-  const formatExpiryDate = (value: string) => {
-    const v = value.replace(/\D/g, "");
-    if (v.length >= 2) {
-      return v.substring(0, 2) + "/" + v.substring(2, 4);
-    }
-    return v;
   };
 
   return (
@@ -423,102 +371,13 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
             {/* Payment Form */}
             {step === "payment" && (
-              <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-blue-900">Total:</span>
-                    <span className="text-2xl font-bold text-blue-900">
-                      $9.99
-                    </span>
-                  </div>
-                  <p className="text-sm text-blue-700 mt-1">
-                    One-time payment • Instant access
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Card Number
-                  </label>
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={paymentData.cardNumber}
-                      onChange={(e) =>
-                        setPaymentData({
-                          ...paymentData,
-                          cardNumber: formatCardNumber(e.target.value),
-                        })
-                      }
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentData.expiryDate}
-                      onChange={(e) =>
-                        setPaymentData({
-                          ...paymentData,
-                          expiryDate: formatExpiryDate(e.target.value),
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      CVC
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentData.cvc}
-                      onChange={(e) =>
-                        setPaymentData({
-                          ...paymentData,
-                          cvc: e.target.value.replace(/\D/g, ""),
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="123"
-                      maxLength={4}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Billing Name
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentData.billingName}
-                    onChange={(e) =>
-                      setPaymentData({
-                        ...paymentData,
-                        billingName: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Name on card"
-                    required
-                  />
-                </div>
+              <div className="space-y-4">
+                <StripePaymentWrapper
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                  isProcessing={isProcessing}
+                  setIsProcessing={setIsProcessing}
+                />
 
                 <div className="flex gap-3">
                   <button
@@ -527,20 +386,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                   >
                     Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isProcessing}
-                    className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader className="animate-spin h-4 w-4 mr-2" />
-                        Processing...
-                      </>
-                    ) : (
-                      "Pay $9.99"
-                    )}
                   </button>
                 </div>
 
@@ -555,7 +400,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     🔧 DEV: Bypass Payment (Remove in Prod)
                   </button>
                 )}
-              </form>
+              </div>
             )}
 
             {/* Security note */}
