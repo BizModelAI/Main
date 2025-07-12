@@ -791,15 +791,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("PDF generated successfully, size:", pdfBuffer.length);
 
-      // Set headers for HTML download (temporary solution until Puppeteer works)
-      res.setHeader("Content-Type", "text/html");
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="business-report.html"',
-      );
+      // Generate filename with user info
+      const userName = userEmail?.split("@")[0] || "user";
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `business-report-${userName}-${timestamp}`;
+
+      // Check if this is actually a PDF (binary) or HTML fallback
+      const isPDF = pdfBuffer[0] === 0x25 && pdfBuffer[1] === 0x50; // PDF magic number "%P"
+
+      if (isPDF) {
+        // Set headers for PDF download
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filename}.pdf"`,
+        );
+      } else {
+        // Set headers for HTML fallback
+        res.setHeader("Content-Type", "text/html");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filename}.html"`,
+        );
+      }
+
       res.setHeader("Content-Length", pdfBuffer.length);
 
-      // Send the HTML
+      // Send the file
       res.send(pdfBuffer);
     } catch (error) {
       console.error("PDF generation failed:", error);
