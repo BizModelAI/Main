@@ -911,13 +911,15 @@ Business Match:
 - Startup Cost: ${match.startupCost}
 - Potential Income: ${match.potentialIncome}
 
-Generate a personalized 4-6 sentence description in two paragraphs explaining why this business model specifically fits this user. Be specific about:
-1. How their personality traits, goals, and preferences align with this business model
+Generate a detailed personalized analysis of at least 6 sentences explaining why this business model specifically fits this user. Write it as a cohesive paragraph, not bullet points. Be extremely specific about:
+1. How their exact personality traits, goals, and preferences align with this business model
 2. What specific aspects of their quiz responses make them well-suited for this path
-3. How their skills, time availability, and risk tolerance match the requirements
-4. What unique advantages they bring to this business model
+3. How their skills, time availability, and risk tolerance perfectly match the requirements
+4. What unique advantages they bring to this business model based on their specific answers
+5. How their learning style and work preferences complement this business approach
+6. Why this particular combination of traits makes them likely to succeed in this field
 
-Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone.`;
+Reference specific quiz data points and explain the connections. Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone that demonstrates deep understanding of their profile.`;
 
         const openaiResponse = await fetch(
           "https://api.openai.com/v1/chat/completions",
@@ -941,7 +943,7 @@ Make it personal and specific to their responses, not generic advice. Write in a
                 },
               ],
               temperature: 0.7,
-              max_tokens: 300,
+              max_tokens: 500,
             }),
           },
         );
