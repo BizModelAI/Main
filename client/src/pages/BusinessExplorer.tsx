@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { businessModels, BusinessModel } from "../data/businessModels";
 import { PaywallModal } from "../components/PaywallModals";
+import { PaymentAccountModal } from "../components/PaymentAccountModal";
 import { usePaywall } from "../contexts/PaywallContext";
 import { useAuth } from "../contexts/AuthContext";
 import { QuizData } from "../types";
