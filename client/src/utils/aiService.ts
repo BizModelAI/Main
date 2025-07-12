@@ -530,6 +530,8 @@ ${topPaths
   .join("\n")}
 
 Write a personalized summary that connects your specific traits to ${topBusinessModel.name}. Be encouraging and specific about why ${topBusinessModel.name} is your best fit.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -568,6 +570,8 @@ Generate 6 personalized recommendations specifically for ${topBusinessModel.name
 - Learning style and motivation level
 
 Format as a simple list, each recommendation should be 1-2 sentences and actionable for ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -596,6 +600,8 @@ ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 Generate 4 potential challenges specifically for ${topBusinessModel.name} that are based on your personality traits, goals, and this specific business path. For each challenge, include a brief solution or mitigation strategy.
 
 Format as a simple list, each item should be 1-2 sentences and specific to ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -632,6 +638,8 @@ Generate 6 success strategies specifically for ${topBusinessModel.name} that:
 - Are specifically tailored to ${topBusinessModel.name}
 
 Format as a simple list, each strategy should be 1-2 sentences and actionable for ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
