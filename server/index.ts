@@ -49,10 +49,7 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    console.log("Starting server initialization...");
     const server = await registerRoutes(app);
-    // const server = createServer(app);
-    console.log("Routes registered successfully");
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
