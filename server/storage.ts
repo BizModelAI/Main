@@ -21,21 +21,27 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
-  
+
   // Quiz retake operations
-  recordQuizAttempt(attempt: Omit<InsertQuizAttempt, 'id'>): Promise<QuizAttempt>;
+  recordQuizAttempt(
+    attempt: Omit<InsertQuizAttempt, "id">,
+  ): Promise<QuizAttempt>;
   getQuizAttemptsCount(userId: number): Promise<number>;
   getQuizAttempts(userId: number): Promise<QuizAttempt[]>;
   canUserRetakeQuiz(userId: number): Promise<boolean>;
   decrementQuizRetakes(userId: number): Promise<void>;
-  
+
   // Payment operations
-  createPayment(payment: Omit<InsertPayment, 'id'>): Promise<Payment>;
+  createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment>;
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
-  
+
   // Unpaid user email tracking
-  storeUnpaidUserEmail(sessionId: string, email: string, quizData: any): Promise<UnpaidUserEmail>;
+  storeUnpaidUserEmail(
+    sessionId: string,
+    email: string,
+    quizData: any,
+  ): Promise<UnpaidUserEmail>;
   getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined>;
   cleanupExpiredUnpaidEmails(): Promise<void>;
 }
@@ -73,8 +79,8 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
-    const user: User = { 
-      ...insertUser, 
+    const user: User = {
+      ...insertUser,
       id,
       hasAccessPass: false,
       quizRetakesRemaining: 0,
@@ -96,7 +102,9 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
-  async recordQuizAttempt(attempt: Omit<InsertQuizAttempt, 'id'>): Promise<QuizAttempt> {
+  async recordQuizAttempt(
+    attempt: Omit<InsertQuizAttempt, "id">,
+  ): Promise<QuizAttempt> {
     const id = this.currentQuizAttemptId++;
     const quizAttempt: QuizAttempt = {
       ...attempt,
@@ -109,25 +117,25 @@ export class MemStorage implements IStorage {
 
   async getQuizAttemptsCount(userId: number): Promise<number> {
     return Array.from(this.quizAttempts.values()).filter(
-      attempt => attempt.userId === userId
+      (attempt) => attempt.userId === userId,
     ).length;
   }
 
   async getQuizAttempts(userId: number): Promise<QuizAttempt[]> {
     return Array.from(this.quizAttempts.values())
-      .filter(attempt => attempt.userId === userId)
+      .filter((attempt) => attempt.userId === userId)
       .sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime()); // Most recent first
   }
 
   async canUserRetakeQuiz(userId: number): Promise<boolean> {
     const user = await this.getUser(userId);
     if (!user) return false;
-    
+
     const attemptCount = await this.getQuizAttemptsCount(userId);
-    
+
     // First quiz is free
     if (attemptCount === 0) return true;
-    
+
     // After first quiz, user needs access pass and remaining retakes
     return user.hasAccessPass && user.quizRetakesRemaining > 0;
   }
@@ -135,19 +143,19 @@ export class MemStorage implements IStorage {
   async decrementQuizRetakes(userId: number): Promise<void> {
     const user = await this.getUser(userId);
     if (!user) return;
-    
+
     const attemptCount = await this.getQuizAttemptsCount(userId);
-    
+
     // Don't decrement for first quiz (it's free)
     if (attemptCount === 0) return;
-    
+
     await this.updateUser(userId, {
       quizRetakesRemaining: Math.max(0, user.quizRetakesRemaining - 1),
       totalQuizRetakesUsed: user.totalQuizRetakesUsed + 1,
     });
   }
 
-  async createPayment(payment: Omit<InsertPayment, 'id'>): Promise<Payment> {
+  async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
     const id = this.currentPaymentId++;
     const newPayment: Payment = {
       ...payment,
@@ -163,7 +171,10 @@ export class MemStorage implements IStorage {
     return newPayment;
   }
 
-  async completePayment(paymentId: number, retakesGranted: number): Promise<void> {
+  async completePayment(
+    paymentId: number,
+    retakesGranted: number,
+  ): Promise<void> {
     const payment = this.payments.get(paymentId);
     if (!payment) return;
 
@@ -182,26 +193,30 @@ export class MemStorage implements IStorage {
       const updates: Partial<User> = {
         quizRetakesRemaining: user.quizRetakesRemaining + retakesGranted,
       };
-      
+
       if (payment.type === "access_pass") {
         updates.hasAccessPass = true;
         updates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
       }
-      
+
       await this.updateUser(payment.userId, updates);
     }
   }
 
   async getPaymentsByUser(userId: number): Promise<Payment[]> {
     return Array.from(this.payments.values())
-      .filter(payment => payment.userId === userId)
+      .filter((payment) => payment.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async storeUnpaidUserEmail(sessionId: string, email: string, quizData: any): Promise<UnpaidUserEmail> {
+  async storeUnpaidUserEmail(
+    sessionId: string,
+    email: string,
+    quizData: any,
+  ): Promise<UnpaidUserEmail> {
     const id = this.currentUnpaidEmailId++;
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-    
+
     const unpaidUserEmail: UnpaidUserEmail = {
       id,
       sessionId,
@@ -210,21 +225,23 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       expiresAt,
     };
-    
+
     this.unpaidUserEmails.set(sessionId, unpaidUserEmail);
     return unpaidUserEmail;
   }
 
-  async getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined> {
+  async getUnpaidUserEmail(
+    sessionId: string,
+  ): Promise<UnpaidUserEmail | undefined> {
     const email = this.unpaidUserEmails.get(sessionId);
     if (!email) return undefined;
-    
+
     // Check if expired
     if (email.expiresAt < new Date()) {
       this.unpaidUserEmails.delete(sessionId);
       return undefined;
     }
-    
+
     return email;
   }
 
@@ -246,15 +263,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
@@ -264,14 +281,16 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
-    
+
     if (!user) {
       throw new Error("User not found");
     }
     return user;
   }
 
-  async recordQuizAttempt(attempt: Omit<InsertQuizAttempt, 'id'>): Promise<QuizAttempt> {
+  async recordQuizAttempt(
+    attempt: Omit<InsertQuizAttempt, "id">,
+  ): Promise<QuizAttempt> {
     const [quizAttempt] = await db
       .insert(quizAttempts)
       .values(attempt)
@@ -303,31 +322,31 @@ export class DatabaseStorage implements IStorage {
   async decrementQuizRetakes(userId: number): Promise<void> {
     await db
       .update(users)
-      .set({ 
+      .set({
         quizRetakesRemaining: sql`${users.quizRetakesRemaining} - 1`,
         totalQuizRetakesUsed: sql`${users.totalQuizRetakesUsed} + 1`,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
   }
 
-  async createPayment(payment: Omit<InsertPayment, 'id'>): Promise<Payment> {
-    const [newPayment] = await db
-      .insert(payments)
-      .values(payment)
-      .returning();
+  async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
+    const [newPayment] = await db.insert(payments).values(payment).returning();
     return newPayment;
   }
 
-  async completePayment(paymentId: number, retakesGranted: number): Promise<void> {
+  async completePayment(
+    paymentId: number,
+    retakesGranted: number,
+  ): Promise<void> {
     await db.transaction(async (tx) => {
       // Update payment status
       const [payment] = await tx
         .update(payments)
-        .set({ 
+        .set({
           status: "completed",
           completedAt: new Date(),
-          retakesGranted
+          retakesGranted,
         })
         .where(eq(payments.id, paymentId))
         .returning();
@@ -339,9 +358,9 @@ export class DatabaseStorage implements IStorage {
       // Update user's retakes
       await tx
         .update(users)
-        .set({ 
+        .set({
           quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(users.id, payment.userId));
     });
@@ -355,12 +374,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(payments.createdAt));
   }
 
-  async storeUnpaidUserEmail(sessionId: string, email: string, quizData: any): Promise<UnpaidUserEmail> {
+  async storeUnpaidUserEmail(
+    sessionId: string,
+    email: string,
+    quizData: any,
+  ): Promise<UnpaidUserEmail> {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-    
+
     // Delete any existing record for this session
-    await db.delete(unpaidUserEmails).where(eq(unpaidUserEmails.sessionId, sessionId));
-    
+    await db
+      .delete(unpaidUserEmails)
+      .where(eq(unpaidUserEmails.sessionId, sessionId));
+
     const [newUnpaidUserEmail] = await db
       .insert(unpaidUserEmails)
       .values({
@@ -370,30 +395,36 @@ export class DatabaseStorage implements IStorage {
         expiresAt,
       })
       .returning();
-    
+
     return newUnpaidUserEmail;
   }
 
-  async getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined> {
+  async getUnpaidUserEmail(
+    sessionId: string,
+  ): Promise<UnpaidUserEmail | undefined> {
     const [email] = await db
       .select()
       .from(unpaidUserEmails)
       .where(eq(unpaidUserEmails.sessionId, sessionId));
-    
+
     if (!email) return undefined;
-    
+
     // Check if expired
     if (email.expiresAt < new Date()) {
-      await db.delete(unpaidUserEmails).where(eq(unpaidUserEmails.sessionId, sessionId));
+      await db
+        .delete(unpaidUserEmails)
+        .where(eq(unpaidUserEmails.sessionId, sessionId));
       return undefined;
     }
-    
+
     return email;
   }
 
   async cleanupExpiredUnpaidEmails(): Promise<void> {
-    await db.delete(unpaidUserEmails).where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
+    await db
+      .delete(unpaidUserEmails)
+      .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
