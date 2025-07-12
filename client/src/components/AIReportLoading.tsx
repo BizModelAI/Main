@@ -420,16 +420,20 @@ Return JSON format:
 
         // Step 6: Generate personalized insights
         const step6Result = await executeStep(5, async () => {
-          const paths = (currentResults as any).personalizedPaths || [];
-          const topPath = paths[0];
-          if (topPath) {
-            const insights = await generatePersonalizedInsights(
-              activeQuizData,
-              topPath,
-            );
-            return { personalizedInsights: insights };
-          }
-          return { personalizedInsights: "" };
+          // Get the cached AI analysis that was already generated
+          const { aiCacheManager } = await import("../utils/aiCacheManager");
+          const cachedData = aiCacheManager.getCachedAIContent(activeQuizData);
+
+          // Use the fullAnalysis from the cached data, or generate fallback content
+          const insights =
+            cachedData.analysis?.fullAnalysis ||
+            `Your assessment reveals strong alignment with ${(currentResults as any).personalizedPaths?.[0]?.name || "your top business match"}. Your ${activeQuizData.selfMotivationLevel >= 4 ? "high" : "moderate"} self-motivation level and ${activeQuizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
+
+Based on your ${activeQuizData.riskComfortLevel}/5 risk tolerance and ${activeQuizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of this business path. Your ${activeQuizData.learningPreference} learning style will help you adapt to the requirements of this field.
+
+With your income goal of ${activeQuizData.successIncomeGoal} per month and ${activeQuizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
+
+          return { personalizedInsights: insights };
         });
         currentResults = { ...currentResults, ...step6Result };
 
