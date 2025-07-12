@@ -674,6 +674,8 @@ Create a personalized action plan that considers your:
 
 For each timeframe, provide 3-4 specific, actionable tasks. Make sure the progression is logical and builds upon previous phases.
 
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile.
+
 Format as:
 Week 1:
 - Task 1
@@ -729,6 +731,8 @@ ${userProfile}
 Top Business Match: ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
 Write a motivational message that feels like it's coming from a mentor who truly understands you and believes in your potential for ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
