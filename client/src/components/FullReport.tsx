@@ -609,8 +609,12 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
         // Set fallback descriptions
         const fallbackDescriptions: { [key: string]: string } = {};
         topThreeAdvanced.slice(0, 3).forEach((match, index) => {
+          // Get the actual business data to access startupCost and potentialIncome
+          const businessData = personalizedPaths.find(
+            (path) => path.id === match.id,
+          );
           fallbackDescriptions[match.id] =
-            `This business model aligns exceptionally well with your ${quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "self-driven nature"} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? "strong" : "adequate"} technical skills and ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance make this a ${index === 0 ? "perfect" : index === 1 ? "excellent" : "good"} match for your entrepreneurial journey. The startup cost of ${match.startupCost} and potential for ${match.potentialIncome} income directly align with your upfront investment budget of $${quizData.upfrontInvestment} and income goal of $${quizData.successIncomeGoal}/month.
+            `This business model aligns exceptionally well with your ${quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "self-driven nature"} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? "strong" : "adequate"} technical skills and ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance make this a ${index === 0 ? "perfect" : index === 1 ? "excellent" : "good"} match for your entrepreneurial journey.${businessData ? ` The startup cost of ${businessData.startupCost} and potential for ${businessData.potentialIncome} income directly align with your upfront investment budget of $${quizData.upfrontInvestment} and income goal of $${quizData.successIncomeGoal}/month.` : ""}
 
 ${index === 0 ? "As your top match, this path offers the best alignment with your goals and preferences." : index === 1 ? "This represents a strong secondary option that complements your primary strengths." : "This provides a solid alternative path that matches your core capabilities."} Your ${quizData.learningPreference?.replace("-", " ")} learning style means you'll excel in the learning curve required for this business model. With your ${quizData.workStructurePreference?.replace("-", " ")} work preference and ${quizData.workCollaborationPreference} collaboration style, this business structure will feel natural and sustainable for long-term success.`;
         });
