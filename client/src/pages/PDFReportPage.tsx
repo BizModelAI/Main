@@ -1,34 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { PDFReport } from '../components/PDFReport';
-import { QuizData } from '../types';
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { PDFReportFull } from "../components/PDFReportFull";
+import { QuizData } from "../types";
 
 export const PDFReportPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [reportData, setReportData] = useState<{ quizData: QuizData; userEmail?: string } | null>(null);
+  const [reportData, setReportData] = useState<{
+    quizData: QuizData;
+    userEmail?: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      const dataParam = searchParams.get('data');
+      const dataParam = searchParams.get("data");
       if (!dataParam) {
-        setError('No data provided');
+        setError("No data provided");
         return;
       }
 
       // Decode the base64 data
-      const decodedData = atob(decodeURIComponent(dataParam).replace('data:application/json;base64,', ''));
+      const decodedData = atob(
+        decodeURIComponent(dataParam).replace(
+          "data:application/json;base64,",
+          "",
+        ),
+      );
       const data = JSON.parse(decodedData);
 
       if (!data.quizData) {
-        setError('Invalid data format');
+        setError("Invalid data format");
         return;
       }
 
       setReportData(data);
     } catch (err) {
-      console.error('Error parsing PDF data:', err);
-      setError('Failed to parse report data');
+      console.error("Error parsing PDF data:", err);
+      setError("Failed to parse report data");
     }
   }, [searchParams]);
 
@@ -55,9 +63,9 @@ export const PDFReportPage: React.FC = () => {
   }
 
   return (
-    <PDFReport 
-      quizData={reportData.quizData} 
-      userEmail={reportData.userEmail} 
+    <PDFReport
+      quizData={reportData.quizData}
+      userEmail={reportData.userEmail}
     />
   );
 };
