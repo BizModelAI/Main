@@ -131,13 +131,16 @@ export class AIScoringService {
       "recommendations": ["recommendation1", "recommendation2", "recommendation3"]
     }
 
-    SCORING GUIDELINES:
+        SCORING GUIDELINES:
     - Use 0-100 scale where 70+ = Best Fit, 50-69 = Strong Fit, 30-49 = Possible Fit, <30 = Poor Fit
     - Consider realistic barriers and advantages
     - Weight factors: Income match (20%), Timeline (15%), Budget (15%), Skills (20%), Personality (15%), Risk (10%), Time (5%)
     - Be honest about challenges and realistic about opportunities
     - Most people should NOT get 90+ scores unless they're exceptionally well-suited
     - Distribute scores realistically - not everyone can be a perfect fit for everything
+
+    CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbers, amounts, or timeframes.
+    Reference the exact ranges and values shown in the user profile. If the user selected a range, always refer to the full range, never specific numbers within it.
     `;
   }
 
