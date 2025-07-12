@@ -1006,23 +1006,48 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                     <div className="prose max-w-none">
                       <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
                         <div className="space-y-4 text-gray-700 leading-relaxed">
-                          {isLoadingPersonalizedInsights ? (
-                            <div className="space-y-4">
-                              <div className="animate-pulse bg-gray-200 h-4 rounded w-full"></div>
-                              <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
-                              <div className="animate-pulse bg-gray-200 h-4 rounded w-5/6"></div>
-                              <div className="animate-pulse bg-gray-200 h-4 rounded w-full"></div>
-                              <div className="animate-pulse bg-gray-200 h-4 rounded w-4/5"></div>
-                              <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
-                            </div>
-                          ) : (
-                            <div
-                              className="whitespace-pre-line"
-                              dangerouslySetInnerHTML={renderMarkdownContent(
-                                personalizedInsights,
-                              )}
-                            />
-                          )}
+                          {(() => {
+                            // Get the cached AI analysis that was generated on the Results page
+                            const cachedData =
+                              aiCacheManager.getCachedAIContent(quizData);
+
+                            // Use the fullAnalysis from the cached data, or fall back to the summary
+                            const analysisText =
+                              cachedData.analysis?.fullAnalysis ||
+                              aiInsights?.personalizedSummary ||
+                              "";
+
+                            if (!analysisText) {
+                              return (
+                                <div className="space-y-4">
+                                  <div className="animate-pulse bg-gray-200 h-4 rounded w-full"></div>
+                                  <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
+                                  <div className="animate-pulse bg-gray-200 h-4 rounded w-5/6"></div>
+                                  <div className="animate-pulse bg-gray-200 h-4 rounded w-full"></div>
+                                  <div className="animate-pulse bg-gray-200 h-4 rounded w-4/5"></div>
+                                  <div className="animate-pulse bg-gray-200 h-4 rounded w-3/4"></div>
+                                </div>
+                              );
+                            }
+
+                            // Split the analysis into paragraphs for better formatting
+                            const paragraphs = analysisText
+                              .split("\n\n")
+                              .filter((p) => p.trim().length > 0);
+
+                            return (
+                              <div className="space-y-4">
+                                {paragraphs.map((paragraph, index) => (
+                                  <p
+                                    key={index}
+                                    className="text-gray-700 leading-relaxed"
+                                  >
+                                    {paragraph.trim()}
+                                  </p>
+                                ))}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -1395,7 +1420,7 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                           {path.id === "content-creation-ugc" &&
                             quizData.brandFaceComfort < 3 && (
                               <li>
-                                ��� Requires comfort being the face of a brand
+                                • Requires comfort being the face of a brand
                                 (your comfort level: {quizData.brandFaceComfort}
                                 /5)
                               </li>
