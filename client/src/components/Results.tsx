@@ -49,7 +49,6 @@ import { usePaywall } from "../contexts/PaywallContext";
 import { useAuth } from "../contexts/AuthContext";
 import { renderMarkdownContent } from "../utils/markdownUtils";
 import EmailResultsModal from "./EmailResultsModal";
-import { useAuth } from "../contexts/AuthContext";
 
 // Helper function to generate 2-sentence descriptions for business models
 const getBusinessModelDescription = (
