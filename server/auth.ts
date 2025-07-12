@@ -90,7 +90,6 @@ export function setupAuthRoutes(app: Express) {
       const user = await storage.createUser({
         username: email, // Using email as username
         password: hashedPassword,
-        email: email,
       });
 
       // Set session
