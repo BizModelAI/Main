@@ -85,10 +85,18 @@ export function setupAuthRoutes(app: Express) {
       }
 
       // Password validation
-      if (password.length < 6) {
+      if (password.length < 8) {
         return res
           .status(400)
-          .json({ error: "Password must be at least 6 characters long" });
+          .json({ error: "Password must be at least 8 characters long" });
+      }
+      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+          });
       }
 
       // Check if user already exists as a paid user
