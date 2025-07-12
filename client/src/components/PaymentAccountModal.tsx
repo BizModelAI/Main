@@ -29,11 +29,12 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   type,
   title,
 }) => {
-  const [step, setStep] = useState<"account" | "payment">("account");
+  const [step, setStep] = useState<"account" | "login" | "payment">("account");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
 
   // Account form data
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     confirmPassword: "",
   });
 
-  const { signup, user } = useAuth();
+  const { signup, login, user } = useAuth();
   const { setHasUnlockedAnalysis } = usePaywall();
 
   if (!isOpen) return null;
@@ -114,7 +115,49 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       await signup(formData.email, formData.password, formData.name);
       setStep("payment");
     } catch (err: any) {
-      setError(err.message || "Failed to create account");
+      if (err.message === "User already exists") {
+        setLoginEmail(formData.email);
+        setStep("login");
+        setError(
+          "An account with this email already exists. Please log in to continue with your purchase.",
+        );
+      } else {
+        setError(err.message || "Failed to create account");
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!loginEmail || !formData.password) {
+      setError("Email and password are required");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await login(loginEmail, formData.password);
+      // After successful login, check if user has already paid
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.hasAccessPass) {
+          // User already has access, no need to pay again
+          setHasUnlockedAnalysis(true);
+          onSuccess();
+          return;
+        }
+      }
+      // User logged in but hasn't paid, proceed to payment
+      setStep("payment");
+    } catch (err: any) {
+      setError(err.message || "Login failed");
     } finally {
       setIsProcessing(false);
     }
