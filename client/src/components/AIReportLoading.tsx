@@ -304,6 +304,78 @@ Return JSON format:
     }
   };
 
+  // Generate business avoid descriptions for bottom 3 matches
+  const generateBusinessAvoidDescriptions = async (
+    quizData: QuizData,
+  ): Promise<{ [key: string]: string }> => {
+    try {
+      const { calculateAdvancedBusinessModelMatches } = await import(
+        "../utils/advancedScoringAlgorithm"
+      );
+      const allMatches = calculateAdvancedBusinessModelMatches(quizData);
+
+      // Get the bottom 3 business models (worst matches)
+      const bottomThree = allMatches.slice(-3).reverse(); // reverse to get worst-first order
+
+      const businessMatches = bottomThree.map((match) => ({
+        id: match.id,
+        name: match.name,
+        fitScore: match.score,
+        description: match.description,
+        timeToProfit: match.timeToProfit,
+        startupCost: match.startupCost,
+        potentialIncome: match.potentialIncome,
+      }));
+
+      const response = await fetch(
+        "/api/generate-business-avoid-descriptions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quizData: quizData,
+            businessMatches: businessMatches,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate business avoid descriptions");
+      }
+
+      const data = await response.json();
+      const descriptionsMap: { [key: string]: string } = {};
+
+      if (data && data.descriptions && Array.isArray(data.descriptions)) {
+        data.descriptions.forEach(
+          (desc: { businessId: string; description: string }) => {
+            descriptionsMap[desc.businessId] = desc.description;
+          },
+        );
+      }
+
+      return descriptionsMap;
+    } catch (error) {
+      console.error("Error generating business avoid descriptions:", error);
+      // Set fallback descriptions
+      const fallbackDescriptions: { [key: string]: string } = {};
+      const { calculateAdvancedBusinessModelMatches } = await import(
+        "../utils/advancedScoringAlgorithm"
+      );
+      const allMatches = calculateAdvancedBusinessModelMatches(quizData);
+      const bottomThree = allMatches.slice(-3).reverse();
+
+      bottomThree.forEach((match) => {
+        fallbackDescriptions[match.id] =
+          `This business model scored ${match.score}% for your profile, indicating significant misalignment with your current goals, skills, and preferences. Based on your quiz responses, you would likely face substantial challenges in this field that could impact your success. Consider focusing on higher-scoring business models that better match your natural strengths and current situation. Your ${quizData.riskComfortLevel <= 2 ? "lower risk tolerance" : "risk preferences"} and ${quizData.weeklyTimeCommitment} hours/week availability suggest other business models would be more suitable for your entrepreneurial journey.`;
+      });
+
+      return fallbackDescriptions;
+    }
+  };
+
   useEffect(() => {
     const generateReport = async () => {
       const startTime = Date.now();
