@@ -772,7 +772,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 break;
               }
 
-              const { email, password, name } = tempData.quizData;
+              const { email, password, name } = tempData.quizData as {
+                email: string;
+                password: string;
+                name: string;
+              };
 
               // Check if user already exists (safety check)
               let user = await storage.getUserByUsername(email);
