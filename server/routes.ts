@@ -956,20 +956,20 @@ User Quiz Data:
 - Main Motivation: ${quizData.mainMotivation}
 - Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
 - Income Goal: $${quizData.successIncomeGoal}/month
-- Tech Skills Rating: ${quizData.techSkillsRating}/5
-- Risk Comfort Level: ${quizData.riskComfortLevel}/5
-- Self-Motivation Level: ${quizData.selfMotivationLevel}/5
-- Direct Communication Enjoyment: ${quizData.directCommunicationEnjoyment}/5
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Tech Skills Rating: ${getRatingDescription(quizData.techSkillsRating)}
+- Risk Comfort Level: ${getRatingDescription(quizData.riskComfortLevel)}
+- Self-Motivation Level: ${getRatingDescription(quizData.selfMotivationLevel)}
+- Direct Communication Enjoyment: ${getRatingDescription(quizData.directCommunicationEnjoyment)}
+- Creative Work Enjoyment: ${getRatingDescription(quizData.creativeWorkEnjoyment)}
 - Work Structure Preference: ${quizData.workStructurePreference}
 - Learning Preference: ${quizData.learningPreference}
 - First Income Timeline: ${quizData.firstIncomeTimeline}
 - Upfront Investment: $${quizData.upfrontInvestment}
-- Brand Face Comfort: ${quizData.brandFaceComfort}/5
-- Long-term Consistency: ${quizData.longTermConsistency}/5
-- Trial & Error Comfort: ${quizData.trialErrorComfort}/5
-- Organization Level: ${quizData.organizationLevel}/5
-- Uncertainty Handling: ${quizData.uncertaintyHandling}/5
+- Brand Face Comfort: ${getRatingDescription(quizData.brandFaceComfort)}
+- Long-term Consistency: ${getRatingDescription(quizData.longTermConsistency)}
+- Trial & Error Comfort: ${getRatingDescription(quizData.trialErrorComfort)}
+- Organization Level: ${getRatingDescription(quizData.organizationLevel)}
+- Uncertainty Handling: ${getRatingDescription(quizData.uncertaintyHandling)}
 - Work Collaboration Preference: ${quizData.workCollaborationPreference}
 - Decision Making Style: ${quizData.decisionMakingStyle}
 - Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
@@ -1075,20 +1075,20 @@ User Quiz Data:
 - Main Motivation: ${quizData.mainMotivation}
 - Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
 - Income Goal: $${quizData.successIncomeGoal}/month
-- Tech Skills Rating: ${quizData.techSkillsRating}/5
-- Risk Comfort Level: ${quizData.riskComfortLevel}/5
-- Self-Motivation Level: ${quizData.selfMotivationLevel}/5
-- Direct Communication Enjoyment: ${quizData.directCommunicationEnjoyment}/5
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Tech Skills Rating: ${getRatingDescription(quizData.techSkillsRating)}
+- Risk Comfort Level: ${getRatingDescription(quizData.riskComfortLevel)}
+- Self-Motivation Level: ${getRatingDescription(quizData.selfMotivationLevel)}
+- Direct Communication Enjoyment: ${getRatingDescription(quizData.directCommunicationEnjoyment)}
+- Creative Work Enjoyment: ${getRatingDescription(quizData.creativeWorkEnjoyment)}
 - Work Structure Preference: ${quizData.workStructurePreference}
 - Learning Preference: ${quizData.learningPreference}
 - First Income Timeline: ${quizData.firstIncomeTimeline}
 - Upfront Investment: $${quizData.upfrontInvestment}
-- Brand Face Comfort: ${quizData.brandFaceComfort}/5
-- Long-term Consistency: ${quizData.longTermConsistency}/5
-- Trial & Error Comfort: ${quizData.trialErrorComfort}/5
-- Organization Level: ${quizData.organizationLevel}/5
-- Uncertainty Handling: ${quizData.uncertaintyHandling}/5
+- Brand Face Comfort: ${getRatingDescription(quizData.brandFaceComfort)}
+- Long-term Consistency: ${getRatingDescription(quizData.longTermConsistency)}
+- Trial & Error Comfort: ${getRatingDescription(quizData.trialErrorComfort)}
+- Organization Level: ${getRatingDescription(quizData.organizationLevel)}
+- Uncertainty Handling: ${getRatingDescription(quizData.uncertaintyHandling)}
 - Work Collaboration Preference: ${quizData.workCollaborationPreference}
 - Decision Making Style: ${quizData.decisionMakingStyle}
 - Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
