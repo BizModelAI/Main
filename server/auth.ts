@@ -162,59 +162,6 @@ export function setupAuthRoutes(app: Express) {
     }
   });
 
-  // Create permanent account from temporary data after payment
-  app.post("/api/auth/create-permanent-account", async (req, res) => {
-    try {
-      const { sessionId, stripePaymentIntentId } = req.body;
-
-      if (!sessionId) {
-        return res.status(400).json({ error: "Session ID required" });
-      }
-
-      // Get temporary account data
-      const tempData = await storage.getUnpaidUserEmail(sessionId);
-      if (!tempData) {
-        return res
-          .status(404)
-          .json({ error: "Temporary account data not found or expired" });
-      }
-
-      const { email, password, name } = tempData.quizData as {
-        email: string;
-        password: string;
-        name: string;
-      };
-
-      // Check if user already exists (shouldn't happen, but safety check)
-      const existingUser = await storage.getUserByUsername(email);
-      if (existingUser) {
-        // Set session to existing user
-        req.session.userId = existingUser.id;
-        const { password: _, ...userWithoutPassword } = existingUser;
-        return res.json(userWithoutPassword);
-      }
-
-      // Create permanent user account
-      const user = await storage.createUser({
-        username: email,
-        password: password, // Already hashed
-      });
-
-      // Set session
-      req.session.userId = user.id;
-
-      // Clean up temporary data
-      await storage.cleanupExpiredUnpaidEmails();
-
-      // Don't send password
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Error creating permanent account:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
   // Delete account
   app.delete("/api/auth/account", async (req, res) => {
     try {
