@@ -38,26 +38,39 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
       if (!user) return;
 
       try {
+        // Determine if this is a temporary user
+        const isTemporaryUser =
+          user.isTemporary || user.id.toString().startsWith("temp_");
+
+        const requestBody: any = {};
+
+        if (isTemporaryUser) {
+          // Extract session ID from temporary user ID
+          const sessionId = user.id.toString().replace("temp_", "");
+          requestBody.sessionId = sessionId;
+        } else {
+          requestBody.userId = parseInt(user.id);
+        }
+
         const response = await fetch("/api/create-access-pass-payment", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({
-            userId: parseInt(user.id),
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
-          throw new Error("Failed to create payment intent");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create payment intent");
         }
 
         const { clientSecret } = await response.json();
         setClientSecret(clientSecret);
       } catch (error) {
         console.error("Error creating payment intent:", error);
-        onError("Failed to initialize payment");
+        onError(error.message || "Failed to initialize payment");
       }
     };
 
