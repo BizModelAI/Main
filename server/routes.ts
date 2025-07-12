@@ -378,9 +378,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
-          hasAccessPass: false,
-          quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0,
         });
       }
 
@@ -429,9 +426,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
-          hasAccessPass: false,
-          quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0,
         });
       }
 
@@ -492,9 +486,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
-          hasAccessPass: false,
-          quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0,
         });
       }
 
