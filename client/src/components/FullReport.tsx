@@ -639,9 +639,6 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
           // Generate AI insights after paths are loaded
           generateInsights(paths);
 
-          // Generate personalized insights
-          generatePersonalizedInsights();
-
           // Generate business fit descriptions
           generateBusinessFitDescriptions();
         } catch (error) {
