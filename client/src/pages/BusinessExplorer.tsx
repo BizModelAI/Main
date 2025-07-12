@@ -24,7 +24,9 @@ interface BusinessExplorerProps {
   quizData?: QuizData | null;
 }
 
-const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
+const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
+  quizData: propQuizData,
+}) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [selectedFitCategory, setSelectedFitCategory] = useState<string>("All");
@@ -35,6 +37,11 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
   >("quiz-required");
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>("");
   const [personalizedPaths, setPersonalizedPaths] = useState<any[]>([]);
+  const [quizData, setQuizData] = useState<QuizData | null>(
+    propQuizData || null,
+  );
+  const [isLoadingQuizData, setIsLoadingQuizData] = useState(false);
+
   const navigate = useNavigate();
   const {
     hasCompletedQuiz,
@@ -42,6 +49,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
     setHasUnlockedAnalysis,
     hasUnlockedAnalysis,
   } = usePaywall();
+  const { user, getLatestQuizData } = useAuth();
 
   const categories = [
     "All",
