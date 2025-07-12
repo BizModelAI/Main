@@ -89,6 +89,7 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      email: null,
       hasAccessPass: false,
       quizRetakesRemaining: 0,
       totalQuizRetakesUsed: 0,
