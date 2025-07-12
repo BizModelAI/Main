@@ -45,6 +45,12 @@ export interface IStorage {
   ): Promise<UnpaidUserEmail>;
   getUnpaidUserEmail(sessionId: string): Promise<UnpaidUserEmail | undefined>;
   cleanupExpiredUnpaidEmails(): Promise<void>;
+
+  // User status checks
+  isPaidUser(userId: number): Promise<boolean>;
+
+  // Data cleanup utilities
+  cleanupExpiredData(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
