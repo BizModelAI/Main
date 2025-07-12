@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { usePaywall } from "../contexts/PaywallContext";
+import { StripePaymentWrapper } from "./StripePaymentForm";
 
 interface PaymentAccountModalProps {
   isOpen: boolean;
