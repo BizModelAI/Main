@@ -70,7 +70,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
         setClientSecret(clientSecret);
       } catch (error) {
         console.error("Error creating payment intent:", error);
-        onError(error.message || "Failed to initialize payment");
+        onError((error as Error).message || "Failed to initialize payment");
       }
     };
 
