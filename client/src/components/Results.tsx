@@ -334,62 +334,57 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     }
   }, [personalizedPaths]);
 
-  // Helper function to execute download action
+  // Helper function to execute download action (PDF)
   const executeDownloadAction = async () => {
     try {
-      const resultsText = `
-BUSINESS PATH ANALYSIS RESULTS
-==============================
+      console.log("Starting PDF download...");
 
-Your Top Business Match: ${personalizedPaths[0]?.name}
-Fit Score: ${personalizedPaths[0]?.fitScore}%
-Difficulty: ${personalizedPaths[0]?.difficulty}
-Time to Profit: ${personalizedPaths[0]?.timeToProfit}
-Startup Cost: ${personalizedPaths[0]?.startupCost}
-Potential Income: ${personalizedPaths[0]?.potentialIncome}
+      // Get user email from auth context
+      const userEmail =
+        user?.email || localStorage.getItem("userEmail") || "user@example.com";
 
-DESCRIPTION:
-${personalizedPaths[0]?.description}
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quizData: quizData,
+          userEmail: userEmail,
+        }),
+      });
 
-TOP BENEFITS:
-${personalizedPaths[0]?.pros
-  .slice(0, 5)
-  .map((pro, i) => `${i + 1}. ${pro}`)
-  .join("\n")}
+      if (!response.ok) {
+        throw new Error(`PDF generation failed: ${response.status}`);
+      }
 
-POTENTIAL CHALLENGES:
-${personalizedPaths[0]?.cons
-  .slice(0, 3)
-  .map((con, i) => `${i + 1}. ${con}`)
-  .join("\n")}
+      // Get the file as a blob
+      const blob = await response.blob();
 
-REQUIRED SKILLS:
-${personalizedPaths[0]?.skills.slice(0, 8).join(", ")}
+      // Get filename from response headers or create default
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = "business-report.pdf";
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) {
+          filename = match[1];
+        }
+      }
 
-YOUR OTHER TOP MATCHES:
-${personalizedPaths
-  .slice(1, 4)
-  .map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% fit)`)
-  .join("\n")}
-
-Generated on: ${new Date().toLocaleDateString()}
-Business Path Platform - businesspath.com
-      `;
-
-      const blob = new Blob([resultsText], { type: "text/plain" });
+      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `business-path-results-${personalizedPaths[0]?.name.toLowerCase().replace(/\s+/g, "-")}.txt`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      alert("Your results have been downloaded successfully!");
+      console.log("PDF download completed successfully");
     } catch (error) {
-      console.error("Error downloading results:", error);
-      alert("Unable to download results. Please try again.");
+      console.error("Error downloading PDF:", error);
+      alert("Unable to download PDF. Please try again or contact support.");
     }
   };
 
