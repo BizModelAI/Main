@@ -66,7 +66,7 @@ export function setupAuthRoutes(app: Express) {
     }
   });
 
-  // Signup
+  // Signup - Store temporary account data until payment
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const { email, password, name } = req.body;
@@ -77,27 +77,35 @@ export function setupAuthRoutes(app: Express) {
           .json({ error: "Email, password, and name are required" });
       }
 
-      // Check if user already exists
+      // Check if user already exists as a paid user
       const existingUser = await storage.getUserByUsername(email);
       if (existingUser) {
         return res.status(409).json({ error: "User already exists" });
       }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // Store temporary account data (no real account created yet)
+      // We'll create the actual account only after successful payment
+      const sessionId = req.sessionID || `temp_${Date.now()}_${Math.random()}`;
 
-      // Create user
-      const user = await storage.createUser({
-        username: email, // Using email as username
-        password: hashedPassword,
+      // Get quiz data from request or localStorage indication
+      const quizData = req.body.quizData || {};
+
+      await storage.storeUnpaidUserEmail(sessionId, email, {
+        email,
+        password: await bcrypt.hash(password, 10),
+        name,
+        quizData,
       });
 
-      // Set session
-      req.session.userId = user.id;
-
-      // Don't send password
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      // Return a temporary user object for frontend
+      res.json({
+        id: `temp_${sessionId}`,
+        username: email,
+        email: email,
+        hasAccessPass: false,
+        quizRetakesRemaining: 0,
+        isTemporary: true,
+      });
     } catch (error) {
       console.error("Error in /api/auth/signup:", error);
       res.status(500).json({ error: "Internal server error" });
