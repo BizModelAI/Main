@@ -141,8 +141,20 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setIsProcessing(true);
     try {
       await login(loginEmail, formData.password);
-      // After successful login, always proceed to payment
-      // (since unpaid users can't create accounts, existing users need to pay)
+      // After successful login, check if user has already paid
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.hasAccessPass) {
+          // User already has access, bypass payment and grant access
+          setHasUnlockedAnalysis(true);
+          onSuccess();
+          return;
+        }
+      }
+      // User logged in but hasn't paid, proceed to payment
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
