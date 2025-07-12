@@ -107,3 +107,23 @@ app.use((req, res, next) => {
     process.exit(1);
   }
 })();
+
+function setupDataCleanupJob() {
+  // Run cleanup immediately on startup
+  cleanupExpiredData();
+
+  // Then run every hour (3600000 ms)
+  setInterval(cleanupExpiredData, 60 * 60 * 1000);
+
+  log("Data cleanup job scheduled to run every hour");
+}
+
+async function cleanupExpiredData() {
+  try {
+    log("Running expired data cleanup...");
+    await storage.cleanupExpiredData();
+    log("Expired data cleanup completed successfully");
+  } catch (error) {
+    console.error("Error during scheduled data cleanup:", error);
+  }
+}
