@@ -499,7 +499,9 @@ export class EmailService {
         <body>
           <div class="email-container">
             <div class="header">
-              <div class="logo"></div>
+                            <div class="logo" style="width: 70px; height: 70px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
+                <img src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F02f1355dc31c44d7b3a378483856ce5b?format=webp&width=800" alt="BizModelAI Logo" style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: white; padding: 8px; box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);">
+              </div>
               <h1>Welcome to BizModelAI!</h1>
               <p>Your journey to business success starts here</p>
             </div>
