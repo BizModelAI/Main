@@ -103,6 +103,25 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
+  async deleteUser(id: number): Promise<void> {
+    // Delete user and all associated data
+    this.users.delete(id);
+
+    // Delete quiz attempts
+    for (const [attemptId, attempt] of this.quizAttempts.entries()) {
+      if (attempt.userId === id) {
+        this.quizAttempts.delete(attemptId);
+      }
+    }
+
+    // Delete payments
+    for (const [paymentId, payment] of this.payments.entries()) {
+      if (payment.userId === id) {
+        this.payments.delete(paymentId);
+      }
+    }
+  }
+
   async recordQuizAttempt(
     attempt: Omit<InsertQuizAttempt, "id">,
   ): Promise<QuizAttempt> {
