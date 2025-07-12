@@ -301,9 +301,7 @@ export class EmailService {
     };
   }
 
-  private getPersonalizedPaths(
-    quizData: QuizData,
-  ): Array<{
+  private getPersonalizedPaths(quizData: QuizData): Array<{
     id: string;
     name: string;
     description: string;
@@ -917,8 +915,7 @@ export class EmailService {
       .logo {
         width: 70px;
         height: 70px;
-        background: #7C3AED;
-        border-radius: 50%;
+        
         margin: 0 auto 24px;
         display: flex;
         align-items: center;
