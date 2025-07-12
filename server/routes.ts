@@ -572,20 +572,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/create-access-pass-payment", async (req, res) => {
     try {
-      const { userId } = req.body;
+      const { userId, sessionId } = req.body;
 
-      if (!userId) {
-        return res.status(400).json({ error: "Missing userId" });
-      }
+      // Handle temporary users (sessionId provided) vs permanent users (userId provided)
+      let userIdentifier;
+      let isTemporaryUser = false;
 
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
+      if (sessionId) {
+        // This is a temporary user
+        isTemporaryUser = true;
+        userIdentifier = sessionId;
 
-      // Check if user already has access pass
-      if (user.hasAccessPass) {
-        return res.status(400).json({ error: "User already has access pass" });
+        // Verify temporary user data exists
+        const tempData = await storage.getUnpaidUserEmail(sessionId);
+        if (!tempData) {
+          return res
+            .status(404)
+            .json({ error: "Temporary account data not found or expired" });
+        }
+      } else if (userId) {
+        // This is a permanent user
+        const user = await storage.getUser(parseInt(userId));
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+
+        // Check if user already has access pass
+        if (user.hasAccessPass) {
+          return res
+            .status(400)
+            .json({ error: "User already has access pass" });
+        }
+
+        userIdentifier = userId.toString();
+      } else {
+        return res.status(400).json({ error: "Missing userId or sessionId" });
       }
 
       // Create Stripe Payment Intent for $9.99 access pass
@@ -593,28 +614,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: 999, // $9.99 in cents
         currency: "usd",
         metadata: {
-          userId: userId.toString(),
+          userIdentifier,
           type: "access_pass",
           retakesGranted: "5",
+          isTemporaryUser: isTemporaryUser.toString(),
+          sessionId: sessionId || "",
         },
         description: "BizModelAI Access Pass - Unlock all features",
       });
 
-      // Create payment record in our database
-      const payment = await storage.createPayment({
-        userId,
-        amount: "9.99",
-        currency: "usd",
-        type: "access_pass",
-        status: "pending",
-        retakesGranted: 5,
-        stripePaymentIntentId: paymentIntent.id,
-      });
+      // For temporary users, we don't create a payment record yet
+      // For permanent users, create payment record
+      let paymentId = null;
+      if (!isTemporaryUser) {
+        const payment = await storage.createPayment({
+          userId: parseInt(userId),
+          amount: "9.99",
+          currency: "usd",
+          type: "access_pass",
+          status: "pending",
+          retakesGranted: 5,
+          stripePaymentIntentId: paymentIntent.id,
+        });
+        paymentId = payment.id;
+      }
 
       res.json({
         success: true,
         clientSecret: paymentIntent.client_secret,
-        paymentId: payment.id,
+        paymentId,
       });
     } catch (error) {
       console.error("Error creating access pass payment:", error);
