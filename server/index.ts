@@ -97,6 +97,9 @@ app.use((req, res, next) => {
       },
       () => {
         log(`serving on port ${port}`);
+
+        // Start data cleanup job - runs every hour
+        setupDataCleanupJob();
       },
     );
   } catch (error) {
