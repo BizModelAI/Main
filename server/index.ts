@@ -1,10 +1,27 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { createServer } from "http";
 import { registerRoutes } from "./routes.js";
+import { setupAuthRoutes } from "./auth.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 
 const app = express();
+
+// Session configuration
+app.use(
+  session({
+    secret:
+      process.env.SESSION_SECRET || "your-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }),
+);
 
 // Raw body parsing for Stripe webhooks
 app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
