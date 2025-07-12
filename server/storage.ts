@@ -485,19 +485,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async cleanupExpiredUnpaidEmails(): Promise<void> {
-    await db
-      .delete(unpaidUserEmails)
-      .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
+    try {
+      await db
+        .delete(unpaidUserEmails)
+        .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
+    } catch (error) {
+      console.error("Error cleaning up expired unpaid emails:", error);
+      // Don't throw - just log the error
+    }
   }
 
   async isPaidUser(userId: number): Promise<boolean> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    return user ? user.hasAccessPass : false;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      return user ? user.hasAccessPass : false;
+    } catch (error) {
+      console.error("Error checking if user is paid:", error);
+      return false; // Default to unpaid if there's an error
+    }
   }
 
   async cleanupExpiredData(): Promise<void> {
-    // Clean up expired unpaid email data
-    await this.cleanupExpiredUnpaidEmails();
+    try {
+      // Clean up expired unpaid email data
+      await this.cleanupExpiredUnpaidEmails();
+      console.log("Successfully cleaned up expired data");
+    } catch (error) {
+      console.error("Error during data cleanup:", error);
+      // Don't throw - just log the error to prevent server crashes
+    }
 
     // Note: For paid users, we never delete their data
     // For unpaid users, data is only stored in unpaidUserEmails table with 24h expiry
