@@ -133,8 +133,8 @@ export class AIService {
         const baseProfile = `
 User Profile Summary:
 - Main Motivation: ${quizData.mainMotivation}
-- Income Goal: $${quizData.successIncomeGoal}/month
-- Time Commitment: ${quizData.weeklyTimeCommitment} hours/week
+- Income Goal: ${this.getIncomeGoalRange(quizData.successIncomeGoal)}
+- Time Commitment: ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
 - Tech Skills: ${this.getRatingDescription(quizData.techSkillsRating)}
 - Risk Tolerance: ${this.getRatingDescription(quizData.riskComfortLevel)}
 - Communication Comfort: ${this.getRatingDescription(quizData.directCommunicationEnjoyment)}
@@ -479,10 +479,10 @@ Format as a simple list with each point on a new line, no numbers or bullets.`;
     return `
 User Profile:
 - Main Motivation: ${quizData.mainMotivation || "Not specified"}
-- Income Goal: $${quizData.successIncomeGoal || "Not specified"}/month
+- Income Goal: ${quizData.successIncomeGoal ? this.getIncomeGoalRange(quizData.successIncomeGoal) : "Not specified"}
 - Time to First Income: ${quizData.firstIncomeTimeline || "Not specified"}
-- Investment Budget: $${quizData.upfrontInvestment || "Not specified"}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment || "Not specified"} hours
+- Investment Budget: ${quizData.upfrontInvestment ? this.getInvestmentRange(quizData.upfrontInvestment) : "Not specified"}
+- Weekly Time Commitment: ${quizData.weeklyTimeCommitment ? this.getTimeCommitmentRange(quizData.weeklyTimeCommitment) : "Not specified"}
 - Tech Skills: ${quizData.techSkillsRating ? this.getRatingDescription(quizData.techSkillsRating) : "Not specified"}
 - Brand Face Comfort: ${quizData.brandFaceComfort ? this.getRatingDescription(quizData.brandFaceComfort) : "Not specified"}
 - Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment ? this.getRatingDescription(quizData.creativeWorkEnjoyment) : "Not specified"}
