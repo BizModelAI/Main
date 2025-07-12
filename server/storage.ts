@@ -279,6 +279,19 @@ export class MemStorage implements IStorage {
       }
     }
   }
+
+  async isPaidUser(userId: number): Promise<boolean> {
+    const user = await this.getUser(userId);
+    return user ? user.hasAccessPass : false;
+  }
+
+  async cleanupExpiredData(): Promise<void> {
+    // Clean up expired unpaid email data
+    await this.cleanupExpiredUnpaidEmails();
+
+    // Note: For paid users, we never delete their data
+    // For unpaid users, data is only stored in unpaidUserEmails table with 24h expiry
+  }
 }
 
 // Database storage implementation
