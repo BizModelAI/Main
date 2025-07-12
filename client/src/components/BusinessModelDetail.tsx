@@ -418,6 +418,16 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     navigate("/explore");
   };
 
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    window.location.reload(); // Refresh to show content
+  };
+
+  const handlePaymentClose = () => {
+    setShowPaymentModal(false);
+    navigate("/explore");
+  };
+
   const handleStartCourse = () => {
     // Navigate to the business guide page which contains the detailed course
     navigate(`/guide/${businessId}`);
