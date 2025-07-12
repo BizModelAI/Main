@@ -103,7 +103,7 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
   };
 
   const hasMadeAnyPayment = () => {
-    // For authenticated users, check hasAccessPass
+    // For authenticated users, strictly check hasAccessPass only
     if (user) {
       return user.hasAccessPass;
     }
