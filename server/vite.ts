@@ -20,12 +20,30 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  // Temporarily disabled - serve static HTML instead
-  console.log(
-    "Vite development mode temporarily disabled, serving static HTML",
-  );
+  const serverOptions = {
+    middlewareMode: true,
+    hmr: { server },
+    allowedHosts: true,
+  };
 
+  const vite = await createViteServer({
+    ...viteConfig,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      },
+    },
+    server: serverOptions,
+    appType: "custom",
+  });
+
+  app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,
@@ -34,11 +52,16 @@ export async function setupVite(app: Express, server: Server) {
         "index.html",
       );
 
-      // Serve the HTML file directly without Vite transformation
+      // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`,
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
-      console.error("Error serving HTML:", e);
+      vite.ssrFixStacktrace(e as Error);
       next(e);
     }
   });
