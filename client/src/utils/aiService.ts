@@ -17,10 +17,12 @@ export class AIService {
 
   // Method to clear cache and force fresh responses
   static clearCacheAndReset(): void {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const aiCacheManager = AICacheManager.getInstance();
       aiCacheManager.forceResetCache();
-      console.log("AI cache cleared - next responses will be fresh from OpenAI");
+      console.log(
+        "AI cache cleared - next responses will be fresh from OpenAI",
+      );
       // Force a page reload to ensure complete reset
       window.location.reload();
     }
@@ -98,7 +100,11 @@ export class AIService {
     } catch (error) {
       console.error("Error generating AI insights:", error);
       // Only fallback after multiple attempts and clear failure
-      if (error.message.includes('Server error') || error.message.includes('fetch')) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("Server error") ||
+          error.message.includes("fetch"))
+      ) {
         console.log("Server/network error - using fallback");
         return this.generateFallbackInsights(quizData, topPaths);
       }
@@ -127,12 +133,12 @@ export class AIService {
         const baseProfile = `
 User Profile Summary:
 - Main Motivation: ${quizData.mainMotivation}
-- Income Goal: $${quizData.successIncomeGoal}/month
-- Time Commitment: ${quizData.weeklyTimeCommitment} hours/week
-- Tech Skills: ${quizData.techSkillsRating}/5
-- Risk Tolerance: ${quizData.riskComfortLevel}/5
-- Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
-- Creative Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Income Goal: ${this.getIncomeGoalRange(quizData.successIncomeGoal)}
+- Time Commitment: ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
+- Tech Skills: ${this.getRatingDescription(quizData.techSkillsRating)}
+- Risk Tolerance: ${this.getRatingDescription(quizData.riskComfortLevel)}
+- Communication Comfort: ${this.getRatingDescription(quizData.directCommunicationEnjoyment)}
+- Creative Enjoyment: ${this.getRatingDescription(quizData.creativeWorkEnjoyment)}
 
 Business Model: ${topPath.name} (${topPath.fitScore}% fit - ${category})`;
 
@@ -152,7 +158,8 @@ Requirements:
 - Enthusiastic but professional tone
 - Emphasize strong alignment and natural advantages
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           case "Strong Fit":
             return `${baseProfile}
@@ -169,7 +176,8 @@ Requirements:
 - Positive but realistic tone
 - Show it's a good choice while noting it's not perfect
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           case "Possible Fit":
             return `${baseProfile}
@@ -187,7 +195,8 @@ Requirements:
 - Clearly explain why this isn't recommended
 - Suggest you explore better-fitting options
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           case "Poor Fit":
             return `${baseProfile}
@@ -205,7 +214,8 @@ Requirements:
 - Clearly advise against this path
 - Explain what needs to change before reconsidering
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           default:
             return `${baseProfile}
@@ -224,8 +234,8 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
             return {
               keyInsights: [
                 `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance aligns perfectly with ${topPath.name}`,
-                `With ${quizData.weeklyTimeCommitment} hours/week, you can realistically achieve ${topPath.timeToProfit}`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 4 ? "excellent" : "adequate"} for this path`,
+                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, you can realistically achieve ${topPath.timeToProfit}`,
+                `Your tech comfort level is ${quizData.techSkillsRating >= 4 ? "excellent" : "adequate"} for this path`,
                 `Communication style matches the ${quizData.directCommunicationEnjoyment >= 4 ? "high" : "moderate"} interaction requirements`,
               ],
               successPredictors: [
@@ -246,8 +256,8 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
             return {
               keyInsights: [
                 `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance works well with ${topPath.name}`,
-                `With ${quizData.weeklyTimeCommitment} hours/week, you can make good progress toward ${topPath.timeToProfit}`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 3 ? "solid" : "workable"} for this path`,
+                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, you can make good progress toward ${topPath.timeToProfit}`,
+                `Your tech comfort level is ${quizData.techSkillsRating >= 3 ? "solid" : "workable"} for this path`,
                 `While not your perfect match, this path offers strong potential for success`,
               ],
               successPredictors: [
@@ -266,8 +276,8 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
             return {
               keyInsights: [
                 `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance may clash with ${topPath.name} requirements`,
-                `With ${quizData.weeklyTimeCommitment} hours/week, progress may be slower than ideal`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) could be a limiting factor`,
+                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, progress may be slower than ideal`,
+                `Your tech comfort level could be a limiting factor`,
                 `Several aspects of your profile suggest other paths would be more suitable`,
               ],
               successPredictors: [
@@ -286,8 +296,8 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
             return {
               keyInsights: [
                 `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance conflicts with ${topPath.name} demands`,
-                `With ${quizData.weeklyTimeCommitment} hours/week, you lack the time commitment this path requires`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) is insufficient for this business model`,
+                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, you lack the time commitment this path requires`,
+                `Your tech comfort level is insufficient for this business model`,
                 `Multiple factors in your profile indicate this path is not recommended`,
               ],
               successPredictors: [
@@ -319,9 +329,9 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
 
       // Generate AI-powered success predictors or struggle points
       const aiSuccessPredictors = await this.generateAISuccessPredictors(
-        quizData, 
-        topPath, 
-        fitCategory
+        quizData,
+        topPath,
+        fitCategory,
       );
 
       return {
@@ -348,7 +358,11 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     } catch (error) {
       console.error("Error generating detailed analysis:", error);
       // Only fallback for clear API/network errors
-      if (error.message.includes('Server error') || error.message.includes('fetch')) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("Server error") ||
+          error.message.includes("fetch"))
+      ) {
         console.log("Server/network error - using fallback analysis");
         return this.generateFallbackAnalysis(quizData, topPath);
       }
@@ -363,10 +377,10 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     temperature: number = 0.7,
   ): Promise<string> {
     try {
-      const response = await fetch('/api/openai-chat', {
-        method: 'POST',
+      const response = await fetch("/api/openai-chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt,
@@ -390,11 +404,11 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
   private async generateAISuccessPredictors(
     quizData: QuizData,
     topPath: BusinessPath,
-    fitCategory: string
+    fitCategory: string,
   ): Promise<string[]> {
     try {
       const userProfile = this.createUserProfile(quizData);
-      
+
       const getPromptForPredictors = (category: string) => {
         const baseInfo = `User Profile: ${userProfile}
 Business Model: ${topPath.name}
@@ -410,7 +424,9 @@ Based on your quiz responses, generate exactly 4 success predictors explaining w
 3. Be concrete and actionable
 4. Be 15-25 words each
 
-Format as a simple list with each point on a new line, no numbers or bullets.`;
+Format as a simple list with each point on a new line, no numbers or bullets.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile.`;
         } else {
           return `${baseInfo}
 
@@ -420,43 +436,49 @@ Based on your quiz responses, generate exactly 4 struggle points explaining why 
 3. Be honest but constructive
 4. Be 15-25 words each
 
-Format as a simple list with each point on a new line, no numbers or bullets.`;
+Format as a simple list with each point on a new line, no numbers or bullets.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile.`;
         }
       };
 
       const prompt = getPromptForPredictors(fitCategory);
       const response = await this.makeOpenAIRequest(prompt, 200, 0.7);
-      
+
       // Parse response into array of 4 points
-      const points = response.split('\n')
-        .filter(line => line.trim().length > 0)
-        .map(line => line.trim())
+      const points = response
+        .split("\n")
+        .filter((line) => line.trim().length > 0)
+        .map((line) => line.trim())
         .slice(0, 4);
 
       // Ensure we have exactly 4 points
       while (points.length < 4) {
-        points.push(fitCategory === "Best Fit" || fitCategory === "Strong Fit" 
-          ? "Your profile shows strong alignment with this business model"
-          : "Some aspects of your profile may create challenges in this path");
+        points.push(
+          fitCategory === "Best Fit" || fitCategory === "Strong Fit"
+            ? "Your profile shows strong alignment with this business model"
+            : "Some aspects of your profile may create challenges in this path",
+        );
       }
 
       return points;
     } catch (error) {
       console.error("Error generating AI success predictors:", error);
       // Return fallback predictors
-      const fallbackPredictors = fitCategory === "Best Fit" || fitCategory === "Strong Fit"
-        ? [
-            "Your quiz responses show strong alignment with this business model",
-            "Your personality traits match successful entrepreneurs in this field",
-            "Your time commitment and goals align well with this path",
-            "Your risk tolerance and motivation support success in this area"
-          ]
-        : [
-            "Your quiz responses suggest some misalignment with this business model",
-            "Certain personality traits may create challenges in this field",
-            "Your time commitment or goals may not align perfectly with this path",
-            "Your risk tolerance or motivation may need adjustment for this area"
-          ];
+      const fallbackPredictors =
+        fitCategory === "Best Fit" || fitCategory === "Strong Fit"
+          ? [
+              "Your quiz responses show strong alignment with this business model",
+              "Your personality traits match successful entrepreneurs in this field",
+              "Your time commitment and goals align well with this path",
+              "Your risk tolerance and motivation support success in this area",
+            ]
+          : [
+              "Your quiz responses suggest some misalignment with this business model",
+              "Certain personality traits may create challenges in this field",
+              "Your time commitment or goals may not align perfectly with this path",
+              "Your risk tolerance or motivation may need adjustment for this area",
+            ];
       return fallbackPredictors;
     }
   }
@@ -465,24 +487,24 @@ Format as a simple list with each point on a new line, no numbers or bullets.`;
     return `
 User Profile:
 - Main Motivation: ${quizData.mainMotivation || "Not specified"}
-- Income Goal: $${quizData.successIncomeGoal || "Not specified"}/month
+- Income Goal: ${quizData.successIncomeGoal ? this.getIncomeGoalRange(quizData.successIncomeGoal) : "Not specified"}
 - Time to First Income: ${quizData.firstIncomeTimeline || "Not specified"}
-- Investment Budget: $${quizData.upfrontInvestment || "Not specified"}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment || "Not specified"} hours
-- Tech Skills: ${quizData.techSkillsRating || "Not specified"}/5
-- Brand Face Comfort: ${quizData.brandFaceComfort || "Not specified"}/5
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment || "Not specified"}/5
-- Communication Enjoyment: ${quizData.directCommunicationEnjoyment || "Not specified"}/5
-- Self Motivation: ${quizData.selfMotivationLevel || "Not specified"}/5
-- Risk Comfort: ${quizData.riskComfortLevel || "Not specified"}/5
+- Investment Budget: ${quizData.upfrontInvestment ? this.getInvestmentRange(quizData.upfrontInvestment) : "Not specified"}
+- Weekly Time Commitment: ${quizData.weeklyTimeCommitment ? this.getTimeCommitmentRange(quizData.weeklyTimeCommitment) : "Not specified"}
+- Tech Skills: ${quizData.techSkillsRating ? this.getRatingDescription(quizData.techSkillsRating) : "Not specified"}
+- Brand Face Comfort: ${quizData.brandFaceComfort ? this.getRatingDescription(quizData.brandFaceComfort) : "Not specified"}
+- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment ? this.getRatingDescription(quizData.creativeWorkEnjoyment) : "Not specified"}
+- Communication Enjoyment: ${quizData.directCommunicationEnjoyment ? this.getRatingDescription(quizData.directCommunicationEnjoyment) : "Not specified"}
+- Self Motivation: ${quizData.selfMotivationLevel ? this.getRatingDescription(quizData.selfMotivationLevel) : "Not specified"}
+- Risk Comfort: ${quizData.riskComfortLevel ? this.getRatingDescription(quizData.riskComfortLevel) : "Not specified"}
 - Work Structure Preference: ${quizData.workStructurePreference || "Not specified"}
 - Work Collaboration Preference: ${quizData.workCollaborationPreference || "Not specified"}
 - Decision Making Style: ${quizData.decisionMakingStyle || "Not specified"}
-- Social Media Interest: ${quizData.socialMediaInterest || "Not specified"}/5
+- Social Media Interest: ${quizData.socialMediaInterest ? this.getRatingDescription(quizData.socialMediaInterest) : "Not specified"}
 - Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
 - Learning Preference: ${quizData.learningPreference || "Not specified"}
-- Passion Alignment Importance: ${quizData.passionIdentityAlignment || "Not specified"}/5
-- Meaningful Contribution Importance: ${quizData.meaningfulContributionImportance || "Not specified"}/5
+- Passion Alignment Importance: ${quizData.passionIdentityAlignment ? this.getRatingDescription(quizData.passionIdentityAlignment) : "Not specified"}
+- Meaningful Contribution Importance: ${quizData.meaningfulContributionImportance ? this.getRatingDescription(quizData.meaningfulContributionImportance) : "Not specified"}
     `.trim();
   }
 
@@ -491,8 +513,11 @@ User Profile:
     topPaths: any[],
   ): Promise<string> {
     // Debug logging to ensure we have the correct top business model
-    console.log("AI Summary - Top business paths:", topPaths.map(p => `${p.name} (${p.fitScore}%)`));
-    
+    console.log(
+      "AI Summary - Top business paths:",
+      topPaths.map((p) => `${p.name} (${p.fitScore}%)`),
+    );
+
     const topBusinessModel = topPaths[0];
     const prompt = `
 Based on this user profile, create a personalized 2-3 sentence summary that explains why ${topBusinessModel.name} is your perfect business match. Be specific about your personality traits and goals.
@@ -503,9 +528,14 @@ FOCUS ON THIS TOP BUSINESS MATCH:
 ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
 Additional Context - Other matches:
-${topPaths.slice(1, 3).map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`).join("\n")}
+${topPaths
+  .slice(1, 3)
+  .map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`)
+  .join("\n")}
 
 Write a personalized summary that connects your specific traits to ${topBusinessModel.name}. Be encouraging and specific about why ${topBusinessModel.name} is your best fit.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -524,8 +554,11 @@ Write a personalized summary that connects your specific traits to ${topBusiness
     topPaths: any[],
   ): Promise<string[]> {
     const topBusinessModel = topPaths[0];
-    console.log("AI Recommendations - Top business model:", topBusinessModel.name);
-    
+    console.log(
+      "AI Recommendations - Top business model:",
+      topBusinessModel.name,
+    );
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific, actionable recommendations tailored to your personality and goals for starting ${topBusinessModel.name}.
 
@@ -541,6 +574,8 @@ Generate 6 personalized recommendations specifically for ${topBusinessModel.name
 - Learning style and motivation level
 
 Format as a simple list, each recommendation should be 1-2 sentences and actionable for ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -557,7 +592,7 @@ Format as a simple list, each recommendation should be 1-2 sentences and actiona
   ): Promise<string[]> {
     const topBusinessModel = topPaths[0];
     console.log("AI Challenges - Top business model:", topBusinessModel.name);
-    
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), identify 4 specific challenges you might face when starting ${topBusinessModel.name} and how to address them.
 
@@ -569,6 +604,8 @@ ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 Generate 4 potential challenges specifically for ${topBusinessModel.name} that are based on your personality traits, goals, and this specific business path. For each challenge, include a brief solution or mitigation strategy.
 
 Format as a simple list, each item should be 1-2 sentences and specific to ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -584,8 +621,11 @@ Format as a simple list, each item should be 1-2 sentences and specific to ${top
     topPaths: any[],
   ): Promise<string[]> {
     const topBusinessModel = topPaths[0];
-    console.log("AI Success Strategies - Top business model:", topBusinessModel.name);
-    
+    console.log(
+      "AI Success Strategies - Top business model:",
+      topBusinessModel.name,
+    );
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage your strengths for ${topBusinessModel.name}.
 
@@ -602,6 +642,8 @@ Generate 6 success strategies specifically for ${topBusinessModel.name} that:
 - Are specifically tailored to ${topBusinessModel.name}
 
 Format as a simple list, each strategy should be 1-2 sentences and actionable for ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -635,6 +677,8 @@ Create a personalized action plan that considers your:
 - Strengths and challenges
 
 For each timeframe, provide 3-4 specific, actionable tasks. Make sure the progression is logical and builds upon previous phases.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile.
 
 Format as:
 Week 1:
@@ -674,8 +718,11 @@ Month 6:
     topPaths: any[],
   ): Promise<string> {
     const topBusinessModel = topPaths[0];
-    console.log("AI Motivational Message - Top business model:", topBusinessModel.name);
-    
+    console.log(
+      "AI Motivational Message - Top business model:",
+      topBusinessModel.name,
+    );
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), write an inspiring and personalized motivational message (2-3 sentences) that:
 - Acknowledges your specific strengths for ${topBusinessModel.name}
@@ -688,6 +735,8 @@ ${userProfile}
 Top Business Match: ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
 Write a motivational message that feels like it's coming from a mentor who truly understands you and believes in your potential for ${topBusinessModel.name}.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
     try {
@@ -898,5 +947,34 @@ Write a motivational message that feels like it's coming from a mentor who truly
       motivationalMessage:
         "Your unique combination of skills, motivation, and strategic thinking creates the perfect foundation for entrepreneurial success. Trust in your abilities, stay consistent with your efforts, and remember that every successful entrepreneur started exactly where you are now.",
     };
+  }
+
+  private getRatingDescription(rating: number): string {
+    if (rating >= 4.5) return "Very High";
+    if (rating >= 4) return "High";
+    if (rating >= 3) return "Moderate";
+    if (rating >= 2) return "Low";
+    return "Very Low";
+  }
+
+  private getIncomeGoalRange(value: number): string {
+    if (value <= 500) return "Less than $500/month";
+    if (value <= 1250) return "$500–$2,000/month";
+    if (value <= 3500) return "$2,000–$5,000/month";
+    return "$5,000+/month";
+  }
+
+  private getTimeCommitmentRange(value: number): string {
+    if (value <= 3) return "Less than 5 hours/week";
+    if (value <= 7) return "5–10 hours/week";
+    if (value <= 17) return "10–25 hours/week";
+    return "25+ hours/week";
+  }
+
+  private getInvestmentRange(value: number): string {
+    if (value <= 0) return "$0 (bootstrap only)";
+    if (value <= 125) return "Under $250";
+    if (value <= 625) return "$250–$1,000";
+    return "$1,000+";
   }
 }

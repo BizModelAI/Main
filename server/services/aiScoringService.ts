@@ -28,9 +28,9 @@ export interface ComprehensiveFitAnalysis {
 
 export class AIScoringService {
   private static instance: AIScoringService;
-  
+
   private constructor() {}
-  
+
   static getInstance(): AIScoringService {
     if (!AIScoringService.instance) {
       AIScoringService.instance = new AIScoringService();
@@ -38,39 +38,43 @@ export class AIScoringService {
     return AIScoringService.instance;
   }
 
-  async analyzeBusinessFit(quizData: QuizData): Promise<ComprehensiveFitAnalysis> {
+  async analyzeBusinessFit(
+    quizData: QuizData,
+  ): Promise<ComprehensiveFitAnalysis> {
     try {
       const prompt = this.buildAnalysisPrompt(quizData);
-      
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
             role: "system",
-            content: "You are an expert business consultant and psychologist specializing in entrepreneurial fit assessment. Analyze the user's quiz responses and provide detailed, accurate business model compatibility scores with reasoning."
+            content:
+              "You are an expert business consultant and psychologist specializing in entrepreneurial fit assessment. Analyze the user's quiz responses and provide detailed, accurate business model compatibility scores with reasoning.",
           },
           {
             role: "user",
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         response_format: { type: "json_object" },
         temperature: 0.3,
-        max_tokens: 4000
+        max_tokens: 4000,
       });
 
-      const analysis = JSON.parse(response.choices[0].message.content);
+      const content = response.choices[0].message.content;
+      if (!content) throw new Error("No content in AI response");
+      const analysis = JSON.parse(content);
       return this.processAnalysis(analysis);
-      
     } catch (error) {
-      console.error('AI Scoring Service Error:', error);
+      console.error("AI Scoring Service Error:", error);
       // Fallback to enhanced algorithmic scoring
       return this.fallbackAnalysis(quizData);
     }
   }
 
   private buildAnalysisPrompt(quizData: QuizData): string {
-    const businessModels = businessPaths.map(bp => ({
+    const businessModels = businessPaths.map((bp) => ({
       id: bp.id,
       name: bp.name,
       description: bp.description,
@@ -79,28 +83,28 @@ export class AIScoringService {
       startupCost: bp.startupCost,
       potentialIncome: bp.potentialIncome,
       skills: bp.skills,
-      bestFitPersonality: bp.bestFitPersonality
+      bestFitPersonality: bp.bestFitPersonality,
     }));
 
     return `
     Analyze your quiz responses and provide business model compatibility scores:
 
-    USER PROFILE:
+        USER PROFILE:
     - Main Motivation: ${quizData.mainMotivation}
-    - Income Goal: $${quizData.successIncomeGoal}/month
+    - Income Goal: ${this.getIncomeGoalRange(quizData.successIncomeGoal)}
     - Timeline: ${quizData.firstIncomeTimeline}
-    - Budget: $${quizData.upfrontInvestment}
-    - Weekly Time: ${quizData.weeklyTimeCommitment} hours
-    - Tech Skills: ${quizData.techSkillsRating}/5
-    - Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
-    - Risk Tolerance: ${quizData.riskComfortLevel}/5
-    - Self Motivation: ${quizData.selfMotivationLevel}/5
-    - Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+    - Budget: ${this.getInvestmentRange(quizData.upfrontInvestment)}
+    - Weekly Time: ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
+        - Tech Skills: ${this.getRatingDescription(quizData.techSkillsRating)}
+    - Communication Comfort: ${this.getRatingDescription(quizData.directCommunicationEnjoyment)}
+    - Risk Tolerance: ${this.getRatingDescription(quizData.riskComfortLevel)}
+    - Self Motivation: ${this.getRatingDescription(quizData.selfMotivationLevel)}
+    - Creative Work Enjoyment: ${this.getRatingDescription(quizData.creativeWorkEnjoyment)}
     - Work Style: ${quizData.workCollaborationPreference}
     - Learning Preference: ${quizData.learningPreference}
-    - Brand Face Comfort: ${quizData.brandFaceComfort}/5
-    - Organization Level: ${quizData.organizationLevel}/5
-    - Consistency Level: ${quizData.longTermConsistency}/5
+        - Brand Face Comfort: ${this.getRatingDescription(quizData.brandFaceComfort)}
+    - Organization Level: ${this.getRatingDescription(quizData.organizationLevel)}
+    - Consistency Level: ${this.getRatingDescription(quizData.longTermConsistency)}
 
     BUSINESS MODELS TO ANALYZE:
     ${JSON.stringify(businessModels, null, 2)}
@@ -127,22 +131,27 @@ export class AIScoringService {
       "recommendations": ["recommendation1", "recommendation2", "recommendation3"]
     }
 
-    SCORING GUIDELINES:
+        SCORING GUIDELINES:
     - Use 0-100 scale where 70+ = Best Fit, 50-69 = Strong Fit, 30-49 = Possible Fit, <30 = Poor Fit
     - Consider realistic barriers and advantages
     - Weight factors: Income match (20%), Timeline (15%), Budget (15%), Skills (20%), Personality (15%), Risk (10%), Time (5%)
     - Be honest about challenges and realistic about opportunities
     - Most people should NOT get 90+ scores unless they're exceptionally well-suited
     - Distribute scores realistically - not everyone can be a perfect fit for everything
+
+    CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbers, amounts, or timeframes.
+    Reference the exact ranges and values shown in the user profile. If the user selected a range, always refer to the full range, never specific numbers within it.
     `;
   }
 
   private processAnalysis(analysis: any): ComprehensiveFitAnalysis {
     const topMatches = analysis.businessAnalysis
       .map((ba: any) => {
-        const businessPath = businessPaths.find(bp => bp.id === ba.businessId);
+        const businessPath = businessPaths.find(
+          (bp) => bp.id === ba.businessId,
+        );
         if (!businessPath) return null;
-        
+
         return {
           businessPath: { ...businessPath, fitScore: ba.fitScore },
           analysis: {
@@ -150,8 +159,8 @@ export class AIScoringService {
             reasoning: ba.reasoning,
             strengths: ba.strengths,
             challenges: ba.challenges,
-            confidence: ba.confidence
-          }
+            confidence: ba.confidence,
+          },
         };
       })
       .filter(Boolean)
@@ -160,25 +169,27 @@ export class AIScoringService {
     return {
       topMatches,
       personalityProfile: analysis.personalityProfile,
-      recommendations: analysis.recommendations
+      recommendations: analysis.recommendations,
     };
   }
 
   private fallbackAnalysis(quizData: QuizData): ComprehensiveFitAnalysis {
     // Enhanced algorithmic scoring as fallback
-    const scoredPaths = businessPaths.map(path => {
-      const fitScore = this.calculateEnhancedFitScore(path.id, quizData);
-      return {
-        businessPath: { ...path, fitScore },
-        analysis: {
-          fitScore,
-          reasoning: `Algorithmic analysis based on ${path.name} requirements vs your profile`,
-          strengths: this.getPathStrengths(path.id, quizData),
-          challenges: this.getPathChallenges(path.id, quizData),
-          confidence: 0.7
-        }
-      };
-    }).sort((a, b) => b.analysis.fitScore - a.analysis.fitScore);
+    const scoredPaths = businessPaths
+      .map((path) => {
+        const fitScore = this.calculateEnhancedFitScore(path.id, quizData);
+        return {
+          businessPath: { ...path, fitScore },
+          analysis: {
+            fitScore,
+            reasoning: `Algorithmic analysis based on ${path.name} requirements vs your profile`,
+            strengths: this.getPathStrengths(path.id, quizData),
+            challenges: this.getPathChallenges(path.id, quizData),
+            confidence: 0.7,
+          },
+        };
+      })
+      .sort((a, b) => b.analysis.fitScore - a.analysis.fitScore);
 
     return {
       topMatches: scoredPaths,
@@ -186,9 +197,9 @@ export class AIScoringService {
         strengths: this.getPersonalityStrengths(quizData),
         developmentAreas: this.getPersonalityDevelopmentAreas(quizData),
         workStyle: this.getWorkStyleDescription(quizData),
-        riskProfile: this.getRiskProfileDescription(quizData)
+        riskProfile: this.getRiskProfileDescription(quizData),
       },
-      recommendations: this.getGeneralRecommendations(quizData)
+      recommendations: this.getGeneralRecommendations(quizData),
     };
   }
 
@@ -196,17 +207,19 @@ export class AIScoringService {
     // Use the existing scoring logic but enhance it
     const factors = this.calculateFactors(pathId, data);
     const weights = {
-      income: 0.20,
+      income: 0.2,
       timeline: 0.15,
       budget: 0.15,
-      skills: 0.20,
+      skills: 0.2,
       personality: 0.15,
-      risk: 0.10,
-      time: 0.05
+      risk: 0.1,
+      time: 0.05,
     };
 
     const score = Object.keys(factors).reduce((total, key) => {
-      return total + (factors[key] * weights[key] * 100);
+      const factorKey = key as keyof typeof factors;
+      const weightKey = key as keyof typeof weights;
+      return total + factors[factorKey] * weights[weightKey] * 100;
     }, 0);
 
     return Math.min(Math.max(Math.round(score), 0), 100);
@@ -221,18 +234,18 @@ export class AIScoringService {
       skills: 0.5,
       personality: 0.5,
       risk: 0.5,
-      time: 0.5
+      time: 0.5,
     };
 
     // Path-specific calculations would go here
     // This is a simplified version for the fallback
-    
+
     return factors;
   }
 
   private getPathStrengths(pathId: string, data: QuizData): string[] {
     const strengths = [];
-    
+
     if (data.selfMotivationLevel >= 4) {
       strengths.push("High self-motivation");
     }
@@ -242,76 +255,117 @@ export class AIScoringService {
     if (data.directCommunicationEnjoyment >= 4) {
       strengths.push("Excellent communication abilities");
     }
-    
+
     return strengths;
   }
 
   private getPathChallenges(pathId: string, data: QuizData): string[] {
     const challenges = [];
-    
+
     if (data.riskComfortLevel <= 2) {
       challenges.push("Low risk tolerance may limit growth");
     }
     if (data.weeklyTimeCommitment <= 10) {
       challenges.push("Limited time availability");
     }
-    
+
     return challenges;
   }
 
   private getPersonalityStrengths(data: QuizData): string[] {
     const strengths = [];
-    
+
     if (data.selfMotivationLevel >= 4) strengths.push("Self-motivated");
     if (data.organizationLevel >= 4) strengths.push("Well-organized");
     if (data.longTermConsistency >= 4) strengths.push("Consistent");
     if (data.techSkillsRating >= 4) strengths.push("Tech-savvy");
     if (data.creativeWorkEnjoyment >= 4) strengths.push("Creative");
-    
+
     return strengths;
   }
 
   private getPersonalityDevelopmentAreas(data: QuizData): string[] {
     const areas = [];
-    
+
     if (data.riskComfortLevel <= 2) areas.push("Risk tolerance");
-    if (data.directCommunicationEnjoyment <= 2) areas.push("Communication confidence");
+    if (data.directCommunicationEnjoyment <= 2)
+      areas.push("Communication confidence");
     if (data.brandFaceComfort <= 2) areas.push("Personal branding comfort");
-    
+
     return areas;
   }
 
   private getWorkStyleDescription(data: QuizData): string {
     const styles = {
-      'solo-only': 'Strongly prefers independent work',
-      'mostly-solo': 'Prefers working alone with minimal collaboration',
-      'balanced': 'Comfortable with both solo and team work',
-      'team-focused': 'Thrives in collaborative environments'
+      "solo-only": "Strongly prefers independent work",
+      "mostly-solo": "Prefers working alone with minimal collaboration",
+      balanced: "Comfortable with both solo and team work",
+      "team-focused": "Thrives in collaborative environments",
     };
-    
-    return styles[data.workCollaborationPreference] || 'Flexible work style';
+
+    return (
+      styles[data.workCollaborationPreference as keyof typeof styles] ||
+      "Flexible work style"
+    );
   }
 
   private getRiskProfileDescription(data: QuizData): string {
-    if (data.riskComfortLevel >= 4) return 'High risk tolerance - comfortable with uncertainty';
-    if (data.riskComfortLevel >= 3) return 'Moderate risk tolerance - cautious but willing to take calculated risks';
-    return 'Low risk tolerance - prefers stable, predictable opportunities';
+    if (data.riskComfortLevel >= 4)
+      return "High risk tolerance - comfortable with uncertainty";
+    if (data.riskComfortLevel >= 3)
+      return "Moderate risk tolerance - cautious but willing to take calculated risks";
+    return "Low risk tolerance - prefers stable, predictable opportunities";
   }
 
   private getGeneralRecommendations(data: QuizData): string[] {
     const recommendations = [];
-    
+
     if (data.selfMotivationLevel >= 4) {
-      recommendations.push("Focus on business models that reward self-driven individuals");
+      recommendations.push(
+        "Focus on business models that reward self-driven individuals",
+      );
     }
     if (data.weeklyTimeCommitment <= 10) {
-      recommendations.push("Consider part-time or passive income opportunities first");
+      recommendations.push(
+        "Consider part-time or passive income opportunities first",
+      );
     }
     if (data.upfrontInvestment <= 500) {
-      recommendations.push("Start with low-cost business models to minimize risk");
+      recommendations.push(
+        "Start with low-cost business models to minimize risk",
+      );
     }
-    
+
     return recommendations;
+  }
+
+  private getRatingDescription(rating: number): string {
+    if (rating >= 4.5) return "Very High";
+    if (rating >= 4) return "High";
+    if (rating >= 3) return "Moderate";
+    if (rating >= 2) return "Low";
+    return "Very Low";
+  }
+
+  private getIncomeGoalRange(value: number): string {
+    if (value <= 500) return "Less than $500/month";
+    if (value <= 1250) return "$500–$2,000/month";
+    if (value <= 3500) return "$2,000–$5,000/month";
+    return "$5,000+/month";
+  }
+
+  private getTimeCommitmentRange(value: number): string {
+    if (value <= 3) return "Less than 5 hours/week";
+    if (value <= 7) return "5–10 hours/week";
+    if (value <= 17) return "10–25 hours/week";
+    return "25+ hours/week";
+  }
+
+  private getInvestmentRange(value: number): string {
+    if (value <= 0) return "$0 (bootstrap only)";
+    if (value <= 125) return "Under $250";
+    if (value <= 625) return "$250–$1,000";
+    return "$1,000+";
   }
 }
 

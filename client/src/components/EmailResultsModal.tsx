@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, Mail, CheckCircle, Loader2 } from 'lucide-react';
-import { getSessionId } from '../../../shared/utils';
-import { QuizData } from '../types';
+import React, { useState, useEffect } from "react";
+import { X, Mail, CheckCircle, Loader2 } from "lucide-react";
+import { getSessionId } from "../../../shared/utils";
+import { QuizData } from "../types";
 
 interface EmailResultsModalProps {
   isOpen: boolean;
@@ -16,12 +16,12 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
   onClose,
   quizData,
   isPaidUser,
-  userEmail
+  userEmail,
 }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [hasStoredEmail, setHasStoredEmail] = useState(false);
 
   useEffect(() => {
@@ -39,13 +39,13 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
       const sessionId = getSessionId();
       const response = await fetch(`/api/get-stored-email/${sessionId}`);
       const data = await response.json();
-      
+
       if (data.email) {
         setEmail(data.email);
         setHasStoredEmail(true);
       }
     } catch (error) {
-      console.error('Error checking stored email:', error);
+      console.error("Error checking stored email:", error);
     }
   };
 
@@ -54,20 +54,20 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
     if (!email.trim()) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const sessionId = getSessionId();
-      const response = await fetch('/api/email-results', {
-        method: 'POST',
+      const response = await fetch("/api/email-results", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           sessionId,
           email: email.trim(),
           quizData,
-          isPaidUser
+          isPaidUser,
         }),
       });
 
@@ -80,11 +80,11 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
           setSuccess(false);
         }, 2000);
       } else {
-        setError(data.error || 'Failed to send email');
+        setError(data.error || "Failed to send email");
       }
     } catch (error) {
-      console.error('Error sending email:', error);
-      setError('Unable to send email. Please try again.');
+      console.error("Error sending email:", error);
+      setError("Unable to send email. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -92,20 +92,20 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
 
   const handleResend = async () => {
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const sessionId = getSessionId();
-      const response = await fetch('/api/email-results', {
-        method: 'POST',
+      const response = await fetch("/api/email-results", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           sessionId,
           email: email.trim(),
           quizData,
-          isPaidUser
+          isPaidUser,
         }),
       });
 
@@ -118,11 +118,11 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
           setSuccess(false);
         }, 2000);
       } else {
-        setError(data.error || 'Failed to send email');
+        setError(data.error || "Failed to send email");
       }
     } catch (error) {
-      console.error('Error resending email:', error);
-      setError('Unable to send email. Please try again.');
+      console.error("Error resending email:", error);
+      setError("Unable to send email. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -143,9 +143,12 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
         {success ? (
           <div className="text-center">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Email Sent!</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              Email Sent!
+            </h3>
             <p className="text-gray-600">
-              Your {isPaidUser ? 'full report' : 'results'} have been sent to your email.
+              Your {isPaidUser ? "full report" : "results"} have been sent to
+              your email.
             </p>
           </div>
         ) : (
@@ -153,15 +156,14 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
             <div className="text-center mb-6">
               <Mail className="h-16 w-16 text-blue-500 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {hasStoredEmail ? 'Send Results Again' : 'Email My Results'}
+                {hasStoredEmail ? "Send Results Again" : "Email My Results"}
               </h3>
               <p className="text-gray-600">
-                {isPaidUser 
-                  ? 'Get your complete business report with full analysis and recommendations.'
+                {isPaidUser
+                  ? "Get your complete business report with full analysis and recommendations."
                   : hasStoredEmail
-                  ? 'Send your results preview to your email again.'
-                  : 'Get your personalized business model recommendations sent to your email.'
-                }
+                    ? "Send your results preview to your email again."
+                    : "Get your personalized business model recommendations sent to your email."}
               </p>
             </div>
 
@@ -171,7 +173,7 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
                   <p className="text-sm text-gray-600 mb-2">Sending to:</p>
                   <p className="font-semibold text-gray-900">{email}</p>
                 </div>
-                
+
                 <button
                   onClick={handleResend}
                   disabled={isLoading}
@@ -183,14 +185,17 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
                       Sending...
                     </>
                   ) : (
-                    `Send ${isPaidUser ? 'Full Report' : 'Results'}`
+                    `Send ${isPaidUser ? "Full Report" : "Results"}`
                   )}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email Address
                   </label>
                   <input
@@ -198,7 +203,7 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter your email address"
                     required
                     disabled={isLoading}
@@ -216,7 +221,7 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
                       Sending...
                     </>
                   ) : (
-                    `Send ${isPaidUser ? 'Full Report' : 'Results'}`
+                    `Send ${isPaidUser ? "Full Report" : "Results"}`
                   )}
                 </button>
               </form>
@@ -229,10 +234,11 @@ const EmailResultsModal: React.FC<EmailResultsModalProps> = ({
             )}
 
             {!isPaidUser && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                 <p className="text-blue-700 text-sm">
-                  <strong>Preview Only:</strong> This email contains a summary of your results. 
-                  Upgrade to get your complete analysis with detailed recommendations.
+                  <strong>Preview Only:</strong> This email contains a summary
+                  of your results. Upgrade to get your complete analysis with
+                  detailed recommendations.
                 </p>
               </div>
             )}

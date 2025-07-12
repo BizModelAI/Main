@@ -41,27 +41,27 @@ function App() {
 
   // Restore data from localStorage on app start
   React.useEffect(() => {
-    const savedQuizData = localStorage.getItem('quizData');
-    const savedUserEmail = localStorage.getItem('userEmail');
-    const savedLoadedReportData = localStorage.getItem('loadedReportData');
-    
+    const savedQuizData = localStorage.getItem("quizData");
+    const savedUserEmail = localStorage.getItem("userEmail");
+    const savedLoadedReportData = localStorage.getItem("loadedReportData");
+
     if (savedQuizData) {
       try {
         setQuizData(JSON.parse(savedQuizData));
       } catch (error) {
-        console.error('Error parsing saved quiz data:', error);
+        console.error("Error parsing saved quiz data:", error);
       }
     }
-    
+
     if (savedUserEmail) {
       setUserEmail(savedUserEmail);
     }
-    
+
     if (savedLoadedReportData) {
       try {
         setLoadedReportData(JSON.parse(savedLoadedReportData));
       } catch (error) {
-        console.error('Error parsing saved loaded report data:', error);
+        console.error("Error parsing saved loaded report data:", error);
       }
     }
   }, []);
@@ -72,28 +72,6 @@ function App() {
     setLoadedReportData(data);
     setShowAILoading(false);
     setShowCongratulations(true);
-  };
-
-  // Handler for congratulations completion
-  const handleCongratulationsComplete = (email?: string) => {
-    console.log("Congratulations complete, navigating to results");
-    if (email) {
-      setUserEmail(email);
-      localStorage.setItem('userEmail', email);
-    }
-    setShowCongratulations(false);
-    
-    // Store data in localStorage before navigation
-    if (quizData) {
-      localStorage.setItem('quizData', JSON.stringify(quizData));
-    }
-    if (loadedReportData) {
-      localStorage.setItem('loadedReportData', JSON.stringify(loadedReportData));
-    }
-    
-    setTimeout(() => {
-      window.location.href = '/results';
-    }, 100);
   };
 
   // TEMPORARY: Mock quiz data for testing with COMPLETE data structure
@@ -272,23 +250,15 @@ function App() {
             <Route
               path="/loading"
               element={
-                <div className="relative">
-                  <LoadingPage
-                    quizData={quizData}
-                    userEmail={userEmail}
-                    onComplete={handleAILoadingComplete}
-                    onExit={() => navigate("/quiz")}
-                  />
-                  {showCongratulations && quizData && (
-                    <EmailCapture
-                      onEmailSubmit={handleCongratulationsComplete}
-                      onContinueAsGuest={handleCongratulationsComplete}
-                      onReturnToQuiz={() => navigate("/quiz")}
-                      quizData={quizData}
-                      onStartAIGeneration={handleCongratulationsComplete}
-                    />
-                  )}
-                </div>
+                <LoadingPageWrapper
+                  quizData={quizData}
+                  userEmail={userEmail}
+                  showCongratulations={showCongratulations}
+                  setUserEmail={setUserEmail}
+                  setShowCongratulations={setShowCongratulations}
+                  loadedReportData={loadedReportData}
+                  handleAILoadingComplete={handleAILoadingComplete}
+                />
               }
             />
 
@@ -328,28 +298,16 @@ function App() {
             />
 
             {/* Download Report Page */}
-            <Route
-              path="/report"
-              element={<DownloadReportPage />}
-            />
+            <Route path="/report" element={<DownloadReportPage />} />
 
             {/* PDF Report Page (no layout) */}
-            <Route
-              path="/pdf-report"
-              element={<PDFReportPage />}
-            />
+            <Route path="/pdf-report" element={<PDFReportPage />} />
 
             {/* Privacy Policy */}
-            <Route
-              path="/privacy"
-              element={<PrivacyPolicy />}
-            />
-            
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+
             {/* Unsubscribe Page */}
-            <Route
-              path="/unsubscribe"
-              element={<UnsubscribePage />}
-            />
+            <Route path="/unsubscribe" element={<UnsubscribePage />} />
           </Routes>
         </Router>
       </PaywallProvider>
@@ -357,10 +315,77 @@ function App() {
   );
 }
 
+// Loading page wrapper component to handle navigation properly
+const LoadingPageWrapper: React.FC<{
+  quizData: QuizData | null;
+  userEmail: string | null;
+  showCongratulations: boolean;
+  setUserEmail: (email: string) => void;
+  setShowCongratulations: (show: boolean) => void;
+  loadedReportData: any;
+  handleAILoadingComplete: (data: any) => void;
+}> = ({
+  quizData,
+  userEmail,
+  showCongratulations,
+  setUserEmail,
+  setShowCongratulations,
+  loadedReportData,
+  handleAILoadingComplete,
+}) => {
+  const navigate = useNavigate();
+
+  // Handler for congratulations completion with proper navigation
+  const handleCongratulationsComplete = (email?: string) => {
+    console.log("Congratulations complete, navigating to results");
+    if (email) {
+      setUserEmail(email);
+      localStorage.setItem("userEmail", email);
+    }
+    setShowCongratulations(false);
+
+    // Store data in localStorage before navigation
+    if (quizData) {
+      localStorage.setItem("quizData", JSON.stringify(quizData));
+    }
+    if (loadedReportData) {
+      localStorage.setItem(
+        "loadedReportData",
+        JSON.stringify(loadedReportData),
+      );
+    }
+
+    // Use React Router navigation instead of window.location.href
+    navigate("/results");
+  };
+
+  return (
+    <div className="relative">
+      {quizData && (
+        <LoadingPage
+          quizData={quizData}
+          userEmail={userEmail}
+          onComplete={handleAILoadingComplete}
+          onExit={() => navigate("/quiz")}
+        />
+      )}
+      {showCongratulations && quizData && (
+        <EmailCapture
+          onEmailSubmit={handleCongratulationsComplete}
+          onContinueAsGuest={handleCongratulationsComplete}
+          onReturnToQuiz={() => navigate("/quiz")}
+          quizData={quizData}
+          onStartAIGeneration={handleCongratulationsComplete}
+        />
+      )}
+    </div>
+  );
+};
+
 // Component that handles quiz navigation
 const QuizWithNavigation: React.FC<{
   quizData: QuizData | null;
-  setQuizData: (data: QuizData) => void;
+  setQuizData: (data: QuizData | null) => void;
   showEmailCapture: boolean;
   setShowEmailCapture: (show: boolean) => void;
   userEmail: string | null;
@@ -417,7 +442,9 @@ const QuizWithNavigation: React.FC<{
   const handleSkipToResults = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("Skip button clicked! Generating mock data and navigating directly to results...");
+    console.log(
+      "Skip button clicked! Generating mock data and navigating directly to results...",
+    );
     const mockData = generateMockQuizData();
     console.log("Generated mock data:", mockData);
 
@@ -427,7 +454,7 @@ const QuizWithNavigation: React.FC<{
     setShowAILoading(false);
     setShowCongratulations(false);
     setShowEmailCapture(false);
-    
+
     console.log("Navigating to /results");
     // Navigate immediately for dev purposes
     navigate("/results");
@@ -442,6 +469,7 @@ const QuizWithNavigation: React.FC<{
           onClick={handleSkipToResults}
           className="bg-red-500 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl hover:bg-red-600 transition-all duration-300 transform hover:scale-105 border-2 border-white"
           style={{ zIndex: 9999 }}
+          hidden
         >
           🚀 SKIP TO RESULTS (DEV)
         </button>
@@ -477,10 +505,10 @@ const ResultsWrapper: React.FC<{
 
   if (quizData) {
     return (
-      <Results 
-        quizData={quizData} 
-        onBack={onBack} 
-        userEmail={userEmail} 
+      <Results
+        quizData={quizData}
+        onBack={onBack}
+        userEmail={userEmail}
         preloadedReportData={loadedReportData}
       />
     );

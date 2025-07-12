@@ -60,12 +60,12 @@ const Confetti: React.FC = () => {
           }}
           initial={{
             y: -20,
-            rotation: piece.rotation,
+            rotate: piece.rotation,
             opacity: 1,
           }}
           animate={{
             y: window.innerHeight + 20,
-            rotation: piece.rotation + 720,
+            rotate: piece.rotation + 720,
             opacity: 0,
           }}
           transition={{
@@ -100,16 +100,16 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({
       // Store email for unpaid users and send quiz results email
       if (quizData) {
         const sessionId = getSessionId();
-        const response = await fetch('/api/email-results', {
-          method: 'POST',
+        const response = await fetch("/api/email-results", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             sessionId,
             email: email.trim(),
             quizData: quizData,
-            isPaidUser: false // EmailCapture is only for unpaid users
+            isPaidUser: false, // EmailCapture is only for unpaid users
           }),
         });
 
@@ -120,7 +120,7 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({
             onStartAIGeneration(email);
           }, 1500);
         } else {
-          console.error('Failed to send email');
+          console.error("Failed to send email");
           // Still proceed even if email fails
           onStartAIGeneration(email);
         }
@@ -129,7 +129,7 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({
         onStartAIGeneration(email);
       }
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
       // Still proceed even if email fails
       onStartAIGeneration(email);
     } finally {
@@ -309,9 +309,10 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({
                 className="text-center space-y-3"
               >
                 <p className="text-xs text-gray-500">
-                  🔒 We respect your privacy. No spam, just your results and occasional valuable insights.
+                  🔒 We respect your privacy. No spam, just your results and
+                  occasional valuable insights.
                 </p>
-                
+
                 <button
                   onClick={handleGuestContinue}
                   className="text-gray-600 hover:text-blue-600 font-medium transition-colors flex items-center justify-center group text-sm mx-auto"

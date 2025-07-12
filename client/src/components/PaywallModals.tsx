@@ -33,31 +33,37 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
       case "business-model":
         return {
           title: "Unlock Your Full Business Blueprint",
-          subtitle: "This is one of your top matches—but it's locked. Get the complete analysis to see why it's perfect for you.",
+          subtitle:
+            "This is one of your top matches—but it's locked. Get the complete analysis to see why it's perfect for you.",
           features: [
             {
               content: (
                 <>
-                  <strong>Your Top Personalized Business Paths</strong> — matched to your mindset, lifestyle, and strengths
+                  <strong>Your Top Personalized Business Paths</strong> —
+                  matched to your mindset, lifestyle, and strengths
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Full Income Charts + Startup Costs</strong> — know exactly what to expect
+                  <strong>Full Income Charts + Startup Costs</strong> — know
+                  exactly what to expect
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just execution
+                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  execution
                 </>
               ),
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       case "learn-more":
@@ -70,26 +76,31 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             {
               content: (
                 <>
-                  <strong>Your Top Personalized Business Paths</strong> — matched to your mindset, lifestyle, and strengths
+                  <strong>Your Top Personalized Business Paths</strong> —
+                  matched to your mindset, lifestyle, and strengths
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Full Income Charts + Startup Costs</strong> — know exactly what to expect
+                  <strong>Full Income Charts + Startup Costs</strong> — know
+                  exactly what to expect
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just execution
+                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  execution
                 </>
               ),
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       case "full-report":
@@ -101,26 +112,31 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             {
               content: (
                 <>
-                  <strong>Your Top Personalized Business Paths</strong> — matched to your mindset, lifestyle, and strengths
+                  <strong>Your Top Personalized Business Paths</strong> —
+                  matched to your mindset, lifestyle, and strengths
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Full Income Charts + Startup Costs</strong> — know exactly what to expect
+                  <strong>Full Income Charts + Startup Costs</strong> — know
+                  exactly what to expect
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just execution
+                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  execution
                 </>
               ),
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       case "quiz-required":
@@ -132,26 +148,31 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             {
               content: (
                 <>
-                  <strong>Your Top Personalized Business Paths</strong> — matched to your mindset, lifestyle, and strengths
+                  <strong>Your Top Personalized Business Paths</strong> —
+                  matched to your mindset, lifestyle, and strengths
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Full Income Charts + Startup Costs</strong> — know exactly what to expect
+                  <strong>Full Income Charts + Startup Costs</strong> — know
+                  exactly what to expect
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just execution
+                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  execution
                 </>
               ),
             },
           ],
           buttonText: "Take the Quiz Now",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       default:
@@ -162,26 +183,31 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             {
               content: (
                 <>
-                  <strong>Your Top Personalized Business Paths</strong> — matched to your mindset, lifestyle, and strengths
+                  <strong>Your Top Personalized Business Paths</strong> —
+                  matched to your mindset, lifestyle, and strengths
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Full Income Charts + Startup Costs</strong> — know exactly what to expect
+                  <strong>Full Income Charts + Startup Costs</strong> — know
+                  exactly what to expect
                 </>
               ),
             },
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just execution
+                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  execution
                 </>
               ),
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
     }
   };
@@ -261,7 +287,11 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
                         className="flex items-start text-blue-800"
                       >
                         <CheckCircle className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0 text-blue-600" />
-                        <span>{typeof feature === 'string' ? feature : feature.content}</span>
+                        <span>
+                          {typeof feature === "string"
+                            ? feature
+                            : feature.content}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -294,6 +324,23 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
                 </button>
               )}
             </motion.div>
+
+            {/* Dev Bypass Button */}
+            {import.meta.env.MODE === "development" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="mt-4"
+              >
+                <button
+                  onClick={onUnlock}
+                  className="w-full bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+                >
+                  🔧 DEV: Bypass Payment (Remove in Prod)
+                </button>
+              </motion.div>
+            )}
 
             {/* Additional Info */}
             <motion.div

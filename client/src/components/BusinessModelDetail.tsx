@@ -34,53 +34,82 @@ import { businessPaths } from "../data/businessPaths";
 import { businessModels } from "../data/businessModels";
 import { calculateAdvancedBusinessModelMatches } from "../../../shared/scoring";
 import { calculateBusinessModelTraits } from "../../../shared/businessModelTraits";
-import { getIdealTraits, traitDescriptions } from "../../../shared/businessModelIdealTraits";
+import {
+  getIdealTraits,
+  traitDescriptions,
+} from "../../../shared/businessModelIdealTraits";
 import { AIService } from "../utils/aiService";
 import { aiCacheManager } from "../utils/aiCacheManager";
 import { usePaywall } from "../contexts/PaywallContext";
+import { useAuth } from "../contexts/AuthContext";
 import { PaywallModal } from "./PaywallModals";
+import { PaymentAccountModal } from "./PaymentAccountModal";
 import { SkillsAnalysisService, SkillsAnalysis } from "../utils/skillsAnalysis";
-import { businessTools, defaultBusinessTools, BusinessTool } from "../data/businessTools";
-import { IncomeProjectionChart } from './IncomeProjectionChart';
+import {
+  businessTools,
+  defaultBusinessTools,
+  BusinessTool,
+} from "../data/businessTools";
+import { IncomeProjectionChart } from "./IncomeProjectionChart";
 import { renderMarkdownContent } from "../utils/markdownUtils";
 
 // Generate psychological fit description based on fit category
-const getPsychologicalFitDescription = (category: string, businessName: string, quizData: QuizData, businessId: string): string => {
+const getPsychologicalFitDescription = (
+  category: string,
+  businessName: string,
+  quizData: QuizData,
+  businessId: string,
+): string => {
   const traits = calculateBusinessModelTraits(quizData);
-  const idealTraits = getIdealTraits(businessId || '');
-  
+  const idealTraits = getIdealTraits(businessId || "");
+
   switch (category) {
     case "Best Fit":
     case "Strong Fit":
       const strongAreas = [];
-      if (traits.riskTolerance >= idealTraits.riskTolerance - 15) strongAreas.push("risk tolerance");
-      if (traits.selfMotivation >= idealTraits.selfMotivation - 15) strongAreas.push("self-motivation");
-      if (traits.techComfort >= idealTraits.techComfort - 15) strongAreas.push("tech comfort");
-      if (traits.consistency >= idealTraits.consistency - 15) strongAreas.push("consistency");
-      if (traits.learningAgility >= idealTraits.learningAgility - 15) strongAreas.push("learning agility");
-      
-      return `Your personality profile compares favorably with the average successful ${businessName} entrepreneur. You show particularly strong alignment in ${strongAreas.slice(0, 2).join(" and ")}, which are key indicators of success in this field. Your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'solid self-motivation'} and ${quizData.toolLearningWillingness === 'yes' ? 'eagerness to learn new tools' : 'willingness to adapt'} position you well for this business model.`;
-      
+      if (traits.riskTolerance >= idealTraits.riskTolerance - 15)
+        strongAreas.push("risk tolerance");
+      if (traits.selfMotivation >= idealTraits.selfMotivation - 15)
+        strongAreas.push("self-motivation");
+      if (traits.techComfort >= idealTraits.techComfort - 15)
+        strongAreas.push("tech comfort");
+      if (traits.consistency >= idealTraits.consistency - 15)
+        strongAreas.push("consistency");
+      if (traits.learningAgility >= idealTraits.learningAgility - 15)
+        strongAreas.push("learning agility");
+
+      return `Your personality profile compares favorably with the average successful ${businessName} entrepreneur. You show particularly strong alignment in ${strongAreas.slice(0, 2).join(" and ")}, which are key indicators of success in this field. Your ${quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "solid self-motivation"} and ${quizData.toolLearningWillingness === "yes" ? "eagerness to learn new tools" : "willingness to adapt"} position you well for this business model.`;
+
     case "Possible Fit":
       const gapAreas = [];
-      if (traits.riskTolerance < idealTraits.riskTolerance - 20) gapAreas.push("risk tolerance");
-      if (traits.selfMotivation < idealTraits.selfMotivation - 20) gapAreas.push("self-motivation");
-      if (traits.techComfort < idealTraits.techComfort - 20) gapAreas.push("tech comfort");
-      if (traits.consistency < idealTraits.consistency - 20) gapAreas.push("consistency");
-      if (traits.learningAgility < idealTraits.learningAgility - 20) gapAreas.push("learning agility");
-      
+      if (traits.riskTolerance < idealTraits.riskTolerance - 20)
+        gapAreas.push("risk tolerance");
+      if (traits.selfMotivation < idealTraits.selfMotivation - 20)
+        gapAreas.push("self-motivation");
+      if (traits.techComfort < idealTraits.techComfort - 20)
+        gapAreas.push("tech comfort");
+      if (traits.consistency < idealTraits.consistency - 20)
+        gapAreas.push("consistency");
+      if (traits.learningAgility < idealTraits.learningAgility - 20)
+        gapAreas.push("learning agility");
+
       return `Your personality profile shows some alignment with successful ${businessName} entrepreneurs, but there are gaps in key areas. You may face challenges with ${gapAreas.slice(0, 2).join(" and ")}, which could impact your success in this field. While not impossible, you would need to focus on developing these areas to increase your chances of success.`;
-      
+
     case "Poor Fit":
       const majorGaps = [];
-      if (traits.riskTolerance < idealTraits.riskTolerance - 30) majorGaps.push("risk tolerance");
-      if (traits.selfMotivation < idealTraits.selfMotivation - 30) majorGaps.push("self-motivation");
-      if (traits.techComfort < idealTraits.techComfort - 30) majorGaps.push("tech comfort");
-      if (traits.consistency < idealTraits.consistency - 30) majorGaps.push("consistency");
-      if (traits.learningAgility < idealTraits.learningAgility - 30) majorGaps.push("learning agility");
-      
+      if (traits.riskTolerance < idealTraits.riskTolerance - 30)
+        majorGaps.push("risk tolerance");
+      if (traits.selfMotivation < idealTraits.selfMotivation - 30)
+        majorGaps.push("self-motivation");
+      if (traits.techComfort < idealTraits.techComfort - 30)
+        majorGaps.push("tech comfort");
+      if (traits.consistency < idealTraits.consistency - 30)
+        majorGaps.push("consistency");
+      if (traits.learningAgility < idealTraits.learningAgility - 30)
+        majorGaps.push("learning agility");
+
       return `Your personality profile shows significant misalignment with successful ${businessName} entrepreneurs. There are substantial gaps in ${majorGaps.slice(0, 2).join(" and ")}, which are critical for success in this field. The challenges you would face make this business model particularly difficult for your current profile, and you might want to consider other options that better match your strengths.`;
-      
+
     default:
       return `Your personality profile has been analyzed against successful ${businessName} entrepreneurs.`;
   }
@@ -91,7 +120,7 @@ interface BusinessModelDetailProps {
 }
 
 const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
-  quizData,
+  quizData: propQuizData,
 }) => {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
@@ -101,21 +130,30 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
   const [showPaywallModal, setShowPaywallModal] = useState(false);
-  const [skillsAnalysis, setSkillsAnalysis] = useState<SkillsAnalysis | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [skillsAnalysis, setSkillsAnalysis] = useState<SkillsAnalysis | null>(
+    null,
+  );
   const [isLoadingSkills, setIsLoadingSkills] = useState(false);
+  const [quizData, setQuizData] = useState<QuizData | null>(
+    propQuizData || null,
+  );
+  const [isLoadingQuizData, setIsLoadingQuizData] = useState(false);
+
   const { hasCompletedQuiz, canAccessBusinessModel, setHasUnlockedAnalysis } =
     usePaywall();
+  const { user, getLatestQuizData } = useAuth();
 
   // Calculate fit category based on actual quiz data if available
   const fitCategory = useMemo(() => {
     if (!quizData || !businessId) return "Best Fit";
-    
+
     const businessMatches = calculateAdvancedBusinessModelMatches(quizData);
-    const matchingBusiness = businessMatches.find(b => b.id === businessId);
+    const matchingBusiness = businessMatches.find((b) => b.id === businessId);
     const fitScore = matchingBusiness?.score || 0;
-    
+
     console.log(`Fit score for ${businessId}: ${fitScore}%`);
-    
+
     if (fitScore >= 70) return "Best Fit";
     if (fitScore >= 50) return "Strong Fit";
     if (fitScore >= 30) return "Possible Fit";
@@ -138,19 +176,14 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     }
   };
 
-
-
-
-
-
-
   // Generate and cache AI analysis for paid users
   const generateAndCacheAIAnalysis = useCallback(
     async (data: QuizData, path: BusinessPath) => {
       if (!businessId) return;
 
       // Check if we have cached analysis for this business model
-      const cachedAnalysis = aiCacheManager.getCachedBusinessAnalysis(businessId);
+      const cachedAnalysis =
+        aiCacheManager.getCachedBusinessAnalysis(businessId);
 
       if (cachedAnalysis) {
         setAiAnalysis(cachedAnalysis);
@@ -217,7 +250,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         const skills = await skillsService.analyzeSkills(
           data,
           model.requiredSkills || [],
-          model.title || businessId
+          model.title || businessId,
         );
 
         aiCacheManager.cacheSkillsAnalysis(businessId, skills);
@@ -228,14 +261,35 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         setIsLoadingSkills(false);
       }
     },
-    [businessId]
+    [businessId],
   );
+
+  // Fetch quiz data for authenticated users
+  useEffect(() => {
+    const fetchQuizData = async () => {
+      if (!user || propQuizData) return; // If no user or already have quiz data, skip
+
+      setIsLoadingQuizData(true);
+      try {
+        const latestQuizData = await getLatestQuizData();
+        if (latestQuizData) {
+          setQuizData(latestQuizData);
+        }
+      } catch (error) {
+        console.error("Error fetching quiz data:", error);
+      } finally {
+        setIsLoadingQuizData(false);
+      }
+    };
+
+    fetchQuizData();
+  }, [user, propQuizData, getLatestQuizData]);
 
   useEffect(() => {
     if (!businessId) return;
 
     // Scroll to top of page when component mounts or businessId changes
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: "instant" });
 
     // Find business path and model
     const path = businessPaths.find((p) => p.id === businessId);
@@ -245,7 +299,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       // Calculate fit score if quiz data is available
       if (quizData) {
         const businessMatches = calculateAdvancedBusinessModelMatches(quizData);
-        const matchingBusiness = businessMatches.find(b => b.id === businessId);
+        const matchingBusiness = businessMatches.find(
+          (b) => b.id === businessId,
+        );
         const fitScore = matchingBusiness?.score || 0;
         setBusinessPath({ ...path, fitScore });
       } else {
@@ -259,14 +315,22 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
 
     // Handle access control and AI analysis generation
     if (!hasCompletedQuiz) {
-      setShowPaywallModal(true);
+      if (!user) {
+        setShowPaymentModal(true);
+      } else {
+        setShowPaywallModal(true);
+      }
       setAiAnalysis(null);
       setIsLoadingAnalysis(false);
       return;
     }
 
     if (!canAccessBusinessModel(businessId)) {
-      setShowPaywallModal(true);
+      if (!user) {
+        setShowPaymentModal(true);
+      } else {
+        setShowPaywallModal(true);
+      }
       setAiAnalysis(null);
       setIsLoadingAnalysis(false);
       return;
@@ -305,11 +369,19 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   // Update active section based on scroll position - using businessPath/businessModel state
   useEffect(() => {
     if (!businessPath && !businessModel) return;
-    
+
     const business = businessPath || businessModel;
     const getSidebarItems = () => [
-      { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
-      { id: "fit-analysis", label: `Why ${business?.name || business?.title || "This Business"} Fits You`, icon: Target },
+      {
+        id: "overview",
+        label: `${business?.name || business?.title || "Business"} Overview`,
+        icon: BarChart3,
+      },
+      {
+        id: "fit-analysis",
+        label: `Why ${business?.name || business?.title || "This Business"} Fits You`,
+        icon: Target,
+      },
       { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
       { id: "income-potential", label: "Income Potential", icon: TrendingUp },
       { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
@@ -346,6 +418,16 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     navigate("/explore");
   };
 
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    window.location.reload(); // Refresh to show content
+  };
+
+  const handlePaymentClose = () => {
+    setShowPaymentModal(false);
+    navigate("/explore");
+  };
+
   const handleStartCourse = () => {
     // Navigate to the business guide page which contains the detailed course
     navigate(`/guide/${businessId}`);
@@ -358,6 +440,18 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         onClose={handlePaywallClose}
         onUnlock={handlePaywallUnlock}
         type={hasCompletedQuiz ? "learn-more" : "quiz-required"}
+        title={businessPath?.name || businessModel?.title}
+      />
+    );
+  }
+
+  if (showPaymentModal) {
+    return (
+      <PaymentAccountModal
+        isOpen={true}
+        onClose={handlePaymentClose}
+        onSuccess={handlePaymentSuccess}
+        type={hasCompletedQuiz ? "learn-more" : "full-report"}
         title={businessPath?.name || businessModel?.title}
       />
     );
@@ -385,8 +479,19 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
 
   // Sidebar navigation items - now defined after business is available
   const getSidebarItems = () => [
-    { id: "overview", label: `${business?.name || business?.title || "Business"} Overview`, icon: BarChart3 },
-    { id: "fit-analysis", label: getFitTitle(fitCategory, business?.name || business?.title || "This Business"), icon: Target },
+    {
+      id: "overview",
+      label: `${business?.name || business?.title || "Business"} Overview`,
+      icon: BarChart3,
+    },
+    {
+      id: "fit-analysis",
+      label: getFitTitle(
+        fitCategory,
+        business?.name || business?.title || "This Business",
+      ),
+      icon: Target,
+    },
     { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
     { id: "income-potential", label: "Income Potential", icon: TrendingUp },
     { id: "common-mistakes", label: "Common Mistakes", icon: AlertTriangle },
@@ -629,7 +734,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                     <Target className="h-8 w-8 text-white" />
                   </div>
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                    {getFitTitle(fitCategory, business?.name || business?.title || "This Business")}
+                    {getFitTitle(
+                      fitCategory,
+                      business?.name || business?.title || "This Business",
+                    )}
                   </h2>
                 </div>
 
@@ -649,7 +757,14 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           .map((paragraph, index) => {
                             const trimmedParagraph = paragraph.trim();
                             if (trimmedParagraph) {
-                              return <p key={index} dangerouslySetInnerHTML={renderMarkdownContent(trimmedParagraph)} />;
+                              return (
+                                <p
+                                  key={index}
+                                  dangerouslySetInnerHTML={renderMarkdownContent(
+                                    trimmedParagraph,
+                                  )}
+                                />
+                              );
                             }
                             return null;
                           })}
@@ -657,61 +772,84 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className={`rounded-2xl p-6 border ${
-                        fitCategory === "Possible Fit" || fitCategory === "Poor Fit"
-                          ? "bg-gradient-to-br from-red-50 to-pink-50 border-red-200"
-                          : "bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
-                      }`}>
+                      <div
+                        className={`rounded-2xl p-6 border ${
+                          fitCategory === "Possible Fit" ||
+                          fitCategory === "Poor Fit"
+                            ? "bg-gradient-to-br from-red-50 to-pink-50 border-red-200"
+                            : "bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200"
+                        }`}
+                      >
                         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                          {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                          {fitCategory === "Possible Fit" ||
+                          fitCategory === "Poor Fit" ? (
                             <AlertTriangle className="h-6 w-6 text-red-500 mr-2" />
                           ) : (
                             <Star className="h-6 w-6 text-yellow-500 mr-2" />
                           )}
-                          Key Insights
+                          {fitCategory === "Possible Fit" ||
+                          fitCategory === "Poor Fit"
+                            ? "Why This Isn't Ideal For You"
+                            : "Key Insights"}
                         </h3>
                         <ul className="space-y-3">
                           {aiAnalysis.keyInsights?.map(
                             (insight: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                                {fitCategory === "Possible Fit" ||
+                                fitCategory === "Poor Fit" ? (
                                   <AlertTriangle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
                                 ) : (
                                   <Star className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
                                 )}
-                                <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(insight)} />
+                                <span
+                                  className="text-gray-700"
+                                  dangerouslySetInnerHTML={renderMarkdownContent(
+                                    insight,
+                                  )}
+                                />
                               </li>
                             ),
                           )}
                         </ul>
                       </div>
 
-                      <div className={`rounded-2xl p-6 border ${
-                        fitCategory === "Possible Fit" || fitCategory === "Poor Fit"
-                          ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200"
-                          : "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
-                      }`}>
+                      <div
+                        className={`rounded-2xl p-6 border ${
+                          fitCategory === "Possible Fit" ||
+                          fitCategory === "Poor Fit"
+                            ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200"
+                            : "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+                        }`}
+                      >
                         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                          {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                          {fitCategory === "Possible Fit" ||
+                          fitCategory === "Poor Fit" ? (
                             <X className="h-6 w-6 text-red-500 mr-2" />
                           ) : (
                             <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
                           )}
-                          {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" 
-                            ? "Why You Might Struggle" 
-                            : "Success Predictors"
-                          }
+                          {fitCategory === "Possible Fit" ||
+                          fitCategory === "Poor Fit"
+                            ? "Why You Might Struggle"
+                            : "Success Predictors"}
                         </h3>
                         <ul className="space-y-3">
                           {aiAnalysis.successPredictors?.map(
                             (predictor: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                {fitCategory === "Possible Fit" || fitCategory === "Poor Fit" ? (
+                                {fitCategory === "Possible Fit" ||
+                                fitCategory === "Poor Fit" ? (
                                   <X className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
                                 ) : (
                                   <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                                 )}
-                                <span className="text-gray-700" dangerouslySetInnerHTML={renderMarkdownContent(predictor)} />
+                                <span
+                                  className="text-gray-700"
+                                  dangerouslySetInnerHTML={renderMarkdownContent(
+                                    predictor,
+                                  )}
+                                />
                               </li>
                             ),
                           )}
@@ -758,66 +896,133 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                 <>
                   <div className="mb-8">
                     <h3 className="text-xl font-bold text-gray-900 mb-4">
-                      How {business?.name || business?.title || "This Business"} Fits Your Personality
+                      How {business?.name || business?.title || "This Business"}{" "}
+                      Fits Your Personality
                     </h3>
                     <p className="text-gray-600 text-lg leading-relaxed">
-                      Based on your quiz responses, we've analyzed how your personality traits align with the requirements of successful {business.name || business.title} entrepreneurs.
+                      Based on your quiz responses, we've analyzed how your
+                      personality traits align with the requirements of
+                      successful {business.name || business.title}{" "}
+                      entrepreneurs.
                     </p>
                   </div>
 
                   {/* Trait-by-trait match display */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div className="space-y-4">
-                      <h4 className="text-lg font-semibold text-gray-900">Your Personality Match</h4>
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        Your Personality Match
+                      </h4>
                       {(() => {
                         const traits = calculateBusinessModelTraits(quizData);
-                        const idealTraits = getIdealTraits(businessId || '');
+                        const idealTraits = getIdealTraits(businessId || "");
                         return [
-                          { trait: "Risk Tolerance", yourScore: traits.riskTolerance, idealScore: idealTraits.riskTolerance, description: `${traitDescriptions.riskTolerance.min} to ${traitDescriptions.riskTolerance.max}` },
-                          { trait: "Self-Motivation", yourScore: traits.selfMotivation, idealScore: idealTraits.selfMotivation, description: `${traitDescriptions.selfMotivation.min} to ${traitDescriptions.selfMotivation.max}` },
-                          { trait: "Tech Comfort", yourScore: traits.techComfort, idealScore: idealTraits.techComfort, description: `${traitDescriptions.techComfort.min} to ${traitDescriptions.techComfort.max}` },
-                          { trait: "Consistency", yourScore: traits.consistency, idealScore: idealTraits.consistency, description: `${traitDescriptions.consistency.min} to ${traitDescriptions.consistency.max}` },
-                          { trait: "Learning Agility", yourScore: traits.learningAgility, idealScore: idealTraits.learningAgility, description: `${traitDescriptions.learningAgility.min} to ${traitDescriptions.learningAgility.max}` }
+                          {
+                            trait: "Risk Tolerance",
+                            yourScore: traits.riskTolerance,
+                            idealScore: idealTraits.riskTolerance,
+                            description: `${traitDescriptions.riskTolerance.min} to ${traitDescriptions.riskTolerance.max}`,
+                          },
+                          {
+                            trait: "Self-Motivation",
+                            yourScore: traits.selfMotivation,
+                            idealScore: idealTraits.selfMotivation,
+                            description: `${traitDescriptions.selfMotivation.min} to ${traitDescriptions.selfMotivation.max}`,
+                          },
+                          {
+                            trait: "Tech Comfort",
+                            yourScore: traits.techComfort,
+                            idealScore: idealTraits.techComfort,
+                            description: `${traitDescriptions.techComfort.min} to ${traitDescriptions.techComfort.max}`,
+                          },
+                          {
+                            trait: "Consistency",
+                            yourScore: traits.consistency,
+                            idealScore: idealTraits.consistency,
+                            description: `${traitDescriptions.consistency.min} to ${traitDescriptions.consistency.max}`,
+                          },
+                          {
+                            trait: "Learning Agility",
+                            yourScore: traits.learningAgility,
+                            idealScore: idealTraits.learningAgility,
+                            description: `${traitDescriptions.learningAgility.min} to ${traitDescriptions.learningAgility.max}`,
+                          },
                         ];
                       })().map((trait, index) => (
-                        <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+                        <div
+                          key={index}
+                          className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200"
+                        >
                           <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium text-gray-900">{trait.trait}</span>
+                            <span className="font-medium text-gray-900">
+                              {trait.trait}
+                            </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div 
+                            <div
                               className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
                               style={{ width: `${trait.yourScore}%` }}
                             ></div>
                           </div>
-                          <p className="text-sm text-gray-600">{trait.description}</p>
+                          <p className="text-sm text-gray-600">
+                            {trait.description}
+                          </p>
                         </div>
                       ))}
                     </div>
 
                     <div className="space-y-4">
-                      <h4 className="text-lg font-semibold text-gray-900">Average Successful Profile</h4>
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        Average Successful Profile
+                      </h4>
                       {(() => {
-                        const idealTraits = getIdealTraits(businessId || '');
+                        const idealTraits = getIdealTraits(businessId || "");
                         return [
-                          { trait: "Risk Tolerance", score: idealTraits.riskTolerance, description: `${traitDescriptions.riskTolerance.min} to ${traitDescriptions.riskTolerance.max}` },
-                          { trait: "Self-Motivation", score: idealTraits.selfMotivation, description: `${traitDescriptions.selfMotivation.min} to ${traitDescriptions.selfMotivation.max}` },
-                          { trait: "Tech Comfort", score: idealTraits.techComfort, description: `${traitDescriptions.techComfort.min} to ${traitDescriptions.techComfort.max}` },
-                          { trait: "Consistency", score: idealTraits.consistency, description: `${traitDescriptions.consistency.min} to ${traitDescriptions.consistency.max}` },
-                          { trait: "Learning Agility", score: idealTraits.learningAgility, description: `${traitDescriptions.learningAgility.min} to ${traitDescriptions.learningAgility.max}` }
+                          {
+                            trait: "Risk Tolerance",
+                            score: idealTraits.riskTolerance,
+                            description: `${traitDescriptions.riskTolerance.min} to ${traitDescriptions.riskTolerance.max}`,
+                          },
+                          {
+                            trait: "Self-Motivation",
+                            score: idealTraits.selfMotivation,
+                            description: `${traitDescriptions.selfMotivation.min} to ${traitDescriptions.selfMotivation.max}`,
+                          },
+                          {
+                            trait: "Tech Comfort",
+                            score: idealTraits.techComfort,
+                            description: `${traitDescriptions.techComfort.min} to ${traitDescriptions.techComfort.max}`,
+                          },
+                          {
+                            trait: "Consistency",
+                            score: idealTraits.consistency,
+                            description: `${traitDescriptions.consistency.min} to ${traitDescriptions.consistency.max}`,
+                          },
+                          {
+                            trait: "Learning Agility",
+                            score: idealTraits.learningAgility,
+                            description: `${traitDescriptions.learningAgility.min} to ${traitDescriptions.learningAgility.max}`,
+                          },
                         ];
                       })().map((trait, index) => (
-                        <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-green-50 rounded-xl border border-gray-200">
+                        <div
+                          key={index}
+                          className="p-4 bg-gradient-to-r from-gray-50 to-green-50 rounded-xl border border-gray-200"
+                        >
                           <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium text-gray-900">{trait.trait}</span>
+                            <span className="font-medium text-gray-900">
+                              {trait.trait}
+                            </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div 
+                            <div
                               className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
                               style={{ width: `${trait.score}%` }}
                             ></div>
                           </div>
-                          <p className="text-sm text-gray-600">{trait.description}</p>
+                          <p className="text-sm text-gray-600">
+                            {trait.description}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -826,15 +1031,22 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   {/* Overall match summary */}
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
                     <h4 className="text-lg font-semibold text-blue-900 mb-3">
-                      Your Overall Psychological Fit: {
-                        fitCategory === "Best Fit" ? "Excellent!" :
-                        fitCategory === "Strong Fit" ? "Strong" :
-                        fitCategory === "Possible Fit" ? "Okay" :
-                        "Poor"
-                      }
+                      Your Overall Psychological Fit:{" "}
+                      {fitCategory === "Best Fit"
+                        ? "Excellent!"
+                        : fitCategory === "Strong Fit"
+                          ? "Strong"
+                          : fitCategory === "Possible Fit"
+                            ? "Okay"
+                            : "Poor"}
                     </h4>
                     <p className="text-blue-800 leading-relaxed">
-                      {getPsychologicalFitDescription(fitCategory, business.name || business.title, quizData, businessId || '')}
+                      {getPsychologicalFitDescription(
+                        fitCategory,
+                        business.name || business.title,
+                        quizData,
+                        businessId || "",
+                      )}
                     </p>
                   </div>
                 </>
@@ -845,7 +1057,8 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                     Detailed Psychological Analysis
                   </h3>
                   <p className="text-gray-600 mb-6 text-lg max-w-md mx-auto">
-                    Take the quiz to see how your personality traits align with successful entrepreneurs in this field.
+                    Take the quiz to see how your personality traits align with
+                    successful entrepreneurs in this field.
                   </p>
                   <button
                     onClick={() => setShowPaywallModal(true)}
@@ -948,10 +1161,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
               )}
 
               {/* AI-Powered Income Projections */}
-              <IncomeProjectionChart 
-                businessId={businessId || ''}
+              <IncomeProjectionChart
+                businessId={businessId || ""}
                 businessModel={business.name}
-                quizData={quizData}
+                quizData={quizData || undefined}
               />
 
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-8 mt-8">
@@ -978,10 +1191,12 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
 
               <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-6 mb-8">
                 <h3 className="text-xl font-bold text-red-900 mb-4">
-                  Top 5 Mistakes Beginners Make in {business.name || business.title}
+                  Top 5 Mistakes Beginners Make in{" "}
+                  {business.name || business.title}
                 </h3>
                 <p className="text-red-800 mb-4">
-                  Learn from others' mistakes and avoid these common pitfalls that can derail your success.
+                  Learn from others' mistakes and avoid these common pitfalls
+                  that can derail your success.
                 </p>
               </div>
 
@@ -989,40 +1204,59 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                 {[
                   {
                     mistake: "Choosing Products Without Market Research",
-                    description: "Many beginners promote products they like personally without researching if there's actual demand or competition.",
-                    solution: "Always validate demand using tools like Google Trends, keyword research, and competitor analysis before promoting any product."
+                    description:
+                      "Many beginners promote products they like personally without researching if there's actual demand or competition.",
+                    solution:
+                      "Always validate demand using tools like Google Trends, keyword research, and competitor analysis before promoting any product.",
                   },
                   {
                     mistake: "Focusing Only on High-Commission Products",
-                    description: "Beginners often chase high-commission products that are difficult to sell instead of building trust with easier conversions.",
-                    solution: "Start with lower-commission products that convert well to build audience trust, then gradually introduce higher-value offers."
+                    description:
+                      "Beginners often chase high-commission products that are difficult to sell instead of building trust with easier conversions.",
+                    solution:
+                      "Start with lower-commission products that convert well to build audience trust, then gradually introduce higher-value offers.",
                   },
                   {
                     mistake: "Not Disclosing Affiliate Relationships",
-                    description: "Failing to properly disclose affiliate relationships can damage credibility and violate FTC guidelines.",
-                    solution: "Always clearly disclose affiliate relationships in all content, emails, and social media posts to maintain transparency and legal compliance."
+                    description:
+                      "Failing to properly disclose affiliate relationships can damage credibility and violate FTC guidelines.",
+                    solution:
+                      "Always clearly disclose affiliate relationships in all content, emails, and social media posts to maintain transparency and legal compliance.",
                   },
                   {
                     mistake: "Expecting Overnight Success",
-                    description: "Many quit too early because they expect immediate results, but affiliate marketing typically takes 3-6 months to gain momentum.",
-                    solution: "Set realistic expectations and focus on consistent daily actions rather than immediate results. Track progress metrics weekly."
+                    description:
+                      "Many quit too early because they expect immediate results, but affiliate marketing typically takes 3-6 months to gain momentum.",
+                    solution:
+                      "Set realistic expectations and focus on consistent daily actions rather than immediate results. Track progress metrics weekly.",
                   },
                   {
                     mistake: "Neglecting Email List Building",
-                    description: "Relying solely on social media without building an owned email list leaves you vulnerable to platform changes.",
-                    solution: "Start building an email list from day one using lead magnets and email automation to create a stable revenue foundation."
-                  }
+                    description:
+                      "Relying solely on social media without building an owned email list leaves you vulnerable to platform changes.",
+                    solution:
+                      "Start building an email list from day one using lead magnets and email automation to create a stable revenue foundation.",
+                  },
                 ].map((item, index) => (
-                  <div key={index} className="p-6 bg-gradient-to-br from-gray-50 to-red-50 rounded-xl border border-gray-200">
+                  <div
+                    key={index}
+                    className="p-6 bg-gradient-to-br from-gray-50 to-red-50 rounded-xl border border-gray-200"
+                  >
                     <div className="flex items-start">
                       <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-4 mt-1">
-                        <span className="text-red-600 font-bold text-sm">{index + 1}</span>
+                        <span className="text-red-600 font-bold text-sm">
+                          {index + 1}
+                        </span>
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-2">{item.mistake}</h4>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                          {item.mistake}
+                        </h4>
                         <p className="text-gray-600 mb-3">{item.description}</p>
                         <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                          <p className="text-sm text-green-800"><strong>Solution:</strong> {item.solution}</p>
+                          <p className="text-sm text-green-800">
+                            <strong>Solution:</strong> {item.solution}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1048,52 +1282,56 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
               {isLoadingSkills ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader className="h-8 w-8 animate-spin text-purple-600" />
-                  <span className="ml-3 text-lg text-gray-600">Analyzing your skills...</span>
+                  <span className="ml-3 text-lg text-gray-600">
+                    Analyzing your skills...
+                  </span>
                 </div>
               ) : skillsAnalysis ? (
                 <div className="space-y-8">
                   {/* Skills You Have - from quiz data */}
-                  {quizData && quizData.familiarTools && quizData.familiarTools.length > 0 && (
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                        <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
-                        Skills You Have
-                      </h3>
-                      <div className="flex flex-wrap gap-3 mb-4">
-                        {quizData.familiarTools.map((toolValue, index) => {
-                          // Map tool values to display labels
-                          const toolLabels: Record<string, string> = {
-                            "google-docs-sheets": "Google Docs/Sheets",
-                            "canva": "Canva",
-                            "notion": "Notion",
-                            "shopify-wix-squarespace": "Shopify/Wix/Squarespace",
-                            "zoom-streamyard": "Zoom/StreamYard",
-                            "figma": "Figma",
-                            "airtable": "Airtable",
-                            "wordpress": "WordPress",
-                            "chatgpt": "ChatGPT",
-                            "capcut": "CapCut",
-                            "meta-ads-manager": "Meta Ads Manager",
-                            "zapier": "Zapier"
-                          };
-                          
-                          const displayLabel = toolLabels[toolValue] || toolValue;
-                          
-                          return (
-                            <span
-                              key={index}
-                              className="px-4 py-2 bg-green-100 text-green-800 rounded-full font-medium border border-green-200 flex items-center"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              {displayLabel}
-                            </span>
-                          );
-                        })}
+                  {quizData &&
+                    quizData.familiarTools &&
+                    quizData.familiarTools.length > 0 && (
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                          <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
+                          Skills You Have
+                        </h3>
+                        <div className="flex flex-wrap gap-3 mb-4">
+                          {quizData.familiarTools.map((toolValue, index) => {
+                            // Map tool values to display labels
+                            const toolLabels: Record<string, string> = {
+                              "google-docs-sheets": "Google Docs/Sheets",
+                              canva: "Canva",
+                              notion: "Notion",
+                              "shopify-wix-squarespace":
+                                "Shopify/Wix/Squarespace",
+                              "zoom-streamyard": "Zoom/StreamYard",
+                              figma: "Figma",
+                              airtable: "Airtable",
+                              wordpress: "WordPress",
+                              chatgpt: "ChatGPT",
+                              capcut: "CapCut",
+                              "meta-ads-manager": "Meta Ads Manager",
+                              zapier: "Zapier",
+                            };
+
+                            const displayLabel =
+                              toolLabels[toolValue] || toolValue;
+
+                            return (
+                              <span
+                                key={index}
+                                className="px-4 py-2 bg-green-100 text-green-800 rounded-full font-medium border border-green-200 flex items-center"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                {displayLabel}
+                              </span>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-
-
+                    )}
 
                   {/* Skills You Need to Work On */}
                   {skillsAnalysis.workingOn.length > 0 && (
@@ -1103,16 +1341,18 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                         Skills to Work On
                       </h3>
                       <div className="flex flex-wrap gap-3 mb-4">
-                        {skillsAnalysis.workingOn.map((skillAssessment, index) => (
-                          <span
-                            key={index}
-                            className="px-4 py-2 bg-orange-100 text-orange-800 rounded-full font-medium border border-orange-200 flex items-center"
-                            title={skillAssessment.reasoning}
-                          >
-                            <Clock className="h-4 w-4 mr-2" />
-                            {skillAssessment.skill}
-                          </span>
-                        ))}
+                        {skillsAnalysis.workingOn.map(
+                          (skillAssessment, index) => (
+                            <span
+                              key={index}
+                              className="px-4 py-2 bg-orange-100 text-orange-800 rounded-full font-medium border border-orange-200 flex items-center"
+                              title={skillAssessment.reasoning}
+                            >
+                              <Clock className="h-4 w-4 mr-2" />
+                              {skillAssessment.skill}
+                            </span>
+                          ),
+                        )}
                       </div>
                     </div>
                   )}
@@ -1142,7 +1382,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
               ) : (
                 <div className="space-y-8">
                   {/* Skills You Have - from quiz data (fallback when no AI analysis) */}
-                  {quizData && quizData.familiarTools && quizData.familiarTools.length > 0 ? (
+                  {quizData &&
+                  quizData.familiarTools &&
+                  quizData.familiarTools.length > 0 ? (
                     <div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                         <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
@@ -1153,21 +1395,23 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           // Map tool values to display labels
                           const toolLabels: Record<string, string> = {
                             "google-docs-sheets": "Google Docs/Sheets",
-                            "canva": "Canva",
-                            "notion": "Notion",
-                            "shopify-wix-squarespace": "Shopify/Wix/Squarespace",
+                            canva: "Canva",
+                            notion: "Notion",
+                            "shopify-wix-squarespace":
+                              "Shopify/Wix/Squarespace",
                             "zoom-streamyard": "Zoom/StreamYard",
-                            "figma": "Figma",
-                            "airtable": "Airtable",
-                            "wordpress": "WordPress",
-                            "chatgpt": "ChatGPT",
-                            "capcut": "CapCut",
+                            figma: "Figma",
+                            airtable: "Airtable",
+                            wordpress: "WordPress",
+                            chatgpt: "ChatGPT",
+                            capcut: "CapCut",
                             "meta-ads-manager": "Meta Ads Manager",
-                            "zapier": "Zapier"
+                            zapier: "Zapier",
                           };
-                          
-                          const displayLabel = toolLabels[toolValue] || toolValue;
-                          
+
+                          const displayLabel =
+                            toolLabels[toolValue] || toolValue;
+
                           return (
                             <span
                               key={index}
@@ -1183,20 +1427,15 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   ) : (
                     <div className="text-center py-12">
                       <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">Complete the quiz to see your personalized skill analysis</p>
+                      <p className="text-gray-600">
+                        Complete the quiz to see your personalized skill
+                        analysis
+                      </p>
                     </div>
                   )}
                 </div>
               )}
             </section>
-
-
-
-
-
-
-
-
 
             {/* Getting Started */}
             <section
@@ -1295,7 +1534,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                       </div>
                     ),
                   )}
-                  
+
                   {/* Start Course Button */}
                   <div className="flex justify-center pt-8">
                     <motion.button
@@ -1313,8 +1552,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
               )}
             </section>
 
-
-
             {/* Ready to Start CTA */}
             <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-3xl shadow-xl p-12 text-white">
               <div className="text-center">
@@ -1322,7 +1559,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   Ready to Start Your Journey?
                 </h3>
                 <p className="text-blue-100 mb-8 text-lg max-w-2xl mx-auto">
-                  Take the first step towards building your {businessPath?.name || 'business'} with our comprehensive step-by-step guide.
+                  Take the first step towards building your{" "}
+                  {businessPath?.name || "business"} with our comprehensive
+                  step-by-step guide.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <motion.button
@@ -1336,6 +1575,19 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                     <ArrowRight className="h-6 w-6" />
                   </motion.button>
                 </div>
+              </div>
+            </section>
+
+            {/* Back to Results Navigation */}
+            <section className="py-8 border-t border-gray-200">
+              <div className="container mx-auto px-4 text-center">
+                <a
+                  href="/results"
+                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors group"
+                >
+                  <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                  Back to Results
+                </a>
               </div>
             </section>
           </div>

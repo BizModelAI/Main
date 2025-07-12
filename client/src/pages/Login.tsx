@@ -1,41 +1,49 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, X, ArrowLeft } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  X,
+  ArrowLeft,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleClose = () => {
-    console.log('Close button clicked');
+    console.log("Close button clicked");
     window.history.back(); // Go back to previous page
   };
 
   const handleStartQuiz = (e: React.MouseEvent) => {
     e.preventDefault();
     // Clear any existing quiz data and navigate to the quiz
-    navigate('/quiz');
+    navigate("/quiz");
     // Scroll to top after navigation
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }, 100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
-      setError('Invalid email or password');
+      setError("Invalid email or password");
     }
   };
 
@@ -66,7 +74,9 @@ const Login: React.FC = () => {
           <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-xl">BP</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
           <p className="text-gray-600">Sign in to your Business Path account</p>
         </div>
 
@@ -86,7 +96,10 @@ const Login: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Email Address
             </label>
             <div className="relative">
@@ -105,14 +118,17 @@ const Login: React.FC = () => {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
@@ -124,7 +140,11 @@ const Login: React.FC = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -141,7 +161,7 @@ const Login: React.FC = () => {
                 Signing In...
               </div>
             ) : (
-              'Sign In'
+              "Sign In"
             )}
           </button>
         </form>
@@ -150,19 +170,17 @@ const Login: React.FC = () => {
         <div className="mt-8 text-center">
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
             <p className="text-sm text-blue-800">
-              <strong>New users:</strong> Take the quiz and purchase a report to automatically create your account. 
-              <a href="/quiz" onClick={handleStartQuiz} className="text-blue-600 hover:text-blue-700 font-medium underline ml-1 cursor-pointer">
+              <strong>New users:</strong> Take the quiz and purchase a report to
+              automatically create your account.
+              <a
+                href="/quiz"
+                onClick={handleStartQuiz}
+                className="text-blue-600 hover:text-blue-700 font-medium underline ml-1 cursor-pointer"
+              >
                 Start with the quiz
               </a>
             </p>
           </div>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-          <p className="text-sm text-gray-600 text-center">
-            <strong>Demo:</strong> Use any email and password to sign in
-          </p>
         </div>
       </motion.div>
     </div>

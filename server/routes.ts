@@ -6,6 +6,40 @@ import { pdfService } from "./services/pdfService.js";
 import { emailService } from "./services/emailService.js";
 import { aiScoringService } from "./services/aiScoringService.js";
 import { personalityAnalysisService } from "./services/personalityAnalysisService.js";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2022-11-15",
+});
+
+function getRatingDescription(rating: number): string {
+  if (rating >= 4.5) return "Very High";
+  if (rating >= 4) return "High";
+  if (rating >= 3) return "Moderate";
+  if (rating >= 2) return "Low";
+  return "Very Low";
+}
+
+function getIncomeGoalRange(value: number): string {
+  if (value <= 500) return "Less than $500/month";
+  if (value <= 1250) return "$500–$2,000/month";
+  if (value <= 3500) return "$2,000–$5,000/month";
+  return "$5,000+/month";
+}
+
+function getTimeCommitmentRange(value: number): string {
+  if (value <= 3) return "Less than 5 hours/week";
+  if (value <= 7) return "5–10 hours/week";
+  if (value <= 17) return "10–25 hours/week";
+  return "25+ hours/week";
+}
+
+function getInvestmentRange(value: number): string {
+  if (value <= 0) return "$0 (bootstrap only)";
+  if (value <= 125) return "Under $250";
+  if (value <= 625) return "$250–$1,000";
+  return "$1,000+";
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
@@ -28,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
-      const requestBody = {
+      const requestBody: any = {
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
@@ -373,9 +407,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
-          hasAccessPass: false,
-          quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0,
         });
       }
 
@@ -424,47 +455,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
-          hasAccessPass: false,
-          quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0,
         });
       }
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
-      const isGuestUser =
-        !user.hasAccessPass && user.quizRetakesRemaining === 0;
+      const isPaid = await storage.isPaidUser(userId);
       const hasAccessPass = user.hasAccessPass;
 
-      // Can take quiz if:
-      // 1. Guest user (unlimited free attempts)
-      // 2. Paid user with remaining retakes
-      const canTakeQuiz =
-        isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
+      // For paid users: Store every quiz attempt permanently
+      // For unpaid users: Allow unlimited attempts but data will be cleaned up after 24h
+      const canTakeQuiz = isPaid || !isPaid; // Everyone can take quiz
 
-      if (!canTakeQuiz) {
-        return res
-          .status(403)
-          .json({
-            error:
-              "No quiz retakes remaining. Purchase more retakes to continue.",
-          });
+      if (isPaid && hasAccessPass && user.quizRetakesRemaining <= 0) {
+        return res.status(403).json({
+          error:
+            "No quiz retakes remaining. Purchase more retakes to continue.",
+        });
       }
 
-      // Record the quiz attempt
+      // Record the quiz attempt - stored permanently for paid users
       const attempt = await storage.recordQuizAttempt({
         userId,
         quizData,
       });
 
       // Decrement retakes only for paid users
-      if (hasAccessPass && user.quizRetakesRemaining > 0) {
+      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
         await storage.decrementQuizRetakes(userId);
       }
 
       res.json({
         success: true,
         attemptId: attempt.id,
-        message: "Quiz attempt recorded successfully",
+        message: isPaid
+          ? "Quiz attempt recorded permanently"
+          : "Quiz attempt recorded (unpaid users: data retained for 24 hours)",
+        isPaidUser: isPaid,
+        dataRetentionPolicy: isPaid ? "permanent" : "24_hours",
       });
     } catch (error) {
       console.error("Error recording quiz attempt:", error);
@@ -476,15 +503,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/quiz-attempts/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+
+      // Check if user is authenticated and requesting their own data
+      if (req.session.userId && req.session.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
       let user = await storage.getUser(userId);
 
       if (!user) {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
-          hasAccessPass: false,
-          quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0,
         });
       }
 
@@ -492,6 +522,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(attempts);
     } catch (error) {
       console.error("Error getting quiz attempts:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get latest quiz data for authenticated user (for business model pages)
+  app.get("/api/auth/latest-quiz-data", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const attempts = await storage.getQuizAttempts(req.session.userId);
+      if (attempts.length > 0) {
+        res.json(attempts[0].quizData); // Most recent attempt
+      } else {
+        res.json(null);
+      }
+    } catch (error) {
+      console.error("Error getting latest quiz data:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Save quiz data for authenticated user after payment
+  app.post("/api/auth/save-quiz-data", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { quizData } = req.body;
+      if (!quizData) {
+        return res.status(400).json({ error: "Quiz data is required" });
+      }
+
+      // Save quiz data to user's account
+      const attempt = await storage.recordQuizAttempt({
+        userId: req.session.userId,
+        quizData,
+      });
+
+      res.json({ success: true, attemptId: attempt.id });
+    } catch (error) {
+      console.error("Error saving quiz data:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -514,7 +588,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User already has access pass" });
       }
 
-      // Create payment record for access pass ($9.99)
+      // Create Stripe Payment Intent for $9.99 access pass
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 999, // $9.99 in cents
+        currency: "usd",
+        metadata: {
+          userId: userId.toString(),
+          type: "access_pass",
+          retakesGranted: "5",
+        },
+        description: "BizModelAI Access Pass - Unlock all features",
+      });
+
+      // Create payment record in our database
       const payment = await storage.createPayment({
         userId,
         amount: "9.99",
@@ -522,17 +608,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "access_pass",
         status: "pending",
         retakesGranted: 5,
+        stripePaymentIntentId: paymentIntent.id,
       });
-
-      // In a real implementation, this would integrate with Stripe
-      // For now, simulate successful payment
-      await storage.completePayment(payment.id, 5);
 
       res.json({
         success: true,
+        clientSecret: paymentIntent.client_secret,
         paymentId: payment.id,
-        message:
-          "Access pass purchased successfully. You now have 5 quiz retakes!",
       });
     } catch (error) {
       console.error("Error creating access pass payment:", error);
@@ -560,7 +642,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "User must have access pass first" });
       }
 
-      // Create payment record for retake bundle ($4.99)
+      // Create Stripe Payment Intent for $4.99 retake bundle
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 499, // $4.99 in cents
+        currency: "usd",
+        metadata: {
+          userId: userId.toString(),
+          type: "retake_bundle",
+          retakesGranted: "5",
+        },
+        description: "BizModelAI Retake Bundle - 5 additional quiz attempts",
+      });
+
+      // Create payment record in our database
       const payment = await storage.createPayment({
         userId,
         amount: "4.99",
@@ -568,17 +662,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "retake_bundle",
         status: "pending",
         retakesGranted: 5,
+        stripePaymentIntentId: paymentIntent.id,
       });
-
-      // In a real implementation, this would integrate with Stripe
-      // For now, simulate successful payment
-      await storage.completePayment(payment.id, 5);
 
       res.json({
         success: true,
+        clientSecret: paymentIntent.client_secret,
         paymentId: payment.id,
-        message:
-          "Retake bundle purchased successfully. You now have 5 additional quiz retakes!",
       });
     } catch (error) {
       console.error("Error creating retake bundle payment:", error);
@@ -595,6 +685,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting payment history:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Stripe webhook endpoint
+  app.post("/api/stripe/webhook", async (req, res) => {
+    const sig = req.headers["stripe-signature"] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      console.error("Stripe webhook secret not configured");
+      return res.status(400).send("Webhook secret not configured");
+    }
+
+    let event: Stripe.Event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return res.status(400).send(`Webhook Error: ${err}`);
+    }
+
+    try {
+      switch (event.type) {
+        case "payment_intent.succeeded":
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+          console.log("Payment succeeded:", paymentIntent.id);
+
+          // Get metadata from payment intent
+          const { userId, type, retakesGranted } = paymentIntent.metadata;
+
+          if (!userId || !type) {
+            console.error(
+              "Missing metadata in payment intent:",
+              paymentIntent.id,
+            );
+            break;
+          }
+
+          // Find the payment record in our database
+          const payments = await storage.getPaymentsByUser(parseInt(userId));
+          const payment = payments.find(
+            (p) => p.stripePaymentIntentId === paymentIntent.id,
+          );
+
+          if (!payment) {
+            console.error(
+              "Payment record not found for Stripe payment:",
+              paymentIntent.id,
+            );
+            break;
+          }
+
+          // Complete the payment in our system
+          await storage.completePayment(
+            payment.id,
+            parseInt(retakesGranted) || 5,
+          );
+
+          // If there's quiz data in session storage, save it to the user's account
+          // This will be implemented with a separate endpoint for saving quiz data
+
+          console.log(`Payment completed: ${type} for user ${userId}`);
+          break;
+
+        case "payment_intent.payment_failed":
+          const failedPayment = event.data.object as Stripe.PaymentIntent;
+          console.log("Payment failed:", failedPayment.id);
+
+          // Could update payment status to failed in database here
+          break;
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Error processing webhook:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
     }
   });
 
@@ -640,15 +811,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("PDF generated successfully, size:", pdfBuffer.length);
 
-      // Set headers for HTML download (temporary solution until Puppeteer works)
-      res.setHeader("Content-Type", "text/html");
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="business-report.html"',
-      );
+      // Generate filename with user info
+      const userName = userEmail?.split("@")[0] || "user";
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `business-report-${userName}-${timestamp}`;
+
+      // Check if this is actually a PDF (binary) or HTML fallback
+      const isPDF = pdfBuffer[0] === 0x25 && pdfBuffer[1] === 0x50; // PDF magic number "%P"
+
+      if (isPDF) {
+        // Set headers for PDF download
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filename}.pdf"`,
+        );
+      } else {
+        // Set headers for HTML fallback
+        res.setHeader("Content-Type", "text/html");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filename}.html"`,
+        );
+      }
+
       res.setHeader("Content-Length", pdfBuffer.length);
 
-      // Send the HTML
+      // Send the file
       res.send(pdfBuffer);
     } catch (error) {
       console.error("PDF generation failed:", error);
@@ -765,100 +954,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate personalized three-paragraph insights for FullReport
-  app.post("/api/generate-personalized-insights", async (req, res) => {
-    try {
-      const { quizData, topBusinessPath } = req.body;
-
-      if (!quizData || !topBusinessPath) {
-        return res
-          .status(400)
-          .json({ error: "Missing quiz data or top business path" });
-      }
-
-      const prompt = `Based on this user's complete quiz responses, generate three detailed paragraphs that provide personalized insights about their entrepreneurial fit. Use their actual responses to create specific, relevant analysis.
-
-User Quiz Data:
-- Main Motivation: ${quizData.mainMotivation}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
-- Income Goal: $${quizData.successIncomeGoal}/month
-- First Income Timeline: ${quizData.firstIncomeTimeline}
-- Upfront Investment: $${quizData.upfrontInvestment}
-- Tech Skills Rating: ${quizData.techSkillsRating}/5
-- Risk Comfort Level: ${quizData.riskComfortLevel}/5
-- Self-Motivation Level: ${quizData.selfMotivationLevel}/5
-- Direct Communication Enjoyment: ${quizData.directCommunicationEnjoyment}/5
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
-- Work Structure Preference: ${quizData.workStructurePreference}
-- Learning Preference: ${quizData.learningPreference}
-- Brand Face Comfort: ${quizData.brandFaceComfort}/5
-- Long-term Consistency: ${quizData.longTermConsistency}/5
-- Trial & Error Comfort: ${quizData.trialErrorComfort}/5
-- Organization Level: ${quizData.organizationLevel}/5
-- Uncertainty Handling: ${quizData.uncertaintyHandling}/5
-- Work Collaboration Preference: ${quizData.workCollaborationPreference}
-- Decision Making Style: ${quizData.decisionMakingStyle}
-- Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
-- Passion Identity Alignment: ${quizData.passionIdentityAlignment}/5
-- Competitiveness Level: ${quizData.competitivenessLevel}/5
-- Discouragement Resilience: ${quizData.discouragementResilience}/5
-
-Top Business Match:
-- Name: ${topBusinessPath.name}
-- Fit Score: ${topBusinessPath.fitScore}%
-- Description: ${topBusinessPath.description}
-
-Generate exactly 3 paragraphs that analyze:
-
-Paragraph 1 - Personality & Work Style Match: How their specific personality traits, work preferences, and learning style align with their top business match. Reference specific quiz responses like their self-motivation level, work structure preference, learning preference, and how these create advantages in their chosen business model.
-
-Paragraph 2 - Financial & Risk Profile: Analyze their income goals, timeline expectations, budget, and risk tolerance. Connect their motivation, investment capacity, and risk comfort level to show how realistic and achievable their goals are given their chosen business path.
-
-Paragraph 3 - Success Prediction & Strategy: Based on their technical skills, communication preferences, decision-making style, and consistency track record, predict their success potential and provide strategic guidance. Reference their specific strengths and how they position them for growth.
-
-Make each paragraph 4-6 sentences long. Use their actual quiz responses throughout - don't use generic statements. Write in a professional, consultative tone that feels personalized to their specific situation.`;
-
-      const openaiResponse = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are an expert business consultant and psychologist specializing in entrepreneurial assessment. Provide detailed, personalized analysis based on quiz responses.",
-              },
-              {
-                role: "user",
-                content: prompt,
-              },
-            ],
-            temperature: 0.7,
-            max_tokens: 1000,
-          }),
-        },
-      );
-
-      if (!openaiResponse.ok) {
-        throw new Error(`OpenAI API error: ${openaiResponse.status}`);
-      }
-
-      const data = await openaiResponse.json();
-      const insights = data.choices[0].message.content;
-
-      res.json({ insights });
-    } catch (error) {
-      console.error("Error generating personalized insights:", error);
-      res.status(500).json({ error: "Failed to generate insights" });
-    }
-  });
-
   // Generate detailed "Why This Fits You" descriptions for top 3 business matches
   app.post("/api/generate-business-fit-descriptions", async (req, res) => {
     try {
@@ -880,22 +975,22 @@ Make each paragraph 4-6 sentences long. Use their actual quiz responses througho
 
 User Quiz Data:
 - Main Motivation: ${quizData.mainMotivation}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment} hours
-- Income Goal: $${quizData.successIncomeGoal}/month
-- Tech Skills Rating: ${quizData.techSkillsRating}/5
-- Risk Comfort Level: ${quizData.riskComfortLevel}/5
-- Self-Motivation Level: ${quizData.selfMotivationLevel}/5
-- Direct Communication Enjoyment: ${quizData.directCommunicationEnjoyment}/5
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Weekly Time Commitment: ${getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
+- Income Goal: ${getIncomeGoalRange(quizData.successIncomeGoal)}
+- Tech Skills Rating: ${getRatingDescription(quizData.techSkillsRating)}
+- Risk Comfort Level: ${getRatingDescription(quizData.riskComfortLevel)}
+- Self-Motivation Level: ${getRatingDescription(quizData.selfMotivationLevel)}
+- Direct Communication Enjoyment: ${getRatingDescription(quizData.directCommunicationEnjoyment)}
+- Creative Work Enjoyment: ${getRatingDescription(quizData.creativeWorkEnjoyment)}
 - Work Structure Preference: ${quizData.workStructurePreference}
 - Learning Preference: ${quizData.learningPreference}
 - First Income Timeline: ${quizData.firstIncomeTimeline}
-- Upfront Investment: $${quizData.upfrontInvestment}
-- Brand Face Comfort: ${quizData.brandFaceComfort}/5
-- Long-term Consistency: ${quizData.longTermConsistency}/5
-- Trial & Error Comfort: ${quizData.trialErrorComfort}/5
-- Organization Level: ${quizData.organizationLevel}/5
-- Uncertainty Handling: ${quizData.uncertaintyHandling}/5
+- Upfront Investment: ${getInvestmentRange(quizData.upfrontInvestment)}
+- Brand Face Comfort: ${getRatingDescription(quizData.brandFaceComfort)}
+- Long-term Consistency: ${getRatingDescription(quizData.longTermConsistency)}
+- Trial & Error Comfort: ${getRatingDescription(quizData.trialErrorComfort)}
+- Organization Level: ${getRatingDescription(quizData.organizationLevel)}
+- Uncertainty Handling: ${getRatingDescription(quizData.uncertaintyHandling)}
 - Work Collaboration Preference: ${quizData.workCollaborationPreference}
 - Decision Making Style: ${quizData.decisionMakingStyle}
 - Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
@@ -908,13 +1003,17 @@ Business Match:
 - Startup Cost: ${match.startupCost}
 - Potential Income: ${match.potentialIncome}
 
-Generate a personalized 4-6 sentence description in two paragraphs explaining why this business model specifically fits this user. Be specific about:
-1. How their personality traits, goals, and preferences align with this business model
+Generate a detailed personalized analysis of at least 6 sentences explaining why this business model specifically fits this user. Write it as a cohesive paragraph, not bullet points. Be extremely specific about:
+1. How their exact personality traits, goals, and preferences align with this business model
 2. What specific aspects of their quiz responses make them well-suited for this path
-3. How their skills, time availability, and risk tolerance match the requirements
-4. What unique advantages they bring to this business model
+3. How their skills, time availability, and risk tolerance perfectly match the requirements
+4. What unique advantages they bring to this business model based on their specific answers
+5. How their learning style and work preferences complement this business approach
+6. Why this particular combination of traits makes them likely to succeed in this field
 
-Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone.`;
+Reference specific quiz data points and explain the connections. Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone that demonstrates deep understanding of their profile.
+
+CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile. If the user selected a range, always refer to the full range, never specific numbers within it.`;
 
         const openaiResponse = await fetch(
           "https://api.openai.com/v1/chat/completions",
@@ -938,7 +1037,7 @@ Make it personal and specific to their responses, not generic advice. Write in a
                 },
               ],
               temperature: 0.7,
-              max_tokens: 300,
+              max_tokens: 500,
             }),
           },
         );
@@ -969,6 +1068,125 @@ Make it personal and specific to their responses, not generic advice. Write in a
           description: `This business model aligns well with your ${req.body.quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "self-driven nature"} and ${req.body.quizData.weeklyTimeCommitment} hours/week availability. Your ${req.body.quizData.techSkillsRating >= 4 ? "strong" : "adequate"} technical skills and ${req.body.quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance make this a ${index === 0 ? "perfect" : index === 1 ? "excellent" : "good"} match for your entrepreneurial journey.
 
 ${index === 0 ? "As your top match, this path offers the best alignment with your goals and preferences." : index === 1 ? "This represents a strong secondary option that complements your primary strengths." : "This provides a solid alternative path that matches your core capabilities."} Your ${req.body.quizData.learningPreference?.replace("-", " ")} learning style and ${req.body.quizData.workStructurePreference?.replace("-", " ")} work preference make this business model particularly suitable for your success.`,
+        }),
+      );
+
+      res.json({ descriptions: fallbackDescriptions });
+    }
+  });
+
+  // Generate detailed "Why This Doesn't Fit Your Current Profile" descriptions for bottom 3 business matches
+  app.post("/api/generate-business-avoid-descriptions", async (req, res) => {
+    try {
+      const { quizData, businessMatches } = req.body;
+
+      if (!quizData || !businessMatches || !Array.isArray(businessMatches)) {
+        return res
+          .status(400)
+          .json({ error: "Missing or invalid quiz data or business matches" });
+      }
+
+      const descriptions = [];
+
+      for (let i = 0; i < businessMatches.length; i++) {
+        const match = businessMatches[i];
+        const rank = i + 1;
+
+        const prompt = `Based on this user's quiz responses, generate a detailed "Why This Doesn't Fit Your Current Profile" description for their ${rank === 1 ? "lowest scoring" : rank === 2 ? "second lowest scoring" : "third lowest scoring"} business match.
+
+User Quiz Data:
+- Main Motivation: ${quizData.mainMotivation}
+- Weekly Time Commitment: ${getTimeCommitmentRange(quizData.weeklyTimeCommitment)}
+- Income Goal: ${getIncomeGoalRange(quizData.successIncomeGoal)}
+- Tech Skills Rating: ${getRatingDescription(quizData.techSkillsRating)}
+- Risk Comfort Level: ${getRatingDescription(quizData.riskComfortLevel)}
+- Self-Motivation Level: ${getRatingDescription(quizData.selfMotivationLevel)}
+- Direct Communication Enjoyment: ${getRatingDescription(quizData.directCommunicationEnjoyment)}
+- Creative Work Enjoyment: ${getRatingDescription(quizData.creativeWorkEnjoyment)}
+- Work Structure Preference: ${quizData.workStructurePreference}
+- Learning Preference: ${quizData.learningPreference}
+- First Income Timeline: ${quizData.firstIncomeTimeline}
+- Upfront Investment: ${getInvestmentRange(quizData.upfrontInvestment)}
+- Brand Face Comfort: ${getRatingDescription(quizData.brandFaceComfort)}
+- Long-term Consistency: ${getRatingDescription(quizData.longTermConsistency)}
+- Trial & Error Comfort: ${getRatingDescription(quizData.trialErrorComfort)}
+- Organization Level: ${getRatingDescription(quizData.organizationLevel)}
+- Uncertainty Handling: ${getRatingDescription(quizData.uncertaintyHandling)}
+- Work Collaboration Preference: ${quizData.workCollaborationPreference}
+- Decision Making Style: ${quizData.decisionMakingStyle}
+- Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
+
+Business Match:
+- Name: ${match.name}
+- Fit Score: ${match.fitScore}%
+- Description: ${match.description}
+- Time to Profit: ${match.timeToProfit}
+- Startup Cost: ${match.startupCost}
+- Potential Income: ${match.potentialIncome}
+
+Generate a detailed personalized analysis of at least 6 sentences explaining why this business model doesn't fit this user's current profile. Write it as a cohesive paragraph, not bullet points. Be specific about:
+1. What specific personality traits, goals, or preferences conflict with this business model
+2. Which exact quiz responses indicate poor alignment with this path
+3. How their skills, time availability, or risk tolerance don't match the requirements
+4. What challenges they would likely face based on their specific profile
+5. Why their learning style and work preferences would struggle with this business approach
+6. What would need to change in their profile before this could become viable
+
+Reference specific quiz data points and explain the misalignments. Be honest but constructive. Write in a supportive tone that helps them understand why focusing on better-matched opportunities would be wiser.
+
+CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile. If the user selected a range, always refer to the full range, never specific numbers within it.`;
+
+        const openaiResponse = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are an expert business consultant specializing in entrepreneurial personality matching. Generate personalized, specific explanations for why certain business models don't fit individual users based on their quiz responses. Be honest but constructive, helping users understand misalignments.",
+                },
+                {
+                  role: "user",
+                  content: prompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 500,
+            }),
+          },
+        );
+
+        if (!openaiResponse.ok) {
+          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        }
+
+        const data = await openaiResponse.json();
+        const content = data.choices[0].message.content;
+
+        descriptions.push({
+          businessId: match.id,
+          description:
+            content ||
+            `This business model doesn't align well with your current profile. Your ${quizData.riskComfortLevel <= 2 ? "lower risk tolerance" : "risk preferences"} and ${quizData.weeklyTimeCommitment} hours/week availability suggest other business models would be more suitable. Your ${quizData.techSkillsRating}/5 technical skills and ${quizData.selfMotivationLevel}/5 self-motivation level indicate potential challenges with this path. Consider focusing on business models that better match your strengths and current situation.`,
+        });
+      }
+
+      res.json({ descriptions });
+    } catch (error) {
+      console.error("Error generating business avoid descriptions:", error);
+
+      // Return fallback descriptions
+      const fallbackDescriptions = req.body.businessMatches.map(
+        (match: any, index: number) => ({
+          businessId: match.id,
+          description: `This business model scored ${match.fitScore}% for your profile, indicating significant misalignment with your current goals, skills, and preferences. Based on your quiz responses, you would likely face substantial challenges in this field that could impact your success. Consider focusing on higher-scoring business models that better match your natural strengths and current situation.`,
         }),
       );
 
@@ -1091,6 +1309,42 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
       }
     } catch (error) {
       console.error("Error sending test email:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Data cleanup endpoint (for manual triggering or cron jobs)
+  app.post("/api/admin/cleanup-expired-data", async (req, res) => {
+    try {
+      await storage.cleanupExpiredData();
+      res.json({ success: true, message: "Expired data cleanup completed" });
+    } catch (error) {
+      console.error("Error during data cleanup:", error);
+      res.status(500).json({ error: "Data cleanup failed" });
+    }
+  });
+
+  // Get user data retention status
+  app.get("/api/auth/data-retention-status", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const isPaid = await storage.isPaidUser(req.session.userId);
+      const user = await storage.getUser(req.session.userId);
+
+      res.json({
+        isPaidUser: isPaid,
+        dataRetentionPolicy: isPaid
+          ? "permanent"
+          : "24_hours_from_quiz_completion",
+        hasAccessPass: user?.hasAccessPass || false,
+        accountCreatedAt: user?.createdAt,
+        dataWillBeDeletedIfUnpaid: !isPaid,
+      });
+    } catch (error) {
+      console.error("Error getting data retention status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

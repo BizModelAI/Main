@@ -11,26 +11,39 @@ import {
 } from "lucide-react";
 import { businessModels, BusinessModel } from "../data/businessModels";
 import { PaywallModal } from "../components/PaywallModals";
+import { PaymentAccountModal } from "../components/PaymentAccountModal";
 import { usePaywall } from "../contexts/PaywallContext";
+import { useAuth } from "../contexts/AuthContext";
 import { QuizData } from "../types";
-import { generatePersonalizedPaths, generateAIPersonalizedPaths } from "../utils/quizLogic";
+import {
+  generatePersonalizedPaths,
+  generateAIPersonalizedPaths,
+} from "../utils/quizLogic";
 import { calculateAdvancedBusinessModelMatches } from "../utils/advancedScoringAlgorithm";
 
 interface BusinessExplorerProps {
   quizData?: QuizData | null;
 }
 
-const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
+const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
+  quizData: propQuizData,
+}) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [selectedFitCategory, setSelectedFitCategory] = useState<string>("All");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paywallType, setPaywallType] = useState<
     "quiz-required" | "learn-more"
   >("quiz-required");
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>("");
   const [personalizedPaths, setPersonalizedPaths] = useState<any[]>([]);
+  const [quizData, setQuizData] = useState<QuizData | null>(
+    propQuizData || null,
+  );
+  const [isLoadingQuizData, setIsLoadingQuizData] = useState(false);
+
   const navigate = useNavigate();
   const {
     hasCompletedQuiz,
@@ -38,6 +51,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
     setHasUnlockedAnalysis,
     hasUnlockedAnalysis,
   } = usePaywall();
+  const { user, getLatestQuizData } = useAuth();
 
   const categories = [
     "All",
@@ -70,27 +84,51 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
     }
   };
 
+  // Fetch quiz data for authenticated users
+  useEffect(() => {
+    const fetchQuizData = async () => {
+      if (!user || propQuizData) return; // If no user or already have quiz data, skip
+
+      setIsLoadingQuizData(true);
+      try {
+        const latestQuizData = await getLatestQuizData();
+        if (latestQuizData) {
+          setQuizData(latestQuizData);
+        }
+      } catch (error) {
+        console.error("Error fetching quiz data:", error);
+      } finally {
+        setIsLoadingQuizData(false);
+      }
+    };
+
+    fetchQuizData();
+  }, [user, propQuizData, getLatestQuizData]);
+
   // Load consistent scoring algorithm paths
   useEffect(() => {
     if (!quizData || !hasUnlockedAnalysis) return;
-    
+
     const loadPersonalizedPaths = async () => {
       try {
         // Use the same scoring algorithm as Results and Full Report for consistency
         const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
-        const consistentPaths = advancedScores.map(score => ({
+        const consistentPaths = advancedScores.map((score) => ({
           id: score.id,
           name: score.name,
           fitScore: score.score,
-          category: score.category
+          category: score.category,
         }));
         setPersonalizedPaths(consistentPaths);
       } catch (error) {
-        console.error("Failed to load consistent paths in BusinessExplorer:", error);
+        console.error(
+          "Failed to load consistent paths in BusinessExplorer:",
+          error,
+        );
         setPersonalizedPaths([]);
       }
     };
-    
+
     loadPersonalizedPaths();
   }, [quizData, hasUnlockedAnalysis]);
 
@@ -100,7 +138,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
       return businessModels.map((model) => ({
         ...model,
         fitScore: 0,
-        fitCategory: null,
+        fitCategory: undefined,
       }));
     }
 
@@ -151,10 +189,16 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
       // User has paid, navigate directly
       navigate(`/business/${businessId}`);
     } else {
-      // User has completed quiz but hasn't paid, show paywall
+      // User has completed quiz but hasn't paid
       setSelectedBusinessId(businessId);
       setPaywallType("learn-more");
-      setShowPaywallModal(true);
+
+      // Force account creation for new users
+      if (!user) {
+        setShowPaymentModal(true);
+      } else {
+        setShowPaywallModal(true);
+      }
     }
   };
 
@@ -173,8 +217,19 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
     }
   };
 
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    // Navigate to the business model page
+    navigate(`/business/${selectedBusinessId}`);
+  };
+
   const handlePaywallClose = () => {
     setShowPaywallModal(false);
+    setSelectedBusinessId("");
+  };
+
+  const handlePaymentClose = () => {
+    setShowPaymentModal(false);
     setSelectedBusinessId("");
   };
 
@@ -263,7 +318,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
               onLearnMore={handleLearnMore}
               isExpanded={expandedCard === model.id}
               onToggleExpand={() => handleCardExpand(model.id)}
-              showFitBadge={hasUnlockedAnalysis && quizData}
+              showFitBadge={!!(hasUnlockedAnalysis && quizData)}
               fitCategory={model.fitCategory}
               fitScore={model.fitScore}
               getFitCategoryColor={getFitCategoryColor}
@@ -286,6 +341,19 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({ quizData }) => {
         onClose={handlePaywallClose}
         onUnlock={handlePaywallUnlock}
         type={paywallType}
+        title={
+          selectedBusinessId
+            ? businessModels.find((m) => m.id === selectedBusinessId)?.title
+            : undefined
+        }
+      />
+
+      {/* Payment Account Modal */}
+      <PaymentAccountModal
+        isOpen={showPaymentModal}
+        onClose={handlePaymentClose}
+        onSuccess={handlePaymentSuccess}
+        type={paywallType as "business-model" | "learn-more" | "full-report"}
         title={
           selectedBusinessId
             ? businessModels.find((m) => m.id === selectedBusinessId)?.title
