@@ -1,8 +1,8 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Clock, Calendar, TrendingUp, Eye, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
-import { QuizData } from '../types';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Clock, Calendar, TrendingUp, Eye, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
+import { QuizData } from "../types";
 
 interface QuizAttempt {
   id: number;
@@ -15,8 +15,14 @@ interface QuizAttemptHistoryProps {
   userId: number;
 }
 
-export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({ userId }) => {
-  const { data: attempts, isLoading, error } = useQuery({
+export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({
+  userId,
+}) => {
+  const {
+    data: attempts = [],
+    isLoading,
+    error,
+  } = useQuery<QuizAttempt[]>({
     queryKey: [`/api/quiz-attempts/${userId}`],
     enabled: !!userId,
   });
@@ -67,7 +73,8 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({ userId }
             No quiz attempts yet
           </p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
-            Take the quiz to discover your ideal business path and track your results here
+            Take the quiz to discover your ideal business path and track your
+            results here
           </p>
           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-left">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -87,16 +94,16 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({ userId }
 
   const getTopBusinessPath = (quizData: QuizData) => {
     // Simple scoring logic - in real app this would use the full algorithm
-    const motivations = quizData.mainMotivation || '';
-    if (motivations.includes('financial')) return 'Affiliate Marketing';
-    if (motivations.includes('passion')) return 'Content Creation';
-    if (motivations.includes('freedom')) return 'Freelancing';
-    return 'Digital Services';
+    const motivations = quizData.mainMotivation || "";
+    if (motivations.includes("financial")) return "Affiliate Marketing";
+    if (motivations.includes("passion")) return "Content Creation";
+    if (motivations.includes("freedom")) return "Freelancing";
+    return "Digital Services";
   };
 
   const getIncomeGoal = (quizData: QuizData) => {
     const goal = quizData.successIncomeGoal;
-    if (!goal) return 'Not specified';
+    if (!goal) return "Not specified";
     if (goal < 1000) return `$${goal}/month`;
     if (goal < 10000) return `$${(goal / 1000).toFixed(1)}K/month`;
     return `$${(goal / 1000).toFixed(0)}K/month`;
@@ -109,7 +116,7 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({ userId }
           Quiz History
         </h3>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {attempts.length} attempt{attempts.length !== 1 ? 's' : ''}
+          {attempts.length} attempt{attempts.length !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -121,9 +128,13 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({ userId }
           >
             {/* Attempt Number Icon */}
             <div className="flex-shrink-0">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold ${
-                index === 0 ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gray-500'
-              }`}>
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold ${
+                  index === 0
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600"
+                    : "bg-gray-500"
+                }`}
+              >
                 {attempts.length - index}
               </div>
             </div>
@@ -140,11 +151,13 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({ userId }
                   </span>
                 )}
               </div>
-              
+
               <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-3 h-3" />
-                  <span>{format(new Date(attempt.completedAt), 'MMM d, yyyy')}</span>
+                  <span>
+                    {format(new Date(attempt.completedAt), "MMM d, yyyy")}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <TrendingUp className="w-3 h-3" />
