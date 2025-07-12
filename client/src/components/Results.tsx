@@ -1778,16 +1778,27 @@ Business Path Platform - businesspath.com
           userEmail={userEmail}
         />
 
-        {/* Paywall Modal */}
+        {/* Paywall Modal - Keep for logged in users */}
         <PaywallModal
           isOpen={showUnlockModal}
           onClose={() => setShowUnlockModal(false)}
           onUnlock={
             paywallType === "business-model"
               ? handleBusinessCardPayment
-              : handlePayment
+              : user
+                ? handlePayment
+                : handlePaymentWithAccount
           }
           type={paywallType}
+        />
+
+        {/* Payment Account Modal - For new users */}
+        <PaymentAccountModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+          type={paywallType}
+          title={selectedPath?.name}
         />
       </div>
     </>
