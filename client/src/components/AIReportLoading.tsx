@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Brain, 
-  Zap, 
-  Target, 
-  Users, 
-  TrendingUp, 
-  CheckCircle, 
+import {
+  Brain,
+  Zap,
+  Target,
+  Users,
+  TrendingUp,
+  CheckCircle,
   Sparkles,
   BarChart3,
   Award,
   Calendar,
   Lightbulb,
-  ChevronLeft
+  ChevronLeft,
 } from "lucide-react";
 import { QuizData, BusinessPath } from "../types";
 
@@ -23,7 +23,7 @@ interface AIReportLoadingProps {
     personalizedPaths: BusinessPath[];
     aiInsights: any;
     allCharacteristics: string[];
-    businessFitDescriptions: {[key: string]: string};
+    businessFitDescriptions: { [key: string]: string };
     personalizedInsights: string;
   }) => void;
   onExit?: () => void;
@@ -34,7 +34,7 @@ interface LoadingStep {
   title: string;
   description: string;
   icon: React.ComponentType<any>;
-  status: 'pending' | 'active' | 'completed';
+  status: "pending" | "active" | "completed";
   estimatedTime: number; // in seconds
 }
 
@@ -42,7 +42,7 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
   quizData,
   userEmail,
   onComplete,
-  onExit
+  onExit,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -55,63 +55,65 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
       title: "Analyzing Your Profile",
       description: "Processing your quiz responses and personality traits",
       icon: Brain,
-      status: 'pending',
-      estimatedTime: 3
+      status: "pending",
+      estimatedTime: 3,
     },
     {
       id: "generating-matches",
       title: "Finding Perfect Business Matches",
       description: "AI is matching you with the best business models",
       icon: Target,
-      status: 'pending',
-      estimatedTime: 5
+      status: "pending",
+      estimatedTime: 5,
     },
     {
       id: "creating-insights",
       title: "Creating Personalized Insights",
       description: "Generating custom recommendations based on your strengths",
       icon: Sparkles,
-      status: 'pending',
-      estimatedTime: 4
+      status: "pending",
+      estimatedTime: 4,
     },
     {
       id: "building-characteristics",
       title: "Building Your Entrepreneur Profile",
       description: "Identifying your unique entrepreneurial characteristics",
       icon: Users,
-      status: 'pending',
-      estimatedTime: 3
+      status: "pending",
+      estimatedTime: 3,
     },
     {
       id: "generating-descriptions",
       title: "Crafting Business Fit Analysis",
       description: "Creating detailed explanations for your top matches",
       icon: BarChart3,
-      status: 'pending',
-      estimatedTime: 4
+      status: "pending",
+      estimatedTime: 4,
     },
     {
       id: "generating-personalized-insights",
       title: "Generating Personalized Insights",
       description: "Creating detailed three-paragraph analysis just for you",
       icon: Lightbulb,
-      status: 'pending',
-      estimatedTime: 3
+      status: "pending",
+      estimatedTime: 3,
     },
     {
       id: "finalizing-report",
       title: "Finalizing Your Report",
       description: "Putting together your comprehensive business analysis",
       icon: Award,
-      status: 'pending',
-      estimatedTime: 2
-    }
+      status: "pending",
+      estimatedTime: 2,
+    },
   ];
 
   const [steps, setSteps] = useState<LoadingStep[]>(loadingSteps);
 
   // Generate all 6 characteristics with OpenAI
-  const generateAllCharacteristics = async (quizData: QuizData): Promise<string[]> => {
+  const generateAllCharacteristics = async (
+    quizData: QuizData,
+  ): Promise<string[]> => {
     try {
       const prompt = `Based on this quiz data, generate exactly 6 short positive characteristics that reflect the user's entrepreneurial strengths. Each should be 3-5 words maximum and highlight unique aspects of their entrepreneurial potential.
 
@@ -128,7 +130,7 @@ Quiz Data:
 - Work structure preference: ${quizData.workStructurePreference}
 - Long-term consistency: ${quizData.longTermConsistency}/5
 - Uncertainty handling: ${quizData.uncertaintyHandling}/5
-- Tools familiar with: ${quizData.familiarTools?.join(', ')}
+- Tools familiar with: ${quizData.familiarTools?.join(", ")}
 - Main motivation: ${quizData.mainMotivation}
 - Weekly time commitment: ${quizData.weeklyTimeCommitment}
 - Income goal: ${quizData.successIncomeGoal}
@@ -140,94 +142,86 @@ Return a JSON object with this exact structure:
 
 Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", "Tech-savvy innovator", "Clear communicator", "Organized planner", "Creative problem solver"]}`;
 
-      const response = await fetch('/api/openai-chat', {
-        method: 'POST',
+      const response = await fetch("/api/openai-chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt: prompt,
           maxTokens: 200,
           temperature: 0.7,
-          responseFormat: { type: 'json_object' }
+          responseFormat: { type: "json_object" },
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate characteristics');
+        throw new Error("Failed to generate characteristics");
       }
 
       const data = await response.json();
-      
+
       // Clean up the response content (remove markdown code blocks if present)
       let cleanContent = data.content;
-      if (cleanContent.includes('```json')) {
-        cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```/g, '');
+      if (cleanContent.includes("```json")) {
+        cleanContent = cleanContent
+          .replace(/```json\n?/g, "")
+          .replace(/```/g, "");
       }
-      
+
       const parsed = JSON.parse(cleanContent);
-      if (parsed && parsed.characteristics && Array.isArray(parsed.characteristics) && parsed.characteristics.length === 6) {
+      if (
+        parsed &&
+        parsed.characteristics &&
+        Array.isArray(parsed.characteristics) &&
+        parsed.characteristics.length === 6
+      ) {
         return parsed.characteristics;
       } else {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
     } catch (error) {
-      console.error('Error generating all characteristics:', error);
+      console.error("Error generating all characteristics:", error);
       // Fallback characteristics based on quiz data
       const fallbackCharacteristics = [
-        quizData.selfMotivationLevel >= 4 ? "Highly self-motivated" : "Moderately self-motivated",
-        quizData.riskComfortLevel >= 4 ? "High risk tolerance" : "Moderate risk tolerance",
-        quizData.techSkillsRating >= 4 ? "Strong tech skills" : "Adequate tech skills",
-        quizData.directCommunicationEnjoyment >= 4 ? "Excellent communicator" : "Good communicator",
-        quizData.organizationLevel >= 4 ? "Highly organized planner" : "Flexible approach to planning",
-        quizData.creativeWorkEnjoyment >= 4 ? "Creative problem solver" : "Analytical approach to challenges"
+        quizData.selfMotivationLevel >= 4
+          ? "Highly self-motivated"
+          : "Moderately self-motivated",
+        quizData.riskComfortLevel >= 4
+          ? "High risk tolerance"
+          : "Moderate risk tolerance",
+        quizData.techSkillsRating >= 4
+          ? "Strong tech skills"
+          : "Adequate tech skills",
+        quizData.directCommunicationEnjoyment >= 4
+          ? "Excellent communicator"
+          : "Good communicator",
+        quizData.organizationLevel >= 4
+          ? "Highly organized planner"
+          : "Flexible approach to planning",
+        quizData.creativeWorkEnjoyment >= 4
+          ? "Creative problem solver"
+          : "Analytical approach to challenges",
       ];
-      
+
       return fallbackCharacteristics;
     }
   };
 
-  // Generate personalized insights
-  const generatePersonalizedInsights = async (quizData: QuizData, topBusinessPath: BusinessPath): Promise<string> => {
-    try {
-      const response = await fetch('/api/generate-personalized-insights', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          quizData,
-          topBusinessPath
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate personalized insights');
-      }
-
-      const data = await response.json();
-      return data.insights || '';
-    } catch (error) {
-      console.error('Error generating personalized insights:', error);
-      // Return fallback insights
-      return `Your assessment reveals strong alignment with ${topBusinessPath.name}. Your ${quizData.selfMotivationLevel >= 4 ? 'high' : 'moderate'} self-motivation level and ${quizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
-
-Based on your ${quizData.riskComfortLevel}/5 risk tolerance and ${quizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of ${topBusinessPath.name}. Your ${quizData.learningPreference} learning style will help you adapt to the requirements of this field.
-
-With your income goal of ${quizData.successIncomeGoal} per month and ${quizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
-    }
-  };
-
   // Generate business fit descriptions
-  const generateBusinessFitDescriptions = async (quizData: QuizData): Promise<{[key: string]: string}> => {
+  const generateBusinessFitDescriptions = async (
+    quizData: QuizData,
+  ): Promise<{ [key: string]: string }> => {
     try {
-      const { calculateAdvancedBusinessModelMatches } = await import("../utils/advancedScoringAlgorithm");
+      const { calculateAdvancedBusinessModelMatches } = await import(
+        "../utils/advancedScoringAlgorithm"
+      );
       const topThreeAdvanced = calculateAdvancedBusinessModelMatches(quizData);
-      
-      const businessModels = topThreeAdvanced.slice(0, 3).map(match => ({
+
+      const businessModels = topThreeAdvanced.slice(0, 3).map((match) => ({
         id: match.id,
         name: match.name,
-        score: match.score
+        score: match.score,
       }));
 
       const prompt = `Based on the quiz data and business model matches, generate personalized explanations for why each business model fits this user. Focus on specific aspects of their profile that align with each model.
@@ -242,7 +236,7 @@ Quiz Data Summary:
 - Work collaboration: ${quizData.workCollaborationPreference}
 
 Business Models:
-${businessModels.map(model => `- ${model.name} (${model.score}% fit)`).join('\n')}
+${businessModels.map((model) => `- ${model.name} (${model.score}% fit)`).join("\n")}
 
 For each business model, write a 2-3 sentence explanation of why it fits this user's profile. Focus on specific strengths and alignments.
 
@@ -255,50 +249,57 @@ Return JSON format:
   ]
 }`;
 
-      const response = await fetch('/api/openai-chat', {
-        method: 'POST',
+      const response = await fetch("/api/openai-chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt: prompt,
           maxTokens: 800,
           temperature: 0.7,
-          responseFormat: { type: 'json_object' }
+          responseFormat: { type: "json_object" },
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate business fit descriptions');
+        throw new Error("Failed to generate business fit descriptions");
       }
 
       const data = await response.json();
       let cleanContent = data.content;
-      if (cleanContent.includes('```json')) {
-        cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```/g, '');
+      if (cleanContent.includes("```json")) {
+        cleanContent = cleanContent
+          .replace(/```json\n?/g, "")
+          .replace(/```/g, "");
       }
-      
+
       const parsed = JSON.parse(cleanContent);
-      const descriptionsMap: {[key: string]: string} = {};
-      
+      const descriptionsMap: { [key: string]: string } = {};
+
       if (parsed && parsed.descriptions && Array.isArray(parsed.descriptions)) {
-        parsed.descriptions.forEach((desc: {businessId: string, description: string}) => {
-          descriptionsMap[desc.businessId] = desc.description;
-        });
+        parsed.descriptions.forEach(
+          (desc: { businessId: string; description: string }) => {
+            descriptionsMap[desc.businessId] = desc.description;
+          },
+        );
       }
-      
+
       return descriptionsMap;
     } catch (error) {
-      console.error('Error generating business fit descriptions:', error);
+      console.error("Error generating business fit descriptions:", error);
       // Set fallback descriptions
-      const fallbackDescriptions: {[key: string]: string} = {};
-      const { calculateAdvancedBusinessModelMatches } = await import("../utils/advancedScoringAlgorithm");
+      const fallbackDescriptions: { [key: string]: string } = {};
+      const { calculateAdvancedBusinessModelMatches } = await import(
+        "../utils/advancedScoringAlgorithm"
+      );
       const topThreeAdvanced = calculateAdvancedBusinessModelMatches(quizData);
-      
+
       topThreeAdvanced.slice(0, 3).forEach((match, index) => {
-        fallbackDescriptions[match.id] = `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a ${index === 0 ? 'perfect' : index === 1 ? 'excellent' : 'good'} match for your entrepreneurial journey.`;
+        fallbackDescriptions[match.id] =
+          `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "self-driven nature"} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? "strong" : "adequate"} technical skills and ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance make this a ${index === 0 ? "perfect" : index === 1 ? "excellent" : "good"} match for your entrepreneurial journey.`;
       });
-      
+
       return fallbackDescriptions;
     }
   };
@@ -307,7 +308,7 @@ Return JSON format:
     const generateReport = async () => {
       const startTime = Date.now();
       let currentResults = {};
-      
+
       // Create fallback quiz data for development mode
       const getFallbackQuizData = (): QuizData => ({
         // Round 1: Motivation & Vision
@@ -319,7 +320,7 @@ Return JSON format:
         businessExitPlan: "not-sure",
         businessGrowthSize: "full-time-income",
         passiveIncomeImportance: 3,
-        
+
         // Round 2: Time, Effort & Learning Style
         weeklyTimeCommitment: 20,
         longTermConsistency: 4,
@@ -333,53 +334,55 @@ Return JSON format:
         uncertaintyHandling: 3,
         repetitiveTasksFeeling: "tolerate",
         workCollaborationPreference: "mostly-solo",
-        
+
         // Round 3: Personality & Preferences
         brandFaceComfort: 3,
         competitivenessLevel: 3,
         creativeWorkEnjoyment: 4,
         directCommunicationEnjoyment: 4,
         workStructurePreference: "some-structure",
-        
+
         // Round 4: Tools & Work Environment
         techSkillsRating: 3,
         workspaceAvailability: "yes",
         supportSystemStrength: "small-helpful-group",
         internetDeviceReliability: 4,
         familiarTools: ["google-docs-sheets", "canva"],
-        
+
         // Round 5: Strategy & Decision-Making
         decisionMakingStyle: "after-some-research",
         riskComfortLevel: 3,
         feedbackRejectionResponse: 3,
         pathPreference: "proven-path",
         controlImportance: 4,
-        
+
         // Round 6: Business Model Fit Filters
         onlinePresenceComfort: "somewhat-comfortable",
         clientCallsComfort: "somewhat-comfortable",
         physicalShippingOpenness: "open-to-it",
-        workStylePreference: "structured-flexible-mix"
+        workStylePreference: "structured-flexible-mix",
       });
-      
+
       // Use fallback data if quizData is null/undefined (DEV mode)
       const activeQuizData = quizData || getFallbackQuizData();
-      
+
       if (!quizData) {
         console.log("Using fallback quiz data for development mode");
       }
-      
+
       try {
         // Step 1: Analyze profile (immediate)
         const step1Result = await executeStep(0, async () => {
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise((resolve) => setTimeout(resolve, 1500));
           return { profileAnalyzed: true };
         });
         currentResults = { ...currentResults, ...step1Result };
 
         // Step 2: Generate AI-powered personalized paths
         const step2Result = await executeStep(1, async () => {
-          const { generateAIPersonalizedPaths } = await import("../utils/quizLogic");
+          const { generateAIPersonalizedPaths } = await import(
+            "../utils/quizLogic"
+          );
           const paths = await generateAIPersonalizedPaths(activeQuizData);
           return { personalizedPaths: paths };
         });
@@ -389,10 +392,11 @@ Return JSON format:
         const step3Result = await executeStep(2, async () => {
           const { AIService } = await import("../utils/aiService");
           const aiService = AIService.getInstance();
-          const pathsForInsights = (currentResults as any).personalizedPaths?.slice(0, 3) || [];
+          const pathsForInsights =
+            (currentResults as any).personalizedPaths?.slice(0, 3) || [];
           const insights = await aiService.generatePersonalizedInsights(
             activeQuizData,
-            pathsForInsights
+            pathsForInsights,
           );
           return { aiInsights: insights };
         });
@@ -400,14 +404,16 @@ Return JSON format:
 
         // Step 4: Generate characteristics
         const step4Result = await executeStep(3, async () => {
-          const characteristics = await generateAllCharacteristics(activeQuizData);
+          const characteristics =
+            await generateAllCharacteristics(activeQuizData);
           return { allCharacteristics: characteristics };
         });
         currentResults = { ...currentResults, ...step4Result };
 
         // Step 5: Generate business fit descriptions
         const step5Result = await executeStep(4, async () => {
-          const descriptions = await generateBusinessFitDescriptions(activeQuizData);
+          const descriptions =
+            await generateBusinessFitDescriptions(activeQuizData);
           return { businessFitDescriptions: descriptions };
         });
         currentResults = { ...currentResults, ...step5Result };
@@ -417,16 +423,19 @@ Return JSON format:
           const paths = (currentResults as any).personalizedPaths || [];
           const topPath = paths[0];
           if (topPath) {
-            const insights = await generatePersonalizedInsights(activeQuizData, topPath);
+            const insights = await generatePersonalizedInsights(
+              activeQuizData,
+              topPath,
+            );
             return { personalizedInsights: insights };
           }
-          return { personalizedInsights: '' };
+          return { personalizedInsights: "" };
         });
         currentResults = { ...currentResults, ...step6Result };
 
         // Step 7: Finalize report
         const step7Result = await executeStep(6, async () => {
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise((resolve) => setTimeout(resolve, 1500));
           return { reportFinalized: true };
         });
         currentResults = { ...currentResults, ...step7Result };
@@ -434,11 +443,11 @@ Return JSON format:
         // Ensure minimum 10 seconds duration
         const elapsedTime = Date.now() - startTime;
         const minimumDuration = 10000; // 10 seconds
-        
+
         if (elapsedTime < minimumDuration) {
           const remainingTime = minimumDuration - elapsedTime;
-          await new Promise(resolve => setTimeout(resolve, remainingTime));
-          
+          await new Promise((resolve) => setTimeout(resolve, remainingTime));
+
           // Update progress to 100% during final wait
           setProgress(100);
         }
@@ -448,30 +457,33 @@ Return JSON format:
           personalizedPaths: (currentResults as any).personalizedPaths || [],
           aiInsights: (currentResults as any).aiInsights || null,
           allCharacteristics: (currentResults as any).allCharacteristics || [],
-          businessFitDescriptions: (currentResults as any).businessFitDescriptions || {},
-          personalizedInsights: (currentResults as any).personalizedInsights || ''
+          businessFitDescriptions:
+            (currentResults as any).businessFitDescriptions || {},
+          personalizedInsights:
+            (currentResults as any).personalizedInsights || "",
         });
-
       } catch (error) {
         console.error("Error generating report:", error);
-        
+
         // Ensure minimum 10 seconds duration even on error
         const elapsedTime = Date.now() - startTime;
         const minimumDuration = 10000; // 10 seconds
-        
+
         if (elapsedTime < minimumDuration) {
           const remainingTime = minimumDuration - elapsedTime;
-          await new Promise(resolve => setTimeout(resolve, remainingTime));
+          await new Promise((resolve) => setTimeout(resolve, remainingTime));
           setProgress(100);
         }
-        
+
         // In case of error, still complete with current data
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
           aiInsights: (currentResults as any).aiInsights || null,
           allCharacteristics: (currentResults as any).allCharacteristics || [],
-          businessFitDescriptions: (currentResults as any).businessFitDescriptions || {},
-          personalizedInsights: (currentResults as any).personalizedInsights || ''
+          businessFitDescriptions:
+            (currentResults as any).businessFitDescriptions || {},
+          personalizedInsights:
+            (currentResults as any).personalizedInsights || "",
         });
       }
     };
@@ -479,21 +491,31 @@ Return JSON format:
     generateReport();
   }, [quizData]);
 
-  const executeStep = async (stepIndex: number, asyncFunction: () => Promise<any>) => {
+  const executeStep = async (
+    stepIndex: number,
+    asyncFunction: () => Promise<any>,
+  ) => {
     // Mark step as active
     setCurrentStep(stepIndex);
-    setSteps(prev => prev.map((step, index) => ({
-      ...step,
-      status: index === stepIndex ? 'active' : index < stepIndex ? 'completed' : 'pending'
-    })));
+    setSteps((prev) =>
+      prev.map((step, index) => ({
+        ...step,
+        status:
+          index === stepIndex
+            ? "active"
+            : index < stepIndex
+              ? "completed"
+              : "pending",
+      })),
+    );
 
     // Start progress for this step
     const startProgress = (stepIndex / loadingSteps.length) * 100;
     const endProgress = ((stepIndex + 1) / loadingSteps.length) * 100;
-    
+
     // Gradually increase progress during step execution
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev) => {
         const increment = (endProgress - startProgress) / 50; // Divide into 50 smaller increments
         const newProgress = Math.min(prev + increment, endProgress - 2);
         return newProgress;
@@ -502,51 +524,50 @@ Return JSON format:
 
     try {
       const result = await asyncFunction();
-      
+
       // Clear the interval and set final progress
       clearInterval(progressInterval);
       setProgress(endProgress);
-      
+
       // Store result
-      setLoadingResults(prev => ({ ...prev, ...result }));
-      
+      setLoadingResults((prev) => ({ ...prev, ...result }));
+
       // Mark step as completed
-      setCompletedSteps(prev => new Set([...prev, stepIndex]));
-      setSteps(prev => prev.map((step, index) => ({
-        ...step,
-        status: index <= stepIndex ? 'completed' : 'pending'
-      })));
-      
+      setCompletedSteps((prev) => new Set([...prev, stepIndex]));
+      setSteps((prev) =>
+        prev.map((step, index) => ({
+          ...step,
+          status: index <= stepIndex ? "completed" : "pending",
+        })),
+      );
+
       return result;
-      
     } catch (error) {
       console.error(`Error in step ${stepIndex}:`, error);
       // Clear the interval and set final progress
       clearInterval(progressInterval);
       setProgress(endProgress);
-      
+
       // Continue with fallback
-      setCompletedSteps(prev => new Set([...prev, stepIndex]));
-      setSteps(prev => prev.map((step, index) => ({
-        ...step,
-        status: index <= stepIndex ? 'completed' : 'pending'
-      })));
+      setCompletedSteps((prev) => new Set([...prev, stepIndex]));
+      setSteps((prev) =>
+        prev.map((step, index) => ({
+          ...step,
+          status: index <= stepIndex ? "completed" : "pending",
+        })),
+      );
       return {};
     }
   };
 
-
-
-
-
   const getStepIcon = (step: LoadingStep, index: number) => {
     const IconComponent = step.icon;
-    
-    if (step.status === 'completed') {
+
+    if (step.status === "completed") {
       return <CheckCircle className="h-6 w-6 text-green-500" />;
     }
-    
-    if (step.status === 'active') {
+
+    if (step.status === "active") {
       return (
         <motion.div
           animate={{ rotate: 360 }}
@@ -556,7 +577,7 @@ Return JSON format:
         </motion.div>
       );
     }
-    
+
     return <IconComponent className="h-6 w-6 text-gray-400" />;
   };
 
@@ -577,9 +598,9 @@ Return JSON format:
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </motion.button>
         )}
-        
+
         {/* Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -588,14 +609,14 @@ Return JSON format:
           <div className="flex justify-center mb-4">
             <motion.div
               className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center"
-              animate={{ 
+              animate={{
                 scale: [1, 1.1, 1],
-                rotate: [0, 5, -5, 0]
+                rotate: [0, 5, -5, 0],
               }}
-              transition={{ 
-                duration: 2, 
+              transition={{
+                duration: 2,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             >
               <Brain className="h-6 w-6 text-white" />
@@ -605,12 +626,13 @@ Return JSON format:
             AI is Creating Your Personalized Report
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Our advanced AI is analyzing your responses and generating custom insights just for you. This will take about 10-15 seconds.
+            Our advanced AI is analyzing your responses and generating custom
+            insights just for you. This will take about 10-15 seconds.
           </p>
         </motion.div>
 
         {/* Progress Bar */}
-        <motion.div 
+        <motion.div
           className="mb-6"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -618,20 +640,24 @@ Return JSON format:
         >
           <div className="bg-gray-50 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Progress</span>
-              <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
+              <span className="text-sm font-medium text-gray-700">
+                Progress
+              </span>
+              <span className="text-sm font-medium text-gray-900">
+                {Math.round(progress)}%
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <motion.div
                 className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full"
                 initial={{ width: "0%" }}
                 animate={{ width: `${progress}%` }}
-                transition={{ 
-                  duration: 0.8, 
+                transition={{
+                  duration: 0.8,
                   ease: "easeOut",
                   type: "spring",
                   stiffness: 100,
-                  damping: 15
+                  damping: 15,
                 }}
               />
             </div>
@@ -644,11 +670,11 @@ Return JSON format:
             <motion.div
               key={step.id}
               className={`bg-gray-50 rounded-xl p-4 shadow-sm transition-all duration-300 ${
-                step.status === 'active' 
-                  ? 'ring-2 ring-blue-500 bg-blue-50' 
-                  : step.status === 'completed'
-                  ? 'ring-2 ring-green-500 bg-green-50'
-                  : 'ring-1 ring-gray-200'
+                step.status === "active"
+                  ? "ring-2 ring-blue-500 bg-blue-50"
+                  : step.status === "completed"
+                    ? "ring-2 ring-green-500 bg-green-50"
+                    : "ring-1 ring-gray-200"
               }`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -658,7 +684,7 @@ Return JSON format:
                 <div className="flex-shrink-0 mr-3">
                   {getStepIcon(step, index)}
                 </div>
-                {step.status === 'active' && (
+                {step.status === "active" && (
                   <motion.div
                     className="flex space-x-1 ml-auto"
                     initial={{ opacity: 0 }}
@@ -670,30 +696,38 @@ Return JSON format:
                         className="w-1.5 h-1.5 bg-blue-500 rounded-full"
                         animate={{
                           scale: [1, 1.2, 1],
-                          opacity: [0.5, 1, 0.5]
+                          opacity: [0.5, 1, 0.5],
                         }}
                         transition={{
                           duration: 1,
                           repeat: Infinity,
-                          delay: dot * 0.2
+                          delay: dot * 0.2,
                         }}
                       />
                     ))}
                   </motion.div>
                 )}
               </div>
-              <h3 className={`text-lg font-semibold mb-1 ${
-                step.status === 'active' ? 'text-blue-900' : 
-                step.status === 'completed' ? 'text-green-900' : 
-                'text-gray-700'
-              }`}>
+              <h3
+                className={`text-lg font-semibold mb-1 ${
+                  step.status === "active"
+                    ? "text-blue-900"
+                    : step.status === "completed"
+                      ? "text-green-900"
+                      : "text-gray-700"
+                }`}
+              >
                 {step.title}
               </h3>
-              <p className={`text-sm ${
-                step.status === 'active' ? 'text-blue-600' : 
-                step.status === 'completed' ? 'text-green-600' : 
-                'text-gray-500'
-              }`}>
+              <p
+                className={`text-sm ${
+                  step.status === "active"
+                    ? "text-blue-600"
+                    : step.status === "completed"
+                      ? "text-green-600"
+                      : "text-gray-500"
+                }`}
+              >
                 {step.description}
               </p>
             </motion.div>
@@ -701,7 +735,7 @@ Return JSON format:
         </div>
 
         {/* Compact Fun Facts */}
-        <motion.div 
+        <motion.div
           className="bg-gray-50 rounded-2xl p-4 shadow-sm"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -716,7 +750,8 @@ Return JSON format:
               <div className="text-xl mr-3">🧠</div>
               <div>
                 <p className="text-sm text-gray-600">
-                  Our AI analyzes over 12 different personality traits and business factors to find your perfect match.
+                  Our AI analyzes over 12 different personality traits and
+                  business factors to find your perfect match.
                 </p>
               </div>
             </div>
@@ -724,7 +759,8 @@ Return JSON format:
               <div className="text-xl mr-3">🎯</div>
               <div>
                 <p className="text-sm text-gray-600">
-                  Your personalized report is unique to you - no two reports are exactly the same!
+                  Your personalized report is unique to you - no two reports are
+                  exactly the same!
                 </p>
               </div>
             </div>
