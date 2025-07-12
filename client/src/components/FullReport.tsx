@@ -627,10 +627,8 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
       setAiInsights(preloadedData.aiInsights);
       setAllCharacteristics(preloadedData.allCharacteristics);
       setBusinessFitDescriptions(preloadedData.businessFitDescriptions);
-      setPersonalizedInsights(preloadedData.personalizedInsights);
       setIsLoadingInsights(false);
       setIsLoadingDescriptions(false);
-      setIsLoadingPersonalizedInsights(false);
     } else {
       // Generate AI-powered personalized paths
       const loadPersonalizedPaths = async () => {
