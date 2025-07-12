@@ -24,7 +24,6 @@ interface AIReportLoadingProps {
     aiInsights: any;
     allCharacteristics: string[];
     businessFitDescriptions: { [key: string]: string };
-    personalizedInsights: string;
   }) => void;
   onExit?: () => void;
 }
