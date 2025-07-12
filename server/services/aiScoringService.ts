@@ -335,6 +335,14 @@ export class AIScoringService {
 
     return recommendations;
   }
+
+  private getRatingDescription(rating: number): string {
+    if (rating >= 4.5) return "Very High";
+    if (rating >= 4) return "High";
+    if (rating >= 3) return "Moderate";
+    if (rating >= 2) return "Low";
+    return "Very Low";
+  }
 }
 
 export const aiScoringService = AIScoringService.getInstance();
