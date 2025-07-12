@@ -288,12 +288,16 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             <div className="flex items-center justify-center mb-6">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  step === "account"
+                  step === "account" || step === "login"
                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                     : "bg-green-600 text-white"
                 }`}
               >
-                {step === "account" ? "1" : <CheckCircle className="h-4 w-4" />}
+                {step === "account" || step === "login" ? (
+                  "1"
+                ) : (
+                  <CheckCircle className="h-4 w-4" />
+                )}
               </div>
               <div
                 className={`w-12 h-1 mx-2 rounded-full ${step === "payment" ? "bg-gradient-to-r from-blue-600 to-purple-600" : "bg-gray-300"}`}
