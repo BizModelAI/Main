@@ -46,14 +46,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await fetch("/api/auth/me", {
         method: "GET",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+      } else if (response.status === 401) {
+        // Not authenticated - this is expected, not an error
+        setUser(null);
+      } else {
+        console.warn(`Session check returned ${response.status}`);
       }
     } catch (error) {
       console.error("Error checking session:", error);
+      // Don't throw the error, just log it and continue
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
