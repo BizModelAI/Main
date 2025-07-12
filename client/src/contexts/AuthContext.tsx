@@ -160,15 +160,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return null;
 
     try {
-      const response = await fetch(`/api/quiz-attempts/${user.id}`, {
+      const response = await fetch("/api/auth/latest-quiz-data", {
         credentials: "include",
       });
 
       if (response.ok) {
-        const attempts = await response.json();
-        if (attempts.length > 0) {
-          return attempts[0].quizData as QuizData; // Most recent attempt
-        }
+        const quizData = await response.json();
+        return quizData;
       }
     } catch (error) {
       console.error("Error fetching quiz data:", error);
