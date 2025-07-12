@@ -482,11 +482,16 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step4Result };
 
-        // Step 5: Generate business fit descriptions
+        // Step 5: Generate business fit and avoid descriptions
         const step5Result = await executeStep(4, async () => {
-          const descriptions =
-            await generateBusinessFitDescriptions(activeQuizData);
-          return { businessFitDescriptions: descriptions };
+          const [fitDescriptions, avoidDescriptions] = await Promise.all([
+            generateBusinessFitDescriptions(activeQuizData),
+            generateBusinessAvoidDescriptions(activeQuizData),
+          ]);
+          return {
+            businessFitDescriptions: fitDescriptions,
+            businessAvoidDescriptions: avoidDescriptions,
+          };
         });
         currentResults = { ...currentResults, ...step5Result };
 
