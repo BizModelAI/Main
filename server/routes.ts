@@ -436,38 +436,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
-      const isGuestUser =
-        !user.hasAccessPass && user.quizRetakesRemaining === 0;
+      const isPaid = await storage.isPaidUser(userId);
       const hasAccessPass = user.hasAccessPass;
 
-      // Can take quiz if:
-      // 1. Guest user (unlimited free attempts)
-      // 2. Paid user with remaining retakes
-      const canTakeQuiz =
-        isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
+      // For paid users: Store every quiz attempt permanently
+      // For unpaid users: Allow unlimited attempts but data will be cleaned up after 24h
+      const canTakeQuiz = isPaid || !isPaid; // Everyone can take quiz
 
-      if (!canTakeQuiz) {
+      if (isPaid && hasAccessPass && user.quizRetakesRemaining <= 0) {
         return res.status(403).json({
           error:
             "No quiz retakes remaining. Purchase more retakes to continue.",
         });
       }
 
-      // Record the quiz attempt
+      // Record the quiz attempt - stored permanently for paid users
       const attempt = await storage.recordQuizAttempt({
         userId,
         quizData,
       });
 
       // Decrement retakes only for paid users
-      if (hasAccessPass && user.quizRetakesRemaining > 0) {
+      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
         await storage.decrementQuizRetakes(userId);
       }
 
       res.json({
         success: true,
         attemptId: attempt.id,
-        message: "Quiz attempt recorded successfully",
+        message: isPaid
+          ? "Quiz attempt recorded permanently"
+          : "Quiz attempt recorded (unpaid users: data retained for 24 hours)",
+        isPaidUser: isPaid,
+        dataRetentionPolicy: isPaid ? "permanent" : "24_hours",
       });
     } catch (error) {
       console.error("Error recording quiz attempt:", error);
