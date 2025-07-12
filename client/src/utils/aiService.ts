@@ -135,10 +135,10 @@ User Profile Summary:
 - Main Motivation: ${quizData.mainMotivation}
 - Income Goal: $${quizData.successIncomeGoal}/month
 - Time Commitment: ${quizData.weeklyTimeCommitment} hours/week
-- Tech Skills: ${quizData.techSkillsRating}/5
-- Risk Tolerance: ${quizData.riskComfortLevel}/5
-- Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
-- Creative Enjoyment: ${quizData.creativeWorkEnjoyment}/5
+- Tech Skills: ${this.getRatingDescription(quizData.techSkillsRating)}
+- Risk Tolerance: ${this.getRatingDescription(quizData.riskComfortLevel)}
+- Communication Comfort: ${this.getRatingDescription(quizData.directCommunicationEnjoyment)}
+- Creative Enjoyment: ${this.getRatingDescription(quizData.creativeWorkEnjoyment)}
 
 Business Model: ${topPath.name} (${topPath.fitScore}% fit - ${category})`;
 
@@ -231,7 +231,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
               keyInsights: [
                 `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance aligns perfectly with ${topPath.name}`,
                 `With ${quizData.weeklyTimeCommitment} hours/week, you can realistically achieve ${topPath.timeToProfit}`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 4 ? "excellent" : "adequate"} for this path`,
+                `Your tech comfort level is ${quizData.techSkillsRating >= 4 ? "excellent" : "adequate"} for this path`,
                 `Communication style matches the ${quizData.directCommunicationEnjoyment >= 4 ? "high" : "moderate"} interaction requirements`,
               ],
               successPredictors: [
@@ -253,7 +253,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
               keyInsights: [
                 `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance works well with ${topPath.name}`,
                 `With ${quizData.weeklyTimeCommitment} hours/week, you can make good progress toward ${topPath.timeToProfit}`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) is ${quizData.techSkillsRating >= 3 ? "solid" : "workable"} for this path`,
+                `Your tech comfort level is ${quizData.techSkillsRating >= 3 ? "solid" : "workable"} for this path`,
                 `While not your perfect match, this path offers strong potential for success`,
               ],
               successPredictors: [
@@ -273,7 +273,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
               keyInsights: [
                 `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance may clash with ${topPath.name} requirements`,
                 `With ${quizData.weeklyTimeCommitment} hours/week, progress may be slower than ideal`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) could be a limiting factor`,
+                `Your tech comfort level could be a limiting factor`,
                 `Several aspects of your profile suggest other paths would be more suitable`,
               ],
               successPredictors: [
@@ -293,7 +293,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
               keyInsights: [
                 `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance conflicts with ${topPath.name} demands`,
                 `With ${quizData.weeklyTimeCommitment} hours/week, you lack the time commitment this path requires`,
-                `Your tech comfort level (${quizData.techSkillsRating}/5) is insufficient for this business model`,
+                `Your tech comfort level is insufficient for this business model`,
                 `Multiple factors in your profile indicate this path is not recommended`,
               ],
               successPredictors: [
