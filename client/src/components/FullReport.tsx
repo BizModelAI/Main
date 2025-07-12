@@ -365,11 +365,6 @@ const FullReport: React.FC<FullReportProps> = ({
     { id: "overview", label: "Executive Summary", icon: BarChart3 },
     { id: "ai-analysis", label: "AI Personalized Analysis", icon: Brain },
     { id: "personality-snapshot", label: "Personality Snapshot", icon: Users },
-    {
-      id: "strengths-challenges",
-      label: "Strengths & Challenges",
-      icon: Award,
-    },
     { id: "top-matches", label: "Your Top 3 Matches", icon: Target },
     {
       id: "business-to-avoid",
