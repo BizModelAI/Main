@@ -447,6 +447,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(payments.createdAt));
   }
 
+  async getPaymentsByStripeId(
+    stripePaymentIntentId: string,
+  ): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
+  }
+
   async storeUnpaidUserEmail(
     sessionId: string,
     email: string,
