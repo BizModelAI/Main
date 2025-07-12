@@ -312,20 +312,26 @@ Return JSON format:
       const { calculateAdvancedBusinessModelMatches } = await import(
         "../utils/advancedScoringAlgorithm"
       );
+      const { businessPaths } = await import("../../../shared/businessPaths");
+
       const allMatches = calculateAdvancedBusinessModelMatches(quizData);
 
       // Get the bottom 3 business models (worst matches)
       const bottomThree = allMatches.slice(-3).reverse(); // reverse to get worst-first order
 
-      const businessMatches = bottomThree.map((match) => ({
-        id: match.id,
-        name: match.name,
-        fitScore: match.score,
-        description: match.description,
-        timeToProfit: match.timeToProfit,
-        startupCost: match.startupCost,
-        potentialIncome: match.potentialIncome,
-      }));
+      const businessMatches = bottomThree.map((match) => {
+        const pathData = businessPaths.find((path) => path.id === match.id);
+        return {
+          id: match.id,
+          name: match.name,
+          fitScore: match.score,
+          description:
+            pathData?.description || "Business model description not available",
+          timeToProfit: pathData?.timeToProfit || "Variable",
+          startupCost: pathData?.startupCost || "Variable",
+          potentialIncome: pathData?.potentialIncome || "Variable",
+        };
+      });
 
       const response = await fetch(
         "/api/generate-business-avoid-descriptions",
