@@ -432,7 +432,7 @@ Based on your ${activeQuizData.riskComfortLevel}/5 risk tolerance and ${activeQu
 
 With your income goal of ${activeQuizData.successIncomeGoal} per month and ${activeQuizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
 
-          return { personalizedInsights: insights };
+          return {};
         });
         currentResults = { ...currentResults, ...step6Result };
 
