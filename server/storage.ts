@@ -308,6 +308,26 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async deleteUser(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Delete quiz attempts first (due to foreign key constraints)
+      await tx.delete(quizAttempts).where(eq(quizAttempts.userId, id));
+
+      // Delete payments
+      await tx.delete(payments).where(eq(payments.userId, id));
+
+      // Finally delete the user
+      const [deletedUser] = await tx
+        .delete(users)
+        .where(eq(users.id, id))
+        .returning();
+
+      if (!deletedUser) {
+        throw new Error("User not found");
+      }
+    });
+  }
+
   async recordQuizAttempt(
     attempt: Omit<InsertQuizAttempt, "id">,
   ): Promise<QuizAttempt> {
