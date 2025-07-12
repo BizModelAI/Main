@@ -41,6 +41,7 @@ import {
 import { AIService } from "../utils/aiService";
 import { aiCacheManager } from "../utils/aiCacheManager";
 import { usePaywall } from "../contexts/PaywallContext";
+import { useAuth } from "../contexts/AuthContext";
 import { PaywallModal } from "./PaywallModals";
 import { SkillsAnalysisService, SkillsAnalysis } from "../utils/skillsAnalysis";
 import {
