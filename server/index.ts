@@ -2,6 +2,7 @@ console.log("=== STARTING SERVER ===");
 import "dotenv/config";
 console.log("dotenv loaded");
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 console.log("express imported");
 console.log("about to import registerRoutes");
 // import { registerRoutes } from "./routes.js";
