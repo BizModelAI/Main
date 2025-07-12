@@ -101,13 +101,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         body: JSON.stringify({ email, password, name }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Signup failed");
+        throw new Error(data.error || "Signup failed");
       }
 
-      const userData = await response.json();
-      setUser(userData);
+      setUser(data);
     } catch (error) {
       throw error;
     } finally {
