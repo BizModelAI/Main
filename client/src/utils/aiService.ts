@@ -17,10 +17,12 @@ export class AIService {
 
   // Method to clear cache and force fresh responses
   static clearCacheAndReset(): void {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const aiCacheManager = AICacheManager.getInstance();
       aiCacheManager.forceResetCache();
-      console.log("AI cache cleared - next responses will be fresh from OpenAI");
+      console.log(
+        "AI cache cleared - next responses will be fresh from OpenAI",
+      );
       // Force a page reload to ensure complete reset
       window.location.reload();
     }
@@ -98,7 +100,11 @@ export class AIService {
     } catch (error) {
       console.error("Error generating AI insights:", error);
       // Only fallback after multiple attempts and clear failure
-      if (error.message.includes('Server error') || error.message.includes('fetch')) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("Server error") ||
+          error.message.includes("fetch"))
+      ) {
         console.log("Server/network error - using fallback");
         return this.generateFallbackInsights(quizData, topPaths);
       }
@@ -319,9 +325,9 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
 
       // Generate AI-powered success predictors or struggle points
       const aiSuccessPredictors = await this.generateAISuccessPredictors(
-        quizData, 
-        topPath, 
-        fitCategory
+        quizData,
+        topPath,
+        fitCategory,
       );
 
       return {
@@ -348,7 +354,10 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     } catch (error) {
       console.error("Error generating detailed analysis:", error);
       // Only fallback for clear API/network errors
-      if (error.message.includes('Server error') || error.message.includes('fetch')) {
+      if (
+        error.message.includes("Server error") ||
+        error.message.includes("fetch")
+      ) {
         console.log("Server/network error - using fallback analysis");
         return this.generateFallbackAnalysis(quizData, topPath);
       }
@@ -363,10 +372,10 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     temperature: number = 0.7,
   ): Promise<string> {
     try {
-      const response = await fetch('/api/openai-chat', {
-        method: 'POST',
+      const response = await fetch("/api/openai-chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt,
@@ -390,11 +399,11 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
   private async generateAISuccessPredictors(
     quizData: QuizData,
     topPath: BusinessPath,
-    fitCategory: string
+    fitCategory: string,
   ): Promise<string[]> {
     try {
       const userProfile = this.createUserProfile(quizData);
-      
+
       const getPromptForPredictors = (category: string) => {
         const baseInfo = `User Profile: ${userProfile}
 Business Model: ${topPath.name}
@@ -426,37 +435,41 @@ Format as a simple list with each point on a new line, no numbers or bullets.`;
 
       const prompt = getPromptForPredictors(fitCategory);
       const response = await this.makeOpenAIRequest(prompt, 200, 0.7);
-      
+
       // Parse response into array of 4 points
-      const points = response.split('\n')
-        .filter(line => line.trim().length > 0)
-        .map(line => line.trim())
+      const points = response
+        .split("\n")
+        .filter((line) => line.trim().length > 0)
+        .map((line) => line.trim())
         .slice(0, 4);
 
       // Ensure we have exactly 4 points
       while (points.length < 4) {
-        points.push(fitCategory === "Best Fit" || fitCategory === "Strong Fit" 
-          ? "Your profile shows strong alignment with this business model"
-          : "Some aspects of your profile may create challenges in this path");
+        points.push(
+          fitCategory === "Best Fit" || fitCategory === "Strong Fit"
+            ? "Your profile shows strong alignment with this business model"
+            : "Some aspects of your profile may create challenges in this path",
+        );
       }
 
       return points;
     } catch (error) {
       console.error("Error generating AI success predictors:", error);
       // Return fallback predictors
-      const fallbackPredictors = fitCategory === "Best Fit" || fitCategory === "Strong Fit"
-        ? [
-            "Your quiz responses show strong alignment with this business model",
-            "Your personality traits match successful entrepreneurs in this field",
-            "Your time commitment and goals align well with this path",
-            "Your risk tolerance and motivation support success in this area"
-          ]
-        : [
-            "Your quiz responses suggest some misalignment with this business model",
-            "Certain personality traits may create challenges in this field",
-            "Your time commitment or goals may not align perfectly with this path",
-            "Your risk tolerance or motivation may need adjustment for this area"
-          ];
+      const fallbackPredictors =
+        fitCategory === "Best Fit" || fitCategory === "Strong Fit"
+          ? [
+              "Your quiz responses show strong alignment with this business model",
+              "Your personality traits match successful entrepreneurs in this field",
+              "Your time commitment and goals align well with this path",
+              "Your risk tolerance and motivation support success in this area",
+            ]
+          : [
+              "Your quiz responses suggest some misalignment with this business model",
+              "Certain personality traits may create challenges in this field",
+              "Your time commitment or goals may not align perfectly with this path",
+              "Your risk tolerance or motivation may need adjustment for this area",
+            ];
       return fallbackPredictors;
     }
   }
@@ -491,8 +504,11 @@ User Profile:
     topPaths: any[],
   ): Promise<string> {
     // Debug logging to ensure we have the correct top business model
-    console.log("AI Summary - Top business paths:", topPaths.map(p => `${p.name} (${p.fitScore}%)`));
-    
+    console.log(
+      "AI Summary - Top business paths:",
+      topPaths.map((p) => `${p.name} (${p.fitScore}%)`),
+    );
+
     const topBusinessModel = topPaths[0];
     const prompt = `
 Based on this user profile, create a personalized 2-3 sentence summary that explains why ${topBusinessModel.name} is your perfect business match. Be specific about your personality traits and goals.
@@ -503,7 +519,10 @@ FOCUS ON THIS TOP BUSINESS MATCH:
 ${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
 
 Additional Context - Other matches:
-${topPaths.slice(1, 3).map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`).join("\n")}
+${topPaths
+  .slice(1, 3)
+  .map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`)
+  .join("\n")}
 
 Write a personalized summary that connects your specific traits to ${topBusinessModel.name}. Be encouraging and specific about why ${topBusinessModel.name} is your best fit.
     `;
@@ -524,8 +543,11 @@ Write a personalized summary that connects your specific traits to ${topBusiness
     topPaths: any[],
   ): Promise<string[]> {
     const topBusinessModel = topPaths[0];
-    console.log("AI Recommendations - Top business model:", topBusinessModel.name);
-    
+    console.log(
+      "AI Recommendations - Top business model:",
+      topBusinessModel.name,
+    );
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific, actionable recommendations tailored to your personality and goals for starting ${topBusinessModel.name}.
 
@@ -557,7 +579,7 @@ Format as a simple list, each recommendation should be 1-2 sentences and actiona
   ): Promise<string[]> {
     const topBusinessModel = topPaths[0];
     console.log("AI Challenges - Top business model:", topBusinessModel.name);
-    
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), identify 4 specific challenges you might face when starting ${topBusinessModel.name} and how to address them.
 
@@ -584,8 +606,11 @@ Format as a simple list, each item should be 1-2 sentences and specific to ${top
     topPaths: any[],
   ): Promise<string[]> {
     const topBusinessModel = topPaths[0];
-    console.log("AI Success Strategies - Top business model:", topBusinessModel.name);
-    
+    console.log(
+      "AI Success Strategies - Top business model:",
+      topBusinessModel.name,
+    );
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage your strengths for ${topBusinessModel.name}.
 
@@ -674,8 +699,11 @@ Month 6:
     topPaths: any[],
   ): Promise<string> {
     const topBusinessModel = topPaths[0];
-    console.log("AI Motivational Message - Top business model:", topBusinessModel.name);
-    
+    console.log(
+      "AI Motivational Message - Top business model:",
+      topBusinessModel.name,
+    );
+
     const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), write an inspiring and personalized motivational message (2-3 sentences) that:
 - Acknowledges your specific strengths for ${topBusinessModel.name}
