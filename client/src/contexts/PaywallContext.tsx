@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 interface PaywallContextType {
   hasUnlockedAnalysis: boolean;
@@ -30,23 +31,59 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
 }) => {
   const [hasUnlockedAnalysis, setHasUnlockedAnalysis] = useState(false);
   const [hasCompletedQuiz, setHasCompletedQuiz] = useState(false);
+  const { user, getLatestQuizData, isLoading } = useAuth();
 
-  // Load state from localStorage on mount
+  // Check user's quiz completion and payment status when user changes
   useEffect(() => {
-    const unlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";
-    const completed = localStorage.getItem("hasCompletedQuiz") === "true";
-    setHasUnlockedAnalysis(unlocked);
-    setHasCompletedQuiz(completed);
-  }, []);
+    const checkUserStatus = async () => {
+      if (isLoading) return;
 
-  // Save state to localStorage when it changes
+      if (!user) {
+        // For non-authenticated users, check localStorage for temporary state
+        const unlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";
+        const completed = localStorage.getItem("hasCompletedQuiz") === "true";
+        setHasUnlockedAnalysis(unlocked);
+        setHasCompletedQuiz(completed);
+        return;
+      }
+
+      // For authenticated users, check their database records
+      try {
+        // Check if user has completed quiz
+        const quizData = await getLatestQuizData();
+        const hasQuiz = !!quizData;
+        setHasCompletedQuiz(hasQuiz);
+
+        // Check if user has access pass (payment)
+        const hasAccess = user.hasAccessPass;
+        setHasUnlockedAnalysis(hasAccess);
+
+        // Update localStorage for consistency
+        localStorage.setItem("hasCompletedQuiz", hasQuiz.toString());
+        localStorage.setItem("hasUnlockedAnalysis", hasAccess.toString());
+      } catch (error) {
+        console.error("Error checking user status:", error);
+      }
+    };
+
+    checkUserStatus();
+  }, [user, isLoading, getLatestQuizData]);
+
+  // Save state to localStorage when it changes (for non-authenticated users)
   useEffect(() => {
-    localStorage.setItem("hasUnlockedAnalysis", hasUnlockedAnalysis.toString());
-  }, [hasUnlockedAnalysis]);
+    if (!user) {
+      localStorage.setItem(
+        "hasUnlockedAnalysis",
+        hasUnlockedAnalysis.toString(),
+      );
+    }
+  }, [hasUnlockedAnalysis, user]);
 
   useEffect(() => {
-    localStorage.setItem("hasCompletedQuiz", hasCompletedQuiz.toString());
-  }, [hasCompletedQuiz]);
+    if (!user) {
+      localStorage.setItem("hasCompletedQuiz", hasCompletedQuiz.toString());
+    }
+  }, [hasCompletedQuiz, user]);
 
   const isUnlocked = () => hasUnlockedAnalysis;
 
@@ -66,12 +103,18 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
   };
 
   const hasMadeAnyPayment = () => {
-    // Check for any payment-related flags in localStorage
+    // For authenticated users, check hasAccessPass
+    if (user) {
+      return user.hasAccessPass;
+    }
+
+    // For non-authenticated users, check localStorage flags
     const hasUnlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";
-    const hasBusinessAccess = localStorage.getItem("hasBusinessAccess") === "true";
+    const hasBusinessAccess =
+      localStorage.getItem("hasBusinessAccess") === "true";
     const hasPaidDownload = localStorage.getItem("hasPaidDownload") === "true";
     const hasAnyPayment = localStorage.getItem("hasAnyPayment") === "true";
-    
+
     return hasUnlocked || hasBusinessAccess || hasPaidDownload || hasAnyPayment;
   };
 
