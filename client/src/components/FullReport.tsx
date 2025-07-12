@@ -29,6 +29,7 @@ import {
 } from "../utils/quizLogic";
 import { calculateAdvancedBusinessModelMatches } from "../utils/advancedScoringAlgorithm";
 import { AIService } from "../utils/aiService";
+import { aiCacheManager } from "../utils/aiCacheManager";
 import { useNavigate } from "react-router-dom";
 import {
   calculatePersonalityScores,
@@ -1394,7 +1395,7 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                           {path.id === "content-creation-ugc" &&
                             quizData.brandFaceComfort < 3 && (
                               <li>
-                                • Requires comfort being the face of a brand
+                                ��� Requires comfort being the face of a brand
                                 (your comfort level: {quizData.brandFaceComfort}
                                 /5)
                               </li>
