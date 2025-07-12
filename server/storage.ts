@@ -36,6 +36,7 @@ export interface IStorage {
   createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment>;
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
+  getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
 
   // Unpaid user email tracking
   storeUnpaidUserEmail(
