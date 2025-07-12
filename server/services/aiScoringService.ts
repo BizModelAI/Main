@@ -214,7 +214,9 @@ export class AIScoringService {
     };
 
     const score = Object.keys(factors).reduce((total, key) => {
-      return total + factors[key] * weights[key] * 100;
+      const factorKey = key as keyof typeof factors;
+      const weightKey = key as keyof typeof weights;
+      return total + factors[factorKey] * weights[weightKey] * 100;
     }, 0);
 
     return Math.min(Math.max(Math.round(score), 0), 100);
