@@ -217,6 +217,12 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     }
   };
 
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    // Navigate to the business model page
+    navigate(`/business/${selectedBusinessId}`);
+  };
+
   const handlePaywallClose = () => {
     setShowPaywallModal(false);
     setSelectedBusinessId("");
@@ -562,7 +568,7 @@ const BusinessModelCard = ({
                 <ul className="text-sm text-gray-600 space-y-1">
                   {model.pros.slice(0, 4).map((pro, index) => (
                     <li key={index} className="flex items-start">
-                      <span className="text-green-500 mr-2">✓</span>
+                      <span className="text-green-500 mr-2">���</span>
                       {pro}
                     </li>
                   ))}
