@@ -571,7 +571,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "User must have access pass first" });
       }
 
-      // Create payment record for retake bundle ($4.99)
+      // Create Stripe Payment Intent for $4.99 retake bundle
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 499, // $4.99 in cents
+        currency: "usd",
+        metadata: {
+          userId: userId.toString(),
+          type: "retake_bundle",
+          retakesGranted: "5",
+        },
+        description: "BizModelAI Retake Bundle - 5 additional quiz attempts",
+      });
+
+      // Create payment record in our database
       const payment = await storage.createPayment({
         userId,
         amount: "4.99",
@@ -579,17 +591,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "retake_bundle",
         status: "pending",
         retakesGranted: 5,
+        stripePaymentIntentId: paymentIntent.id,
       });
-
-      // In a real implementation, this would integrate with Stripe
-      // For now, simulate successful payment
-      await storage.completePayment(payment.id, 5);
 
       res.json({
         success: true,
+        clientSecret: paymentIntent.client_secret,
         paymentId: payment.id,
-        message:
-          "Retake bundle purchased successfully. You now have 5 additional quiz retakes!",
       });
     } catch (error) {
       console.error("Error creating retake bundle payment:", error);
