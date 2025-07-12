@@ -112,7 +112,16 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
     setIsProcessing(true);
     try {
-      await signup(formData.email, formData.password, formData.name);
+      // Include quiz data in signup for temporary account storage
+      const quizData = localStorage.getItem("quizData");
+      const parsedQuizData = quizData ? JSON.parse(quizData) : {};
+
+      await signup(
+        formData.email,
+        formData.password,
+        formData.name,
+        parsedQuizData,
+      );
       setStep("payment");
     } catch (err: any) {
       if (err.message === "User already exists") {
