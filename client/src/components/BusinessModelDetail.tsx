@@ -1517,6 +1517,19 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                 </div>
               </div>
             </section>
+
+            {/* Back to Results Navigation */}
+            <section className="py-8 border-t border-gray-200">
+              <div className="container mx-auto px-4 text-center">
+                <a
+                  href="/results"
+                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors group"
+                >
+                  <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+                  Back to Results
+                </a>
+              </div>
+            </section>
           </div>
         </div>
       </div>
