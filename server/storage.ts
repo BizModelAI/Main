@@ -484,6 +484,19 @@ export class DatabaseStorage implements IStorage {
       .delete(unpaidUserEmails)
       .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
   }
+
+  async isPaidUser(userId: number): Promise<boolean> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    return user ? user.hasAccessPass : false;
+  }
+
+  async cleanupExpiredData(): Promise<void> {
+    // Clean up expired unpaid email data
+    await this.cleanupExpiredUnpaidEmails();
+
+    // Note: For paid users, we never delete their data
+    // For unpaid users, data is only stored in unpaidUserEmails table with 24h expiry
+  }
 }
 
 export const storage = new DatabaseStorage();
