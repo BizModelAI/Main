@@ -1,5 +1,8 @@
+console.log("=== STARTING SERVER ===");
 import "dotenv/config";
+console.log("dotenv loaded");
 import express, { type Request, Response, NextFunction } from "express";
+console.log("express imported");
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 
