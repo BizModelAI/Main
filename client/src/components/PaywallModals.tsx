@@ -62,6 +62,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       case "learn-more":
@@ -97,6 +99,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       case "full-report":
@@ -131,6 +135,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       case "quiz-required":
@@ -165,6 +171,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             },
           ],
           buttonText: "Take the Quiz Now",
+          description: undefined,
+          secondaryButton: undefined,
         };
 
       default:
@@ -198,6 +206,8 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             },
           ],
           buttonText: "Unlock for $9.99",
+          description: undefined,
+          secondaryButton: undefined,
         };
     }
   };
