@@ -27,7 +27,7 @@ const BizModelAILogo: React.FC<BizModelAILogoProps> = ({
     <div className={`flex items-center space-x-2 ${className}`}>
       {/* Logo using your exact design */}
       <img
-        src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F02f1355dc31c44d7b3a378483856ce5b?format=webp&width=800"
+        src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F8de3245c79ad43b48b9a59be9364a64e?format=webp&width=800"
         alt="BizModelAI Logo"
         className={`${sizeClasses[size]} object-contain`}
       />
