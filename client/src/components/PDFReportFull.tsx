@@ -145,7 +145,7 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
 
   return (
     <div className="pdf-report bg-white text-gray-900 min-h-screen font-sans">
-      <style jsx>{`
+      <style>{`
         @media print {
           .pdf-report {
             -webkit-print-color-adjust: exact !important;
