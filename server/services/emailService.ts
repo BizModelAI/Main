@@ -921,8 +921,7 @@ export class EmailService {
         align-items: center;
         justify-content: center;
         position: relative;
-        z-index: 1;
-        box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+                z-index: 1;
       }
       
       .logo::after {
