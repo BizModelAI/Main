@@ -44,13 +44,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     confirmPassword: "",
   });
 
-  // Payment form data
-  const [paymentData, setPaymentData] = useState({
-    cardNumber: "",
-    expiryDate: "",
-    cvc: "",
-    billingName: "",
-  });
+  // Payment state
+  const [paymentError, setPaymentError] = useState("");
 
   const { signup, user } = useAuth();
   const { setHasUnlockedAnalysis } = usePaywall();
