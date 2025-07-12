@@ -276,7 +276,9 @@ export class MemStorage implements IStorage {
 
   async cleanupExpiredUnpaidEmails(): Promise<void> {
     const now = new Date();
-    for (const [sessionId, email] of this.unpaidUserEmails.entries()) {
+    for (const [sessionId, email] of Array.from(
+      this.unpaidUserEmails.entries(),
+    )) {
       if (email.expiresAt < now) {
         this.unpaidUserEmails.delete(sessionId);
       }
