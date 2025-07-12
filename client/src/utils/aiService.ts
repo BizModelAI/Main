@@ -158,7 +158,8 @@ Requirements:
 - Enthusiastic but professional tone
 - Emphasize strong alignment and natural advantages
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           case "Strong Fit":
             return `${baseProfile}
@@ -175,7 +176,8 @@ Requirements:
 - Positive but realistic tone
 - Show it's a good choice while noting it's not perfect
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           case "Possible Fit":
             return `${baseProfile}
@@ -193,7 +195,8 @@ Requirements:
 - Clearly explain why this isn't recommended
 - Suggest you explore better-fitting options
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           case "Poor Fit":
             return `${baseProfile}
@@ -211,7 +214,8 @@ Requirements:
 - Clearly advise against this path
 - Explain what needs to change before reconsidering
 - 250-350 words maximum
-- No markdown formatting`;
+- No markdown formatting
+- CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
 
           default:
             return `${baseProfile}
