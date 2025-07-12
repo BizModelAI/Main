@@ -1164,7 +1164,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
               <IncomeProjectionChart
                 businessId={businessId || ""}
                 businessModel={business.name}
-                quizData={quizData}
+                quizData={quizData || undefined}
               />
 
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-8 mt-8">
