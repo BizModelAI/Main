@@ -109,13 +109,15 @@ app.use((req, res, next) => {
 })();
 
 function setupDataCleanupJob() {
-  // Run cleanup immediately on startup
-  cleanupExpiredData();
+  // Run cleanup after a delay to allow server to start properly
+  setTimeout(() => {
+    cleanupExpiredData();
+  }, 5000); // 5 second delay
 
   // Then run every hour (3600000 ms)
   setInterval(cleanupExpiredData, 60 * 60 * 1000);
 
-  log("Data cleanup job scheduled to run every hour");
+  log("Data cleanup job scheduled to run every hour (starting in 5 seconds)");
 }
 
 async function cleanupExpiredData() {
@@ -125,5 +127,7 @@ async function cleanupExpiredData() {
     log("Expired data cleanup completed successfully");
   } catch (error) {
     console.error("Error during scheduled data cleanup:", error);
+    // Don't throw the error - just log it and continue
+    // This prevents the cleanup job from crashing the server
   }
 }
