@@ -300,7 +300,10 @@ export class AIScoringService {
       "team-focused": "Thrives in collaborative environments",
     };
 
-    return styles[data.workCollaborationPreference] || "Flexible work style";
+    return (
+      styles[data.workCollaborationPreference as keyof typeof styles] ||
+      "Flexible work style"
+    );
   }
 
   private getRiskProfileDescription(data: QuizData): string {
