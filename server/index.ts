@@ -3,8 +3,12 @@ import "dotenv/config";
 console.log("dotenv loaded");
 import express, { type Request, Response, NextFunction } from "express";
 console.log("express imported");
+console.log("about to import registerRoutes");
 import { registerRoutes } from "./routes.js";
+console.log("registerRoutes imported");
+console.log("about to import vite functions");
 import { setupVite, serveStatic, log } from "./vite.js";
+console.log("vite functions imported");
 
 const app = express();
 app.use(express.json());
