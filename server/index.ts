@@ -92,7 +92,7 @@ app.use((req, res, next) => {
         reusePort: true,
       },
       () => {
-        console.log(`serving on port ${port}`);
+        log(`serving on port ${port}`);
       },
     );
   } catch (error) {
