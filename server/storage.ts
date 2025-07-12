@@ -115,14 +115,16 @@ export class MemStorage implements IStorage {
     this.users.delete(id);
 
     // Delete quiz attempts
-    for (const [attemptId, attempt] of this.quizAttempts.entries()) {
+    for (const [attemptId, attempt] of Array.from(
+      this.quizAttempts.entries(),
+    )) {
       if (attempt.userId === id) {
         this.quizAttempts.delete(attemptId);
       }
     }
 
     // Delete payments
-    for (const [paymentId, payment] of this.payments.entries()) {
+    for (const [paymentId, payment] of Array.from(this.payments.entries())) {
       if (payment.userId === id) {
         this.payments.delete(paymentId);
       }
