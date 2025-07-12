@@ -517,7 +517,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User already has access pass" });
       }
 
-      // Create payment record for access pass ($9.99)
+      // Create Stripe Payment Intent for $9.99 access pass
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 999, // $9.99 in cents
+        currency: "usd",
+        metadata: {
+          userId: userId.toString(),
+          type: "access_pass",
+          retakesGranted: "5",
+        },
+        description: "BizModelAI Access Pass - Unlock all features",
+      });
+
+      // Create payment record in our database
       const payment = await storage.createPayment({
         userId,
         amount: "9.99",
@@ -525,17 +537,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: "access_pass",
         status: "pending",
         retakesGranted: 5,
+        stripePaymentIntentId: paymentIntent.id,
       });
-
-      // In a real implementation, this would integrate with Stripe
-      // For now, simulate successful payment
-      await storage.completePayment(payment.id, 5);
 
       res.json({
         success: true,
+        clientSecret: paymentIntent.client_secret,
         paymentId: payment.id,
-        message:
-          "Access pass purchased successfully. You now have 5 quiz retakes!",
       });
     } catch (error) {
       console.error("Error creating access pass payment:", error);
