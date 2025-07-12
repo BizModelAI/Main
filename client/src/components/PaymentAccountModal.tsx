@@ -395,7 +395,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                 </button>
 
                 {/* Dev Bypass Button */}
-                {process.env.NODE_ENV === "development" && (
+                {import.meta.env.MODE === "development" && (
                   <button
                     type="button"
                     onClick={handleDevBypass}
@@ -429,7 +429,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                 </div>
 
                 {/* Dev Bypass Button for payment step too */}
-                {process.env.NODE_ENV === "development" && (
+                {import.meta.env.MODE === "development" && (
                   <button
                     type="button"
                     onClick={handleDevBypass}
