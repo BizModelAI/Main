@@ -424,7 +424,9 @@ Based on your quiz responses, generate exactly 4 success predictors explaining w
 3. Be concrete and actionable
 4. Be 15-25 words each
 
-Format as a simple list with each point on a new line, no numbers or bullets.`;
+Format as a simple list with each point on a new line, no numbers or bullets.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile.`;
         } else {
           return `${baseInfo}
 
@@ -434,7 +436,9 @@ Based on your quiz responses, generate exactly 4 struggle points explaining why 
 3. Be honest but constructive
 4. Be 15-25 words each
 
-Format as a simple list with each point on a new line, no numbers or bullets.`;
+Format as a simple list with each point on a new line, no numbers or bullets.
+
+CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile.`;
         }
       };
 
