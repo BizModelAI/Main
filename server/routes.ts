@@ -743,9 +743,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Payment succeeded:", paymentIntent.id);
 
           // Get metadata from payment intent
-          const { userId, type, retakesGranted } = paymentIntent.metadata;
+          const {
+            userIdentifier,
+            type,
+            retakesGranted,
+            isTemporaryUser,
+            sessionId,
+          } = paymentIntent.metadata;
 
-          if (!userId || !type) {
+          if (!userIdentifier || !type) {
             console.error(
               "Missing metadata in payment intent:",
               paymentIntent.id,
@@ -753,30 +759,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           }
 
-          // Find the payment record in our database
-          const payments = await storage.getPaymentsByUser(parseInt(userId));
-          const payment = payments.find(
-            (p) => p.stripePaymentIntentId === paymentIntent.id,
-          );
+          if (isTemporaryUser === "true" && sessionId) {
+            // Handle temporary user - convert to permanent account
+            try {
+              // Get temporary account data
+              const tempData = await storage.getUnpaidUserEmail(sessionId);
+              if (!tempData) {
+                console.error(
+                  "Temporary account data not found for session:",
+                  sessionId,
+                );
+                break;
+              }
 
-          if (!payment) {
-            console.error(
-              "Payment record not found for Stripe payment:",
-              paymentIntent.id,
+              const { email, password, name } = tempData.quizData;
+
+              // Check if user already exists (safety check)
+              let user = await storage.getUserByUsername(email);
+              if (!user) {
+                // Create permanent user account
+                user = await storage.createUser({
+                  username: email,
+                  password: password, // Already hashed
+                });
+              }
+
+              // Create payment record
+              const payment = await storage.createPayment({
+                userId: user.id,
+                amount: "9.99",
+                currency: "usd",
+                type: "access_pass",
+                status: "pending",
+                retakesGranted: parseInt(retakesGranted) || 5,
+                stripePaymentIntentId: paymentIntent.id,
+              });
+
+              // Complete the payment
+              await storage.completePayment(
+                payment.id,
+                parseInt(retakesGranted) || 5,
+              );
+
+              // Clean up temporary data
+              await storage.cleanupExpiredUnpaidEmails();
+
+              console.log(
+                `Payment completed: ${type} for temporary user converted to user ${user.id}`,
+              );
+            } catch (error) {
+              console.error("Error converting temporary user:", error);
+            }
+          } else {
+            // Handle permanent user payment
+            const userId = parseInt(userIdentifier);
+
+            // Find the payment record in our database
+            const payments = await storage.getPaymentsByUser(userId);
+            const payment = payments.find(
+              (p) => p.stripePaymentIntentId === paymentIntent.id,
             );
-            break;
+
+            if (!payment) {
+              console.error(
+                "Payment record not found for Stripe payment:",
+                paymentIntent.id,
+              );
+              break;
+            }
+
+            // Complete the payment in our system
+            await storage.completePayment(
+              payment.id,
+              parseInt(retakesGranted) || 5,
+            );
+
+            console.log(`Payment completed: ${type} for user ${userId}`);
           }
-
-          // Complete the payment in our system
-          await storage.completePayment(
-            payment.id,
-            parseInt(retakesGranted) || 5,
-          );
-
-          // If there's quiz data in session storage, save it to the user's account
-          // This will be implemented with a separate endpoint for saving quiz data
-
-          console.log(`Payment completed: ${type} for user ${userId}`);
           break;
 
         case "payment_intent.payment_failed":
