@@ -617,7 +617,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
       setProgress(endProgress);
 
       // Store result
-      setLoadingResults((prev) => ({ ...prev, ...result }));
+      setLoadingResults((prev: any) => ({ ...prev, ...result }));
 
       // Mark step as completed
       setCompletedSteps((prev) => new Set([...prev, stepIndex]));
