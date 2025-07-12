@@ -924,13 +924,7 @@ export class EmailService {
                 z-index: 1;
       }
       
-      .logo::after {
-        content: '';
-        width: 28px;
-        height: 35px;
-        background: white;
-        clip-path: polygon(50% 0%, 0% 60%, 30% 60%, 30% 100%, 70% 100%, 70% 60%, 100% 60%);
-      }
+      
       
       .header h1 {
         font-size: 32px;
