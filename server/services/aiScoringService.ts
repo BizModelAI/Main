@@ -343,6 +343,27 @@ export class AIScoringService {
     if (rating >= 2) return "Low";
     return "Very Low";
   }
+
+  private getIncomeGoalRange(value: number): string {
+    if (value <= 500) return "Less than $500/month";
+    if (value <= 1250) return "$500–$2,000/month";
+    if (value <= 3500) return "$2,000–$5,000/month";
+    return "$5,000+/month";
+  }
+
+  private getTimeCommitmentRange(value: number): string {
+    if (value <= 3) return "Less than 5 hours/week";
+    if (value <= 7) return "5–10 hours/week";
+    if (value <= 17) return "10–25 hours/week";
+    return "25+ hours/week";
+  }
+
+  private getInvestmentRange(value: number): string {
+    if (value <= 0) return "$0 (bootstrap only)";
+    if (value <= 125) return "Under $250";
+    if (value <= 625) return "$250–$1,000";
+    return "$1,000+";
+  }
 }
 
 export const aiScoringService = AIScoringService.getInstance();
