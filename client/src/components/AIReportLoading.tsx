@@ -439,6 +439,12 @@ Return JSON format:
         clientCallsComfort: "somewhat-comfortable",
         physicalShippingOpenness: "open-to-it",
         workStylePreference: "structured-flexible-mix",
+        socialMediaInterest: 3,
+        ecosystemParticipation: "participate-somewhat",
+        existingAudience: "none",
+        promotingOthersOpenness: "somewhat-open",
+        teachVsSolvePreference: "solve-problems",
+        meaningfulContributionImportance: 4,
       });
 
       // Use fallback data if quizData is null/undefined (DEV mode)
