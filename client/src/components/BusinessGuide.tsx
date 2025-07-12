@@ -1663,7 +1663,7 @@ const BusinessGuide: React.FC<BusinessGuideProps> = ({ quizData }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Display AI-generated tools first */}
-                {businessResources?.tools?.map((tool, index) => (
+                {businessResources?.tools?.map((tool: any, index: number) => (
                   <a
                     key={index}
                     href={tool.url}
