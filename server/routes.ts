@@ -1270,6 +1270,42 @@ Reference specific quiz data points and explain the misalignments. Be honest but
     }
   });
 
+  // Data cleanup endpoint (for manual triggering or cron jobs)
+  app.post("/api/admin/cleanup-expired-data", async (req, res) => {
+    try {
+      await storage.cleanupExpiredData();
+      res.json({ success: true, message: "Expired data cleanup completed" });
+    } catch (error) {
+      console.error("Error during data cleanup:", error);
+      res.status(500).json({ error: "Data cleanup failed" });
+    }
+  });
+
+  // Get user data retention status
+  app.get("/api/auth/data-retention-status", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const isPaid = await storage.isPaidUser(req.session.userId);
+      const user = await storage.getUser(req.session.userId);
+
+      res.json({
+        isPaidUser: isPaid,
+        dataRetentionPolicy: isPaid
+          ? "permanent"
+          : "24_hours_from_quiz_completion",
+        hasAccessPass: user?.hasAccessPass || false,
+        accountCreatedAt: user?.createdAt,
+        dataWillBeDeletedIfUnpaid: !isPaid,
+      });
+    } catch (error) {
+      console.error("Error getting data retention status:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
