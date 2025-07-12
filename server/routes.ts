@@ -1011,7 +1011,9 @@ Generate a detailed personalized analysis of at least 6 sentences explaining why
 5. How their learning style and work preferences complement this business approach
 6. Why this particular combination of traits makes them likely to succeed in this field
 
-Reference specific quiz data points and explain the connections. Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone that demonstrates deep understanding of their profile.`;
+Reference specific quiz data points and explain the connections. Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone that demonstrates deep understanding of their profile.
+
+CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile. If the user selected a range, always refer to the full range, never specific numbers within it.`;
 
         const openaiResponse = await fetch(
           "https://api.openai.com/v1/chat/completions",
@@ -1130,7 +1132,9 @@ Generate a detailed personalized analysis of at least 6 sentences explaining why
 5. Why their learning style and work preferences would struggle with this business approach
 6. What would need to change in their profile before this could become viable
 
-Reference specific quiz data points and explain the misalignments. Be honest but constructive. Write in a supportive tone that helps them understand why focusing on better-matched opportunities would be wiser.`;
+Reference specific quiz data points and explain the misalignments. Be honest but constructive. Write in a supportive tone that helps them understand why focusing on better-matched opportunities would be wiser.
+
+CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown in the user profile. If the user selected a range, always refer to the full range, never specific numbers within it.`;
 
         const openaiResponse = await fetch(
           "https://api.openai.com/v1/chat/completions",
