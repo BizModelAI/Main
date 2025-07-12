@@ -1033,18 +1033,20 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                             // Split the analysis into paragraphs for better formatting
                             const paragraphs = analysisText
                               .split("\n\n")
-                              .filter((p) => p.trim().length > 0);
+                              .filter((p: string) => p.trim().length > 0);
 
                             return (
                               <div className="space-y-4">
-                                {paragraphs.map((paragraph, index) => (
-                                  <p
-                                    key={index}
-                                    className="text-gray-700 leading-relaxed"
-                                  >
-                                    {paragraph.trim()}
-                                  </p>
-                                ))}
+                                {paragraphs.map(
+                                  (paragraph: string, index: number) => (
+                                    <p
+                                      key={index}
+                                      className="text-gray-700 leading-relaxed"
+                                    >
+                                      {paragraph.trim()}
+                                    </p>
+                                  ),
+                                )}
                               </div>
                             );
                           })()}
