@@ -1183,67 +1183,6 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                 </div>
               </section>
 
-              {/* Strengths & Challenges */}
-              <section
-                id="strengths-challenges"
-                className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
-              >
-                <div className="flex items-center mb-6">
-                  <Award className="h-6 w-6 text-yellow-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Strengths & Challenges
-                  </h2>
-                </div>
-
-                {!isLoadingInsights && aiInsights && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        Your Strengths
-                      </h3>
-                      <ul className="space-y-3">
-                        {aiInsights.successStrategies
-                          ?.slice(0, 4)
-                          .map((strategy: string, index: number) => (
-                            <li key={index} className="flex items-start">
-                              <Star className="h-4 w-4 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                              <span
-                                className="text-gray-700"
-                                dangerouslySetInnerHTML={renderMarkdownContent(
-                                  strategy,
-                                )}
-                              />
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
-                        Potential Challenges
-                      </h3>
-                      <ul className="space-y-3">
-                        {aiInsights.potentialChallenges?.map(
-                          (challenge: string, index: number) => (
-                            <li key={index} className="flex items-start">
-                              <AlertTriangle className="h-4 w-4 text-orange-500 mr-2 mt-1 flex-shrink-0" />
-                              <span
-                                className="text-gray-700"
-                                dangerouslySetInnerHTML={renderMarkdownContent(
-                                  challenge,
-                                )}
-                              />
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </section>
-
               {/* Top 3 Matches */}
               <section
                 id="top-matches"
