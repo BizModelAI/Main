@@ -776,6 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 email: string;
                 password: string;
                 name: string;
+                quizData?: any;
               };
 
               // Check if user already exists (safety check)
