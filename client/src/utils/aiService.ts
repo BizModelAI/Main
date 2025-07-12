@@ -483,20 +483,20 @@ User Profile:
 - Time to First Income: ${quizData.firstIncomeTimeline || "Not specified"}
 - Investment Budget: $${quizData.upfrontInvestment || "Not specified"}
 - Weekly Time Commitment: ${quizData.weeklyTimeCommitment || "Not specified"} hours
-- Tech Skills: ${quizData.techSkillsRating || "Not specified"}/5
-- Brand Face Comfort: ${quizData.brandFaceComfort || "Not specified"}/5
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment || "Not specified"}/5
-- Communication Enjoyment: ${quizData.directCommunicationEnjoyment || "Not specified"}/5
-- Self Motivation: ${quizData.selfMotivationLevel || "Not specified"}/5
-- Risk Comfort: ${quizData.riskComfortLevel || "Not specified"}/5
+- Tech Skills: ${quizData.techSkillsRating ? this.getRatingDescription(quizData.techSkillsRating) : "Not specified"}
+- Brand Face Comfort: ${quizData.brandFaceComfort ? this.getRatingDescription(quizData.brandFaceComfort) : "Not specified"}
+- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment ? this.getRatingDescription(quizData.creativeWorkEnjoyment) : "Not specified"}
+- Communication Enjoyment: ${quizData.directCommunicationEnjoyment ? this.getRatingDescription(quizData.directCommunicationEnjoyment) : "Not specified"}
+- Self Motivation: ${quizData.selfMotivationLevel ? this.getRatingDescription(quizData.selfMotivationLevel) : "Not specified"}
+- Risk Comfort: ${quizData.riskComfortLevel ? this.getRatingDescription(quizData.riskComfortLevel) : "Not specified"}
 - Work Structure Preference: ${quizData.workStructurePreference || "Not specified"}
 - Work Collaboration Preference: ${quizData.workCollaborationPreference || "Not specified"}
 - Decision Making Style: ${quizData.decisionMakingStyle || "Not specified"}
-- Social Media Interest: ${quizData.socialMediaInterest || "Not specified"}/5
+- Social Media Interest: ${quizData.socialMediaInterest ? this.getRatingDescription(quizData.socialMediaInterest) : "Not specified"}
 - Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
 - Learning Preference: ${quizData.learningPreference || "Not specified"}
-- Passion Alignment Importance: ${quizData.passionIdentityAlignment || "Not specified"}/5
-- Meaningful Contribution Importance: ${quizData.meaningfulContributionImportance || "Not specified"}/5
+- Passion Alignment Importance: ${quizData.passionIdentityAlignment ? this.getRatingDescription(quizData.passionIdentityAlignment) : "Not specified"}
+- Meaningful Contribution Importance: ${quizData.meaningfulContributionImportance ? this.getRatingDescription(quizData.meaningfulContributionImportance) : "Not specified"}
     `.trim();
   }
 
