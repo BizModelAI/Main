@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Database, Trash2, Info } from 'lucide-react';
-import { aiCacheManager } from '../utils/aiCacheManager';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Database, Trash2, Info } from "lucide-react";
+import { aiCacheManager } from "../utils/aiCacheManager";
 
 const CacheDebugInfo: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +23,7 @@ const CacheDebugInfo: React.FC = () => {
     }
   }, [isOpen]);
 
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.MODE === "production") {
     return null; // Don't show in production
   }
 
@@ -41,11 +41,11 @@ const CacheDebugInfo: React.FC = () => {
           <Database className="h-4 w-4" />
           AI Cache Debug
         </button>
-        
+
         {isOpen && (
           <motion.div
             initial={{ height: 0 }}
-            animate={{ height: 'auto' }}
+            animate={{ height: "auto" }}
             exit={{ height: 0 }}
             className="border-t border-gray-200 p-3 bg-gray-50"
           >
@@ -57,10 +57,13 @@ const CacheDebugInfo: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-gray-600">
                   <div>Cached Items: {cacheStatus.cacheCount}</div>
-                  <div>Size: {Math.round(cacheStatus.totalCacheSize / 1024)}KB</div>
+                  <div>
+                    Size: {Math.round(cacheStatus.totalCacheSize / 1024)}KB
+                  </div>
                   {cacheStatus.oldestCache && (
                     <div className="col-span-2">
-                      Oldest: {new Date(cacheStatus.oldestCache).toLocaleTimeString()}
+                      Oldest:{" "}
+                      {new Date(cacheStatus.oldestCache).toLocaleTimeString()}
                     </div>
                   )}
                 </div>
