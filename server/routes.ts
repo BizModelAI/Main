@@ -17,17 +17,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // General OpenAI chat endpoint
   app.post("/api/openai-chat", async (req, res) => {
     try {
-      const { prompt, maxTokens = 200, temperature = 0.7, responseFormat = null } = req.body;
+      const {
+        prompt,
+        maxTokens = 200,
+        temperature = 0.7,
+        responseFormat = null,
+      } = req.body;
 
       if (!prompt) {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
       const requestBody = {
-        model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: prompt,
           },
         ],
@@ -40,14 +45,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestBody.response_format = responseFormat;
       }
 
-      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      const openaiResponse = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify(requestBody),
         },
-        body: JSON.stringify(requestBody),
-      });
+      );
 
       if (!openaiResponse.ok) {
         throw new Error(`OpenAI API error: ${openaiResponse.status}`);
@@ -58,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ content });
     } catch (error) {
-      console.error('Error in OpenAI chat:', error);
+      console.error("Error in OpenAI chat:", error);
       res.status(500).json({ error: "OpenAI API request failed" });
     }
   });
@@ -75,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ${userProfile}
 
         REQUIRED SKILLS:
-        ${requiredSkills.map((skill: string) => `- ${skill}`).join('\n')}
+        ${requiredSkills.map((skill: string) => `- ${skill}`).join("\n")}
 
         For each skill, determine:
         1. Status: "have" (user already has this skill), "working-on" (user has some experience but needs development), or "need" (user doesn't have this skill)
@@ -103,28 +111,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         - Their past tools and experience indicators
       `;
 
-      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      const openaiResponse = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are an expert career coach and skills assessor. Analyze user profiles and provide accurate skill assessments for business models.",
+              },
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.7,
+          }),
         },
-        body: JSON.stringify({
-          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert career coach and skills assessor. Analyze user profiles and provide accurate skill assessments for business models.',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.7,
-        }),
-      });
+      );
 
       if (!openaiResponse.ok) {
         throw new Error(`OpenAI API error: ${openaiResponse.status}`);
@@ -136,33 +148,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(result);
     } catch (error) {
-      console.error('Error in skills analysis:', error);
-      
+      console.error("Error in skills analysis:", error);
+
       // Return fallback analysis
       const { requiredSkills } = req.body;
       const third = Math.ceil(requiredSkills.length / 3);
-      
+
       const fallbackResult = {
         skillAssessments: [
           ...requiredSkills.slice(0, third).map((skill: string) => ({
             skill,
-            status: 'have',
+            status: "have",
             confidence: 7,
-            reasoning: 'Based on your quiz responses, you show strong aptitude for this skill'
+            reasoning:
+              "Based on your quiz responses, you show strong aptitude for this skill",
           })),
           ...requiredSkills.slice(third, third * 2).map((skill: string) => ({
             skill,
-            status: 'working-on',
+            status: "working-on",
             confidence: 6,
-            reasoning: 'You have some experience but could benefit from further development'
+            reasoning:
+              "You have some experience but could benefit from further development",
           })),
           ...requiredSkills.slice(third * 2).map((skill: string) => ({
             skill,
-            status: 'need',
+            status: "need",
             confidence: 8,
-            reasoning: 'This skill would need to be developed for optimal success'
-          }))
-        ]
+            reasoning:
+              "This skill would need to be developed for optimal success",
+          })),
+        ],
       };
 
       res.json(fallbackResult);
@@ -173,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai-business-fit-analysis", async (req, res) => {
     try {
       const { quizData } = req.body;
-      
+
       if (!quizData) {
         return res.status(400).json({ error: "Quiz data is required" });
       }
@@ -181,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const analysis = await aiScoringService.analyzeBusinessFit(quizData);
       res.json(analysis);
     } catch (error) {
-      console.error('Error in AI business fit analysis:', error);
+      console.error("Error in AI business fit analysis:", error);
       res.status(500).json({ error: "Failed to analyze business fit" });
     }
   });
@@ -190,15 +205,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai-personality-analysis", async (req, res) => {
     try {
       const { quizData } = req.body;
-      
+
       if (!quizData) {
         return res.status(400).json({ error: "Quiz data is required" });
       }
 
-      const analysis = await personalityAnalysisService.analyzePersonality(quizData);
+      const analysis =
+        await personalityAnalysisService.analyzePersonality(quizData);
       res.json(analysis);
     } catch (error) {
-      console.error('Error in AI personality analysis:', error);
+      console.error("Error in AI personality analysis:", error);
       res.status(500).json({ error: "Failed to analyze personality" });
     }
   });
@@ -207,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-income-projections", async (req, res) => {
     try {
       const { businessId } = req.body;
-      
+
       if (!businessId) {
         return res.status(400).json({ error: "Business ID is required" });
       }
@@ -216,56 +232,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projections = getFallbackProjections(businessId);
       res.json(projections);
     } catch (error) {
-      console.error('Error generating income projections:', error);
+      console.error("Error generating income projections:", error);
       res.status(500).json({ error: "Failed to generate income projections" });
     }
   });
 
   function getFallbackProjections(businessId: string) {
     const baseData: any = {
-      'affiliate-marketing': {
+      "affiliate-marketing": {
         monthlyProjections: [
-          { month: 'Month 1', income: 0, cumulativeIncome: 0, milestones: ['Setup website', 'Choose niche'] },
-          { month: 'Month 2', income: 50, cumulativeIncome: 50, milestones: ['First content published'] },
-          { month: 'Month 3', income: 200, cumulativeIncome: 250, milestones: ['First affiliate sale'] },
-          { month: 'Month 4', income: 500, cumulativeIncome: 750, milestones: ['Traffic growth'] },
-          { month: 'Month 5', income: 800, cumulativeIncome: 1550, milestones: ['SEO improvement'] },
-          { month: 'Month 6', income: 1200, cumulativeIncome: 2750, milestones: ['Email list building'] },
-          { month: 'Month 7', income: 1600, cumulativeIncome: 4350 },
-          { month: 'Month 8', income: 2000, cumulativeIncome: 6350 },
-          { month: 'Month 9', income: 2500, cumulativeIncome: 8850 },
-          { month: 'Month 10', income: 3000, cumulativeIncome: 11850 },
-          { month: 'Month 11', income: 3500, cumulativeIncome: 15350 },
-          { month: 'Month 12', income: 4000, cumulativeIncome: 19350 }
+          {
+            month: "Month 1",
+            income: 0,
+            cumulativeIncome: 0,
+            milestones: ["Setup website", "Choose niche"],
+          },
+          {
+            month: "Month 2",
+            income: 50,
+            cumulativeIncome: 50,
+            milestones: ["First content published"],
+          },
+          {
+            month: "Month 3",
+            income: 200,
+            cumulativeIncome: 250,
+            milestones: ["First affiliate sale"],
+          },
+          {
+            month: "Month 4",
+            income: 500,
+            cumulativeIncome: 750,
+            milestones: ["Traffic growth"],
+          },
+          {
+            month: "Month 5",
+            income: 800,
+            cumulativeIncome: 1550,
+            milestones: ["SEO improvement"],
+          },
+          {
+            month: "Month 6",
+            income: 1200,
+            cumulativeIncome: 2750,
+            milestones: ["Email list building"],
+          },
+          { month: "Month 7", income: 1600, cumulativeIncome: 4350 },
+          { month: "Month 8", income: 2000, cumulativeIncome: 6350 },
+          { month: "Month 9", income: 2500, cumulativeIncome: 8850 },
+          { month: "Month 10", income: 3000, cumulativeIncome: 11850 },
+          { month: "Month 11", income: 3500, cumulativeIncome: 15350 },
+          { month: "Month 12", income: 4000, cumulativeIncome: 19350 },
         ],
-        averageTimeToProfit: '3-4 months',
+        averageTimeToProfit: "3-4 months",
         projectedYearOneIncome: 19350,
-        keyFactors: ['Content quality', 'SEO optimization', 'Audience building', 'Product selection'],
-        assumptions: ['20 hours/week commitment', 'Consistent content creation', 'Learning SEO basics']
-      },
-      'freelancing': {
-        monthlyProjections: [
-          { month: 'Month 1', income: 500, cumulativeIncome: 500, milestones: ['Profile setup', 'First client'] },
-          { month: 'Month 2', income: 1200, cumulativeIncome: 1700, milestones: ['Portfolio building'] },
-          { month: 'Month 3', income: 2000, cumulativeIncome: 3700, milestones: ['Client testimonials'] },
-          { month: 'Month 4', income: 2800, cumulativeIncome: 6500, milestones: ['Rate increase'] },
-          { month: 'Month 5', income: 3500, cumulativeIncome: 10000, milestones: ['Repeat clients'] },
-          { month: 'Month 6', income: 4200, cumulativeIncome: 14200, milestones: ['Referral network'] },
-          { month: 'Month 7', income: 4800, cumulativeIncome: 19000 },
-          { month: 'Month 8', income: 5200, cumulativeIncome: 24200 },
-          { month: 'Month 9', income: 5600, cumulativeIncome: 29800 },
-          { month: 'Month 10', income: 6000, cumulativeIncome: 35800 },
-          { month: 'Month 11', income: 6200, cumulativeIncome: 42000 },
-          { month: 'Month 12', income: 6500, cumulativeIncome: 48500 }
+        keyFactors: [
+          "Content quality",
+          "SEO optimization",
+          "Audience building",
+          "Product selection",
         ],
-        averageTimeToProfit: '1-2 months',
+        assumptions: [
+          "20 hours/week commitment",
+          "Consistent content creation",
+          "Learning SEO basics",
+        ],
+      },
+      freelancing: {
+        monthlyProjections: [
+          {
+            month: "Month 1",
+            income: 500,
+            cumulativeIncome: 500,
+            milestones: ["Profile setup", "First client"],
+          },
+          {
+            month: "Month 2",
+            income: 1200,
+            cumulativeIncome: 1700,
+            milestones: ["Portfolio building"],
+          },
+          {
+            month: "Month 3",
+            income: 2000,
+            cumulativeIncome: 3700,
+            milestones: ["Client testimonials"],
+          },
+          {
+            month: "Month 4",
+            income: 2800,
+            cumulativeIncome: 6500,
+            milestones: ["Rate increase"],
+          },
+          {
+            month: "Month 5",
+            income: 3500,
+            cumulativeIncome: 10000,
+            milestones: ["Repeat clients"],
+          },
+          {
+            month: "Month 6",
+            income: 4200,
+            cumulativeIncome: 14200,
+            milestones: ["Referral network"],
+          },
+          { month: "Month 7", income: 4800, cumulativeIncome: 19000 },
+          { month: "Month 8", income: 5200, cumulativeIncome: 24200 },
+          { month: "Month 9", income: 5600, cumulativeIncome: 29800 },
+          { month: "Month 10", income: 6000, cumulativeIncome: 35800 },
+          { month: "Month 11", income: 6200, cumulativeIncome: 42000 },
+          { month: "Month 12", income: 6500, cumulativeIncome: 48500 },
+        ],
+        averageTimeToProfit: "1-2 months",
         projectedYearOneIncome: 48500,
-        keyFactors: ['Skill level', 'Portfolio quality', 'Client communication', 'Pricing strategy'],
-        assumptions: ['Existing marketable skills', '25 hours/week availability', 'Professional presentation']
-      }
+        keyFactors: [
+          "Skill level",
+          "Portfolio quality",
+          "Client communication",
+          "Pricing strategy",
+        ],
+        assumptions: [
+          "Existing marketable skills",
+          "25 hours/week availability",
+          "Professional presentation",
+        ],
+      },
     };
 
-    return baseData[businessId] || baseData['affiliate-marketing'];
+    return baseData[businessId] || baseData["affiliate-marketing"];
   }
 
   // Quiz retake system endpoints
@@ -273,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       let user = await storage.getUser(userId);
-      
+
       // Create user if doesn't exist (for testing)
       if (!user) {
         user = await storage.createUser({
@@ -281,24 +375,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password: "test123",
           hasAccessPass: false,
           quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0
+          totalQuizRetakesUsed: 0,
         });
       }
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
-      
+
       // Logic: Guests can take quiz unlimited times for free
       // If they pay $9.99, they get 5 total attempts (limited)
       // After 5 attempts, they pay $4.99 for 5 more attempts
-      
-      const isGuestUser = !user.hasAccessPass && user.quizRetakesRemaining === 0;
+
+      const isGuestUser =
+        !user.hasAccessPass && user.quizRetakesRemaining === 0;
       const hasAccessPass = user.hasAccessPass;
-      
+
       // Can retake if:
       // 1. Guest user (unlimited free attempts)
       // 2. Paid user with remaining retakes
-      const canRetake = isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
-      
+      const canRetake =
+        isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
+
       res.json({
         canRetake,
         attemptsCount,
@@ -307,10 +403,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalQuizRetakesUsed: user.totalQuizRetakesUsed,
         isFirstQuiz: attemptsCount === 0,
         isFreeQuizUsed: attemptsCount > 0,
-        isGuestUser
+        isGuestUser,
       });
     } catch (error) {
-      console.error('Error getting quiz retake status:', error);
+      console.error("Error getting quiz retake status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -318,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/quiz-attempt", async (req, res) => {
     try {
       const { userId, quizData } = req.body;
-      
+
       if (!userId || !quizData) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -330,27 +426,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password: "test123",
           hasAccessPass: false,
           quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0
+          totalQuizRetakesUsed: 0,
         });
       }
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
-      const isGuestUser = !user.hasAccessPass && user.quizRetakesRemaining === 0;
+      const isGuestUser =
+        !user.hasAccessPass && user.quizRetakesRemaining === 0;
       const hasAccessPass = user.hasAccessPass;
-      
+
       // Can take quiz if:
       // 1. Guest user (unlimited free attempts)
       // 2. Paid user with remaining retakes
-      const canTakeQuiz = isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
-      
+      const canTakeQuiz =
+        isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
+
       if (!canTakeQuiz) {
-        return res.status(403).json({ error: "No quiz retakes remaining. Purchase more retakes to continue." });
+        return res
+          .status(403)
+          .json({
+            error:
+              "No quiz retakes remaining. Purchase more retakes to continue.",
+          });
       }
 
       // Record the quiz attempt
       const attempt = await storage.recordQuizAttempt({
         userId,
-        quizData
+        quizData,
       });
 
       // Decrement retakes only for paid users
@@ -358,13 +461,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.decrementQuizRetakes(userId);
       }
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         attemptId: attempt.id,
-        message: "Quiz attempt recorded successfully" 
+        message: "Quiz attempt recorded successfully",
       });
     } catch (error) {
-      console.error('Error recording quiz attempt:', error);
+      console.error("Error recording quiz attempt:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -374,21 +477,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       let user = await storage.getUser(userId);
-      
+
       if (!user) {
         user = await storage.createUser({
           username: `user${userId}`,
           password: "test123",
           hasAccessPass: false,
           quizRetakesRemaining: 0,
-          totalQuizRetakesUsed: 0
+          totalQuizRetakesUsed: 0,
         });
       }
 
       const attempts = await storage.getQuizAttempts(userId);
       res.json(attempts);
     } catch (error) {
-      console.error('Error getting quiz attempts:', error);
+      console.error("Error getting quiz attempts:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -396,7 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-access-pass-payment", async (req, res) => {
     try {
       const { userId } = req.body;
-      
+
       if (!userId) {
         return res.status(400).json({ error: "Missing userId" });
       }
@@ -418,20 +521,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: "usd",
         type: "access_pass",
         status: "pending",
-        retakesGranted: 5
+        retakesGranted: 5,
       });
 
       // In a real implementation, this would integrate with Stripe
       // For now, simulate successful payment
       await storage.completePayment(payment.id, 5);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         paymentId: payment.id,
-        message: "Access pass purchased successfully. You now have 5 quiz retakes!" 
+        message:
+          "Access pass purchased successfully. You now have 5 quiz retakes!",
       });
     } catch (error) {
-      console.error('Error creating access pass payment:', error);
+      console.error("Error creating access pass payment:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -439,7 +543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/create-retake-bundle-payment", async (req, res) => {
     try {
       const { userId } = req.body;
-      
+
       if (!userId) {
         return res.status(400).json({ error: "Missing userId" });
       }
@@ -451,7 +555,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has access pass
       if (!user.hasAccessPass) {
-        return res.status(400).json({ error: "User must have access pass first" });
+        return res
+          .status(400)
+          .json({ error: "User must have access pass first" });
       }
 
       // Create payment record for retake bundle ($4.99)
@@ -461,20 +567,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: "usd",
         type: "retake_bundle",
         status: "pending",
-        retakesGranted: 5
+        retakesGranted: 5,
       });
 
       // In a real implementation, this would integrate with Stripe
       // For now, simulate successful payment
       await storage.completePayment(payment.id, 5);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         paymentId: payment.id,
-        message: "Retake bundle purchased successfully. You now have 5 additional quiz retakes!" 
+        message:
+          "Retake bundle purchased successfully. You now have 5 additional quiz retakes!",
       });
     } catch (error) {
-      console.error('Error creating retake bundle payment:', error);
+      console.error("Error creating retake bundle payment:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -483,10 +590,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.userId);
       const payments = await storage.getPaymentsByUser(userId);
-      
+
       res.json(payments);
     } catch (error) {
-      console.error('Error getting payment history:', error);
+      console.error("Error getting payment history:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -496,10 +603,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const businessModel = req.params.businessModel;
       const resources = await generateBusinessResources(businessModel);
-      
+
       res.json(resources);
     } catch (error) {
-      console.error('Error generating business resources:', error);
+      console.error("Error generating business resources:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -508,38 +615,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-pdf", async (req, res) => {
     try {
       const { quizData, userEmail } = req.body;
-      
-      console.log('PDF generation request received', { hasQuizData: !!quizData, userEmail });
-      
+
+      console.log("PDF generation request received", {
+        hasQuizData: !!quizData,
+        userEmail,
+      });
+
       if (!quizData) {
         return res.status(400).json({ error: "Quiz data is required" });
       }
 
-      // Get the base URL from the request
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      console.log('Base URL:', baseUrl);
-      
+      // Get the base URL from the request, fallback to current domain
+      const baseUrl = req.get("host")?.includes("localhost")
+        ? `${req.protocol}://${req.get("host")}`
+        : "https://bizmodelai.com";
+      console.log("Base URL:", baseUrl);
+
       // Generate PDF
       const pdfBuffer = await pdfService.generatePDF({
         quizData,
         userEmail,
-        baseUrl
+        baseUrl,
       });
 
-      console.log('PDF generated successfully, size:', pdfBuffer.length);
+      console.log("PDF generated successfully, size:", pdfBuffer.length);
 
       // Set headers for HTML download (temporary solution until Puppeteer works)
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', 'attachment; filename="business-report.html"');
-      res.setHeader('Content-Length', pdfBuffer.length);
-      
+      res.setHeader("Content-Type", "text/html");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="business-report.html"',
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+
       // Send the HTML
       res.send(pdfBuffer);
     } catch (error) {
       console.error("PDF generation failed:", error);
-      res.status(500).json({ 
-        error: "Failed to generate PDF", 
-        details: error instanceof Error ? error.message : "Unknown error" 
+      res.status(500).json({
+        error: "Failed to generate PDF",
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
@@ -548,20 +663,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/send-quiz-results", async (req, res) => {
     try {
       const { email, quizData } = req.body;
-      
+
       if (!email || !quizData) {
         return res.status(400).json({ error: "Missing email or quiz data" });
       }
 
       const success = await emailService.sendQuizResults(email, quizData);
-      
+
       if (success) {
         res.json({ success: true, message: "Quiz results sent successfully" });
       } else {
         res.status(500).json({ error: "Failed to send email" });
       }
     } catch (error) {
-      console.error('Error sending quiz results email:', error);
+      console.error("Error sending quiz results email:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -569,20 +684,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/send-welcome-email", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ error: "Missing email" });
       }
 
       const success = await emailService.sendWelcomeEmail(email);
-      
+
       if (success) {
         res.json({ success: true, message: "Welcome email sent successfully" });
       } else {
         res.status(500).json({ error: "Failed to send email" });
       }
     } catch (error) {
-      console.error('Error sending welcome email:', error);
+      console.error("Error sending welcome email:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -590,20 +705,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/send-full-report", async (req, res) => {
     try {
       const { email, quizData } = req.body;
-      
+
       if (!email || !quizData) {
         return res.status(400).json({ error: "Missing email or quiz data" });
       }
 
       const success = await emailService.sendFullReport(email, quizData);
-      
+
       if (success) {
         res.json({ success: true, message: "Full report sent successfully" });
       } else {
         res.status(500).json({ error: "Failed to send email" });
       }
     } catch (error) {
-      console.error('Error sending full report email:', error);
+      console.error("Error sending full report email:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -612,24 +727,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/openai-chat", async (req, res) => {
     try {
       const { messages, response_format } = req.body;
-      
+
       if (!messages || !Array.isArray(messages)) {
-        return res.status(400).json({ error: "Missing or invalid messages array" });
+        return res
+          .status(400)
+          .json({ error: "Missing or invalid messages array" });
       }
 
-      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      const openaiResponse = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: messages,
+            response_format: response_format || undefined,
+            temperature: 0.7,
+          }),
         },
-        body: JSON.stringify({
-          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: messages,
-          response_format: response_format || undefined,
-          temperature: 0.7,
-        }),
-      });
+      );
 
       if (!openaiResponse.ok) {
         throw new Error(`OpenAI API error: ${openaiResponse.status}`);
@@ -637,10 +757,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await openaiResponse.json();
       const content = data.choices[0].message.content;
-      
+
       res.json({ content });
     } catch (error) {
-      console.error('Error in OpenAI chat:', error);
+      console.error("Error in OpenAI chat:", error);
       res.status(500).json({ error: "Failed to generate response" });
     }
   });
@@ -649,9 +769,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-personalized-insights", async (req, res) => {
     try {
       const { quizData, topBusinessPath } = req.body;
-      
+
       if (!quizData || !topBusinessPath) {
-        return res.status(400).json({ error: "Missing quiz data or top business path" });
+        return res
+          .status(400)
+          .json({ error: "Missing quiz data or top business path" });
       }
 
       const prompt = `Based on this user's complete quiz responses, generate three detailed paragraphs that provide personalized insights about their entrepreneurial fit. Use their actual responses to create specific, relevant analysis.
@@ -676,7 +798,7 @@ User Quiz Data:
 - Uncertainty Handling: ${quizData.uncertaintyHandling}/5
 - Work Collaboration Preference: ${quizData.workCollaborationPreference}
 - Decision Making Style: ${quizData.decisionMakingStyle}
-- Familiar Tools: ${quizData.familiarTools?.join(', ') || 'None specified'}
+- Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
 - Passion Identity Alignment: ${quizData.passionIdentityAlignment}/5
 - Competitiveness Level: ${quizData.competitivenessLevel}/5
 - Discouragement Resilience: ${quizData.discouragementResilience}/5
@@ -696,28 +818,32 @@ Paragraph 3 - Success Prediction & Strategy: Based on their technical skills, co
 
 Make each paragraph 4-6 sentences long. Use their actual quiz responses throughout - don't use generic statements. Write in a professional, consultative tone that feels personalized to their specific situation.`;
 
-      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      const openaiResponse = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are an expert business consultant and psychologist specializing in entrepreneurial assessment. Provide detailed, personalized analysis based on quiz responses.",
+              },
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            temperature: 0.7,
+            max_tokens: 1000,
+          }),
         },
-        body: JSON.stringify({
-          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert business consultant and psychologist specializing in entrepreneurial assessment. Provide detailed, personalized analysis based on quiz responses.',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 1000,
-        }),
-      });
+      );
 
       if (!openaiResponse.ok) {
         throw new Error(`OpenAI API error: ${openaiResponse.status}`);
@@ -725,10 +851,10 @@ Make each paragraph 4-6 sentences long. Use their actual quiz responses througho
 
       const data = await openaiResponse.json();
       const insights = data.choices[0].message.content;
-      
+
       res.json({ insights });
     } catch (error) {
-      console.error('Error generating personalized insights:', error);
+      console.error("Error generating personalized insights:", error);
       res.status(500).json({ error: "Failed to generate insights" });
     }
   });
@@ -737,9 +863,11 @@ Make each paragraph 4-6 sentences long. Use their actual quiz responses througho
   app.post("/api/generate-business-fit-descriptions", async (req, res) => {
     try {
       const { quizData, businessMatches } = req.body;
-      
+
       if (!quizData || !businessMatches || !Array.isArray(businessMatches)) {
-        return res.status(400).json({ error: "Missing or invalid quiz data or business matches" });
+        return res
+          .status(400)
+          .json({ error: "Missing or invalid quiz data or business matches" });
       }
 
       const descriptions = [];
@@ -747,8 +875,8 @@ Make each paragraph 4-6 sentences long. Use their actual quiz responses througho
       for (let i = 0; i < businessMatches.length; i++) {
         const match = businessMatches[i];
         const rank = i + 1;
-        
-        const prompt = `Based on this user's quiz responses, generate a detailed "Why This Fits You" description for their ${rank === 1 ? 'top' : rank === 2 ? 'second' : 'third'} business match.
+
+        const prompt = `Based on this user's quiz responses, generate a detailed "Why This Fits You" description for their ${rank === 1 ? "top" : rank === 2 ? "second" : "third"} business match.
 
 User Quiz Data:
 - Main Motivation: ${quizData.mainMotivation}
@@ -770,7 +898,7 @@ User Quiz Data:
 - Uncertainty Handling: ${quizData.uncertaintyHandling}/5
 - Work Collaboration Preference: ${quizData.workCollaborationPreference}
 - Decision Making Style: ${quizData.decisionMakingStyle}
-- Familiar Tools: ${quizData.familiarTools?.join(', ') || 'None specified'}
+- Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
 
 Business Match:
 - Name: ${match.name}
@@ -788,28 +916,32 @@ Generate a personalized 4-6 sentence description in two paragraphs explaining wh
 
 Make it personal and specific to their responses, not generic advice. Write in a supportive, consultative tone.`;
 
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        const openaiResponse = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are an expert business consultant specializing in entrepreneurial personality matching. Generate personalized, specific explanations for why certain business models fit individual users based on their quiz responses.",
+                },
+                {
+                  role: "user",
+                  content: prompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 300,
+            }),
           },
-          body: JSON.stringify({
-            model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-            messages: [
-              {
-                role: 'system',
-                content: 'You are an expert business consultant specializing in entrepreneurial personality matching. Generate personalized, specific explanations for why certain business models fit individual users based on their quiz responses.',
-              },
-              {
-                role: 'user',
-                content: prompt,
-              },
-            ],
-            temperature: 0.7,
-            max_tokens: 300,
-          }),
-        });
+        );
 
         if (!openaiResponse.ok) {
           throw new Error(`OpenAI API error: ${openaiResponse.status}`);
@@ -817,25 +949,29 @@ Make it personal and specific to their responses, not generic advice. Write in a
 
         const data = await openaiResponse.json();
         const content = data.choices[0].message.content;
-        
+
         descriptions.push({
           businessId: match.id,
-          description: content || `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a suitable match for your entrepreneurial journey.`
+          description:
+            content ||
+            `This business model aligns well with your ${quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "self-driven nature"} and ${quizData.weeklyTimeCommitment} hours/week availability. Your ${quizData.techSkillsRating >= 4 ? "strong" : "adequate"} technical skills and ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance make this a suitable match for your entrepreneurial journey.`,
         });
       }
 
       res.json({ descriptions });
     } catch (error) {
-      console.error('Error generating business fit descriptions:', error);
-      
-      // Return fallback descriptions
-      const fallbackDescriptions = req.body.businessMatches.map((match: any, index: number) => ({
-        businessId: match.id,
-        description: `This business model aligns well with your ${req.body.quizData.selfMotivationLevel >= 4 ? 'high self-motivation' : 'self-driven nature'} and ${req.body.quizData.weeklyTimeCommitment} hours/week availability. Your ${req.body.quizData.techSkillsRating >= 4 ? 'strong' : 'adequate'} technical skills and ${req.body.quizData.riskComfortLevel >= 4 ? 'high' : 'moderate'} risk tolerance make this a ${index === 0 ? 'perfect' : index === 1 ? 'excellent' : 'good'} match for your entrepreneurial journey.
+      console.error("Error generating business fit descriptions:", error);
 
-${index === 0 ? 'As your top match, this path offers the best alignment with your goals and preferences.' : index === 1 ? 'This represents a strong secondary option that complements your primary strengths.' : 'This provides a solid alternative path that matches your core capabilities.'} Your ${req.body.quizData.learningPreference?.replace('-', ' ')} learning style and ${req.body.quizData.workStructurePreference?.replace('-', ' ')} work preference make this business model particularly suitable for your success.`
-      }));
-      
+      // Return fallback descriptions
+      const fallbackDescriptions = req.body.businessMatches.map(
+        (match: any, index: number) => ({
+          businessId: match.id,
+          description: `This business model aligns well with your ${req.body.quizData.selfMotivationLevel >= 4 ? "high self-motivation" : "self-driven nature"} and ${req.body.quizData.weeklyTimeCommitment} hours/week availability. Your ${req.body.quizData.techSkillsRating >= 4 ? "strong" : "adequate"} technical skills and ${req.body.quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance make this a ${index === 0 ? "perfect" : index === 1 ? "excellent" : "good"} match for your entrepreneurial journey.
+
+${index === 0 ? "As your top match, this path offers the best alignment with your goals and preferences." : index === 1 ? "This represents a strong secondary option that complements your primary strengths." : "This provides a solid alternative path that matches your core capabilities."} Your ${req.body.quizData.learningPreference?.replace("-", " ")} learning style and ${req.body.quizData.workStructurePreference?.replace("-", " ")} work preference make this business model particularly suitable for your success.`,
+        }),
+      );
+
       res.json({ descriptions: fallbackDescriptions });
     }
   });
@@ -844,9 +980,11 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
   app.post("/api/email-results", async (req, res) => {
     try {
       const { sessionId, email, quizData, isPaidUser } = req.body;
-      
+
       if (!sessionId || !quizData) {
-        return res.status(400).json({ error: "Missing session ID or quiz data" });
+        return res
+          .status(400)
+          .json({ error: "Missing session ID or quiz data" });
       }
 
       // Check if user is paid (has account)
@@ -863,12 +1001,18 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
 
       // For unpaid users, check if email already exists for this session
       const existingEmail = await storage.getUnpaidUserEmail(sessionId);
-      
+
       if (existingEmail) {
         // Email already stored, just send again
-        const success = await emailService.sendQuizResults(existingEmail.email, quizData);
+        const success = await emailService.sendQuizResults(
+          existingEmail.email,
+          quizData,
+        );
         if (success) {
-          res.json({ success: true, message: "Results sent to your email again" });
+          res.json({
+            success: true,
+            message: "Results sent to your email again",
+          });
         } else {
           res.status(500).json({ error: "Failed to send email" });
         }
@@ -877,20 +1021,22 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
 
       // New email for unpaid user
       if (!email) {
-        return res.status(400).json({ error: "Email is required for new users" });
+        return res
+          .status(400)
+          .json({ error: "Email is required for new users" });
       }
 
       // Store the email and send results
       await storage.storeUnpaidUserEmail(sessionId, email, quizData);
       const success = await emailService.sendQuizResults(email, quizData);
-      
+
       if (success) {
         res.json({ success: true, message: "Results sent to your email" });
       } else {
         res.status(500).json({ error: "Failed to send email" });
       }
     } catch (error) {
-      console.error('Error in email-results endpoint:', error);
+      console.error("Error in email-results endpoint:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -900,14 +1046,14 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
     try {
       const { sessionId } = req.params;
       const storedEmail = await storage.getUnpaidUserEmail(sessionId);
-      
+
       if (storedEmail) {
         res.json({ email: storedEmail.email });
       } else {
         res.json({ email: null });
       }
     } catch (error) {
-      console.error('Error getting stored email:', error);
+      console.error("Error getting stored email:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -916,16 +1062,16 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
   app.post("/api/test-email", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
       }
 
       console.log(`Testing email delivery to: ${email}`);
-      
+
       const success = await emailService.sendEmail({
         to: email,
-        subject: 'BizModelAI Email Test',
+        subject: "BizModelAI Email Test",
         html: `
           <html>
             <body style="font-family: Arial, sans-serif; padding: 20px;">
@@ -935,7 +1081,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
               <p>Time sent: ${new Date().toISOString()}</p>
             </body>
           </html>
-        `
+        `,
       });
 
       if (success) {
@@ -944,7 +1090,7 @@ ${index === 0 ? 'As your top match, this path offers the best alignment with you
         res.status(500).json({ error: "Failed to send test email" });
       }
     } catch (error) {
-      console.error('Error sending test email:', error);
+      console.error("Error sending test email:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
