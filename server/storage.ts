@@ -239,6 +239,14 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
+  async getPaymentsByStripeId(
+    stripePaymentIntentId: string,
+  ): Promise<Payment[]> {
+    return Array.from(this.payments.values()).filter(
+      (payment) => payment.stripePaymentIntentId === stripePaymentIntentId,
+    );
+  }
+
   async storeUnpaidUserEmail(
     sessionId: string,
     email: string,
