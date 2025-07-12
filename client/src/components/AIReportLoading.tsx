@@ -483,8 +483,6 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
           allCharacteristics: (currentResults as any).allCharacteristics || [],
           businessFitDescriptions:
             (currentResults as any).businessFitDescriptions || {},
-          personalizedInsights:
-            (currentResults as any).personalizedInsights || "",
         });
       }
     };
