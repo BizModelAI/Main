@@ -1,5 +1,4 @@
-import puppeteer from "puppeteer";
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import { QuizData } from "../../shared/types.js";
 import * as fs from "fs";
 
