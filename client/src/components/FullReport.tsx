@@ -697,6 +697,9 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
       setAiInsights(preloadedData.aiInsights);
       setAllCharacteristics(preloadedData.allCharacteristics);
       setBusinessFitDescriptions(preloadedData.businessFitDescriptions);
+      setBusinessAvoidDescriptions(
+        preloadedData.businessAvoidDescriptions || {},
+      );
       setIsLoadingInsights(false);
       setIsLoadingDescriptions(false);
     } else {
