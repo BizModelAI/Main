@@ -140,4 +140,33 @@ export function setupAuthRoutes(app: Express) {
       res.status(500).json({ error: "Internal server error" });
     }
   });
+
+  // Delete account
+  app.delete("/api/auth/account", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const userId = req.session.userId;
+
+      // Delete all user data from database
+      await storage.deleteUser(userId);
+
+      // Destroy session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+          return res
+            .status(500)
+            .json({ error: "Could not complete account deletion" });
+        }
+        res.clearCookie("connect.sid");
+        res.json({ success: true, message: "Account deleted successfully" });
+      });
+    } catch (error) {
+      console.error("Error in /api/auth/account:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 }
