@@ -479,6 +479,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/quiz-attempts/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+
+      // Check if user is authenticated and requesting their own data
+      if (req.session.userId && req.session.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
       let user = await storage.getUser(userId);
 
       if (!user) {
@@ -495,6 +501,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(attempts);
     } catch (error) {
       console.error("Error getting quiz attempts:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get latest quiz data for authenticated user (for business model pages)
+  app.get("/api/auth/latest-quiz-data", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const attempts = await storage.getQuizAttempts(req.session.userId);
+      if (attempts.length > 0) {
+        res.json(attempts[0].quizData); // Most recent attempt
+      } else {
+        res.json(null);
+      }
+    } catch (error) {
+      console.error("Error getting latest quiz data:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
