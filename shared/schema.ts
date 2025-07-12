@@ -1,4 +1,14 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, varchar } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  jsonb,
+  decimal,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,7 +27,9 @@ export const users = pgTable("users", {
 // Quiz attempts table to track when users take the quiz
 export const quizAttempts = pgTable("quiz_attempts", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
   quizData: jsonb("quiz_data").notNull(),
   completedAt: timestamp("completed_at").defaultNow().notNull(),
 });
@@ -25,7 +37,9 @@ export const quizAttempts = pgTable("quiz_attempts", {
 // Payments table to track quiz retake purchases
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency").default("usd").notNull(),
   type: varchar("type").notNull(), // "access_pass" or "retake_bundle"
