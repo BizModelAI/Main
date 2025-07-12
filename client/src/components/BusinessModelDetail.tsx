@@ -445,6 +445,18 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     );
   }
 
+  if (showPaymentModal) {
+    return (
+      <PaymentAccountModal
+        isOpen={true}
+        onClose={handlePaymentClose}
+        onSuccess={handlePaymentSuccess}
+        type={hasCompletedQuiz ? "learn-more" : "full-report"}
+        title={businessPath?.name || businessModel?.title}
+      />
+    );
+  }
+
   if (!businessPath && !businessModel) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
