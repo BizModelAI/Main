@@ -347,6 +347,19 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
             : undefined
         }
       />
+
+      {/* Payment Account Modal */}
+      <PaymentAccountModal
+        isOpen={showPaymentModal}
+        onClose={handlePaymentClose}
+        onSuccess={handlePaymentSuccess}
+        type={paywallType as "business-model" | "learn-more" | "full-report"}
+        title={
+          selectedBusinessId
+            ? businessModels.find((m) => m.id === selectedBusinessId)?.title
+            : undefined
+        }
+      />
     </div>
   );
 };
