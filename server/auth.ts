@@ -165,7 +165,11 @@ export function setupAuthRoutes(app: Express) {
           .json({ error: "Temporary account data not found or expired" });
       }
 
-      const { email, password, name } = tempData.quizData;
+      const { email, password, name } = tempData.quizData as {
+        email: string;
+        password: string;
+        name: string;
+      };
 
       // Check if user already exists (shouldn't happen, but safety check)
       const existingUser = await storage.getUserByUsername(email);
