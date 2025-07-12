@@ -315,14 +315,22 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
 
     // Handle access control and AI analysis generation
     if (!hasCompletedQuiz) {
-      setShowPaywallModal(true);
+      if (!user) {
+        setShowPaymentModal(true);
+      } else {
+        setShowPaywallModal(true);
+      }
       setAiAnalysis(null);
       setIsLoadingAnalysis(false);
       return;
     }
 
     if (!canAccessBusinessModel(businessId)) {
-      setShowPaywallModal(true);
+      if (!user) {
+        setShowPaymentModal(true);
+      } else {
+        setShowPaywallModal(true);
+      }
       setAiAnalysis(null);
       setIsLoadingAnalysis(false);
       return;
