@@ -9,7 +9,7 @@ import { personalityAnalysisService } from "./services/personalityAnalysisServic
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2024-10-28.acacia",
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
