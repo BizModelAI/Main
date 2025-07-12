@@ -107,30 +107,15 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     return true;
   };
 
-  const validatePaymentForm = () => {
-    if (
-      !paymentData.cardNumber.replace(/\s/g, "") ||
-      paymentData.cardNumber.replace(/\s/g, "").length < 16
-    ) {
-      setError("Please enter a valid card number");
-      return false;
-    }
-    if (
-      !paymentData.expiryDate ||
-      !paymentData.expiryDate.match(/^\d{2}\/\d{2}$/)
-    ) {
-      setError("Please enter a valid expiry date (MM/YY)");
-      return false;
-    }
-    if (!paymentData.cvc || paymentData.cvc.length < 3) {
-      setError("Please enter a valid CVC");
-      return false;
-    }
-    if (!paymentData.billingName.trim()) {
-      setError("Billing name is required");
-      return false;
-    }
-    return true;
+  const handlePaymentSuccess = () => {
+    setHasUnlockedAnalysis(true);
+    localStorage.setItem("hasAnyPayment", "true");
+    onSuccess();
+  };
+
+  const handlePaymentError = (errorMessage: string) => {
+    setPaymentError(errorMessage);
+    setError(errorMessage);
   };
 
   const handleAccountSubmit = async (e: React.FormEvent) => {
