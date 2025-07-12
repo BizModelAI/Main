@@ -12,6 +12,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2022-11-15",
 });
 
+function getRatingDescription(rating: number): string {
+  if (rating >= 4.5) return "Very High";
+  if (rating >= 4) return "High";
+  if (rating >= 3) return "Moderate";
+  if (rating >= 2) return "Low";
+  return "Very Low";
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
   // prefix all routes with /api
