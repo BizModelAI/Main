@@ -385,7 +385,7 @@ const LoadingPageWrapper: React.FC<{
 // Component that handles quiz navigation
 const QuizWithNavigation: React.FC<{
   quizData: QuizData | null;
-  setQuizData: (data: QuizData) => void;
+  setQuizData: (data: QuizData | null) => void;
   showEmailCapture: boolean;
   setShowEmailCapture: (show: boolean) => void;
   userEmail: string | null;
