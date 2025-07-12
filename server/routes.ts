@@ -793,11 +793,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Check if user already exists (safety check)
               let user = await storage.getUserByUsername(email);
               if (!user) {
-                // Create permanent user account
-                user = await storage.createUser({
-                  username: email,
-                  password: password, // Already hashed
-                });
+                try {
+                  // Create permanent user account
+                  user = await storage.createUser({
+                    username: email,
+                    password: password, // Already hashed
+                  });
+                } catch (createUserError) {
+                  // If user creation fails due to duplicate email, try to get the user again
+                  // This can happen in rare race conditions
+                  user = await storage.getUserByUsername(email);
+                  if (!user) {
+                    throw createUserError; // Re-throw if it's not a duplicate error
+                  }
+                  console.log(
+                    `User ${email} already existed, using existing user.`,
+                  );
+                }
               }
 
               // Create payment record
