@@ -119,7 +119,7 @@ interface BusinessModelDetailProps {
 }
 
 const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
-  quizData,
+  quizData: propQuizData,
 }) => {
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
@@ -133,8 +133,14 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     null,
   );
   const [isLoadingSkills, setIsLoadingSkills] = useState(false);
+  const [quizData, setQuizData] = useState<QuizData | null>(
+    propQuizData || null,
+  );
+  const [isLoadingQuizData, setIsLoadingQuizData] = useState(false);
+
   const { hasCompletedQuiz, canAccessBusinessModel, setHasUnlockedAnalysis } =
     usePaywall();
+  const { user, getLatestQuizData } = useAuth();
 
   // Calculate fit category based on actual quiz data if available
   const fitCategory = useMemo(() => {
