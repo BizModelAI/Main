@@ -141,20 +141,23 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setIsProcessing(true);
     try {
       await login(loginEmail, formData.password);
-      // After successful login, check if user has already paid
+      // After successful login, check user's payment status and retakes
       const response = await fetch("/api/auth/me", {
         credentials: "include",
       });
       if (response.ok) {
         const userData = await response.json();
-        if (userData.hasAccessPass) {
-          // User already has access, bypass payment and grant access
+        if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
+          // User has access pass and retakes remaining, bypass payment
           setHasUnlockedAnalysis(true);
           onSuccess();
           return;
         }
+        // User either:
+        // 1. Doesn't have access pass (needs $9.99 payment)
+        // 2. Has access pass but no retakes (needs $4.99 retake bundle)
+        // Either way, they need to pay
       }
-      // User logged in but hasn't paid, proceed to payment
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
