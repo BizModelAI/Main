@@ -478,7 +478,9 @@ const QuizWithNavigation: React.FC<{
       <Quiz
         onComplete={handleQuizComplete}
         onBack={() => window.history.back()}
-        userId={user ? parseInt(user.id) : undefined}
+        userId={
+          user && !user.id.startsWith("temp_") ? parseInt(user.id) : undefined
+        }
       />
       {showCongratulations && quizData && (
         <EmailCapture
