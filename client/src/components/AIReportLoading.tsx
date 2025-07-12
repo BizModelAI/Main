@@ -540,6 +540,8 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
           allCharacteristics: (currentResults as any).allCharacteristics || [],
           businessFitDescriptions:
             (currentResults as any).businessFitDescriptions || {},
+          businessAvoidDescriptions:
+            (currentResults as any).businessAvoidDescriptions || {},
         });
       } catch (error) {
         console.error("Error generating report:", error);
@@ -561,6 +563,8 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
           allCharacteristics: (currentResults as any).allCharacteristics || [],
           businessFitDescriptions:
             (currentResults as any).businessFitDescriptions || {},
+          businessAvoidDescriptions:
+            (currentResults as any).businessAvoidDescriptions || {},
         });
       }
     };
