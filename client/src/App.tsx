@@ -74,31 +74,6 @@ function App() {
     setShowCongratulations(true);
   };
 
-  // Handler for congratulations completion
-  const handleCongratulationsComplete = (email?: string) => {
-    console.log("Congratulations complete, navigating to results");
-    if (email) {
-      setUserEmail(email);
-      localStorage.setItem("userEmail", email);
-    }
-    setShowCongratulations(false);
-
-    // Store data in localStorage before navigation
-    if (quizData) {
-      localStorage.setItem("quizData", JSON.stringify(quizData));
-    }
-    if (loadedReportData) {
-      localStorage.setItem(
-        "loadedReportData",
-        JSON.stringify(loadedReportData),
-      );
-    }
-
-    setTimeout(() => {
-      window.location.href = "/results";
-    }, 100);
-  };
-
   // TEMPORARY: Mock quiz data for testing with COMPLETE data structure
   const generateMockQuizData = (): QuizData => {
     return {
@@ -275,23 +250,15 @@ function App() {
             <Route
               path="/loading"
               element={
-                <div className="relative">
-                  <LoadingPage
-                    quizData={quizData}
-                    userEmail={userEmail}
-                    onComplete={handleAILoadingComplete}
-                    onExit={() => navigate("/quiz")}
-                  />
-                  {showCongratulations && quizData && (
-                    <EmailCapture
-                      onEmailSubmit={handleCongratulationsComplete}
-                      onContinueAsGuest={handleCongratulationsComplete}
-                      onReturnToQuiz={() => navigate("/quiz")}
-                      quizData={quizData}
-                      onStartAIGeneration={handleCongratulationsComplete}
-                    />
-                  )}
-                </div>
+                <LoadingPageWrapper
+                  quizData={quizData}
+                  userEmail={userEmail}
+                  showCongratulations={showCongratulations}
+                  setUserEmail={setUserEmail}
+                  setShowCongratulations={setShowCongratulations}
+                  loadedReportData={loadedReportData}
+                  handleAILoadingComplete={handleAILoadingComplete}
+                />
               }
             />
 
@@ -347,6 +314,71 @@ function App() {
     </AuthProvider>
   );
 }
+
+// Loading page wrapper component to handle navigation properly
+const LoadingPageWrapper: React.FC<{
+  quizData: QuizData | null;
+  userEmail: string | null;
+  showCongratulations: boolean;
+  setUserEmail: (email: string) => void;
+  setShowCongratulations: (show: boolean) => void;
+  loadedReportData: any;
+  handleAILoadingComplete: (data: any) => void;
+}> = ({
+  quizData,
+  userEmail,
+  showCongratulations,
+  setUserEmail,
+  setShowCongratulations,
+  loadedReportData,
+  handleAILoadingComplete,
+}) => {
+  const navigate = useNavigate();
+
+  // Handler for congratulations completion with proper navigation
+  const handleCongratulationsComplete = (email?: string) => {
+    console.log("Congratulations complete, navigating to results");
+    if (email) {
+      setUserEmail(email);
+      localStorage.setItem("userEmail", email);
+    }
+    setShowCongratulations(false);
+
+    // Store data in localStorage before navigation
+    if (quizData) {
+      localStorage.setItem("quizData", JSON.stringify(quizData));
+    }
+    if (loadedReportData) {
+      localStorage.setItem(
+        "loadedReportData",
+        JSON.stringify(loadedReportData),
+      );
+    }
+
+    // Use React Router navigation instead of window.location.href
+    navigate("/results");
+  };
+
+  return (
+    <div className="relative">
+      <LoadingPage
+        quizData={quizData}
+        userEmail={userEmail}
+        onComplete={handleAILoadingComplete}
+        onExit={() => navigate("/quiz")}
+      />
+      {showCongratulations && quizData && (
+        <EmailCapture
+          onEmailSubmit={handleCongratulationsComplete}
+          onContinueAsGuest={handleCongratulationsComplete}
+          onReturnToQuiz={() => navigate("/quiz")}
+          quizData={quizData}
+          onStartAIGeneration={handleCongratulationsComplete}
+        />
+      )}
+    </div>
+  );
+};
 
 // Component that handles quiz navigation
 const QuizWithNavigation: React.FC<{
