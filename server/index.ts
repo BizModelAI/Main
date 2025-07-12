@@ -1,11 +1,14 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import MemoryStore from "memorystore";
 import { createServer } from "http";
 import { registerRoutes } from "./routes.js";
 import { setupAuthRoutes } from "./auth.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { storage } from "./storage.js";
+
+const MemoryStoreSession = MemoryStore(session);
 
 const app = express();
 
