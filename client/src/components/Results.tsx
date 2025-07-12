@@ -120,6 +120,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   const navigate = useNavigate();
   const [selectedPath, setSelectedPath] = useState<BusinessPath | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
   const [showAILoading, setShowAILoading] = useState(false);
   const [loadedReportData, setLoadedReportData] = useState<any>(null);
