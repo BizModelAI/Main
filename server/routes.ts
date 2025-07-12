@@ -779,6 +779,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 quizData?: any;
               };
 
+              // Check if payment has already been processed for this payment intent
+              const existingPayments = await storage.getPaymentsByStripeId(
+                paymentIntent.id,
+              );
+              if (existingPayments.length > 0) {
+                console.log(
+                  `Payment ${paymentIntent.id} already processed, skipping.`,
+                );
+                break;
+              }
+
               // Check if user already exists (safety check)
               let user = await storage.getUserByUsername(email);
               if (!user) {
