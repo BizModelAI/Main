@@ -185,9 +185,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       // Update auth context
       await login(loginEmail, formData.password);
 
-      // Check if user already has access - if so, unlock immediately
-      // This is intentional: existing paid users shouldn't pay again
-      if (userData.hasAccessPass) {
+      // Check if user already has access AND retakes available
+      // Only bypass payment if they have both access AND retakes remaining
+      if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
         setHasUnlockedAnalysis(true);
         localStorage.setItem("hasAnyPayment", "true");
 
