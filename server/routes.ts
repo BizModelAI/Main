@@ -611,11 +611,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Check if user already has access pass
-        if (user.hasAccessPass) {
+        // Check if user already has access pass but needs retakes
+        if (user.hasAccessPass && user.quizRetakesRemaining > 0) {
           return res
             .status(400)
-            .json({ error: "User already has access pass" });
+            .json({ error: "User already has access and retakes available" });
         }
 
         userIdentifier = userId.toString();
