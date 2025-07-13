@@ -328,15 +328,15 @@ function App() {
   );
 }
 
-// Quiz completion loading wrapper component
-const QuizCompletionLoadingWrapper: React.FC<{
+// AIReport loading wrapper component for quiz completion
+const AIReportLoadingWrapper: React.FC<{
   quizData: QuizData | null;
   setShowCongratulations: (show: boolean) => void;
 }> = ({ quizData, setShowCongratulations }) => {
   const navigate = useNavigate();
 
-  const handleLoadingComplete = () => {
-    console.log("Quiz completion loading complete, showing congratulations");
+  const handleAILoadingComplete = (data: any) => {
+    console.log("AI loading complete after quiz, showing congratulations");
     setShowCongratulations(true);
     // Navigate back to quiz route where congratulations popup will be handled
     navigate("/quiz");
@@ -350,10 +350,80 @@ const QuizCompletionLoadingWrapper: React.FC<{
 
   return (
     <div className="relative">
-      <QuizCompletionLoading
+      <AIReportLoading
         quizData={quizData}
-        onComplete={handleLoadingComplete}
+        onComplete={handleAILoadingComplete}
       />
+    </div>
+  );
+};
+
+// Quiz completion loading wrapper component for the /loading route
+const QuizCompletionLoadingWrapper: React.FC<{
+  quizData: QuizData | null;
+  userEmail: string | null;
+  showCongratulations: boolean;
+  setUserEmail: (email: string) => void;
+  setShowCongratulations: (show: boolean) => void;
+  loadedReportData: any;
+  handleAILoadingComplete: (data: any) => void;
+}> = ({
+  quizData,
+  userEmail,
+  showCongratulations,
+  setUserEmail,
+  setShowCongratulations,
+  loadedReportData,
+  handleAILoadingComplete,
+}) => {
+  const navigate = useNavigate();
+
+  const handleLoadingComplete = () => {
+    console.log("Quiz completion loading complete, showing congratulations");
+    setShowCongratulations(true);
+  };
+
+  // Handler for congratulations completion with proper navigation
+  const handleCongratulationsComplete = (email?: string) => {
+    console.log("Congratulations complete, navigating to results");
+    if (email) {
+      setUserEmail(email);
+      localStorage.setItem("userEmail", email);
+    }
+    setShowCongratulations(false);
+
+    // Store data in localStorage before navigation
+    if (quizData) {
+      localStorage.setItem("quizData", JSON.stringify(quizData));
+    }
+    if (loadedReportData) {
+      localStorage.setItem(
+        "loadedReportData",
+        JSON.stringify(loadedReportData),
+      );
+    }
+
+    // Use React Router navigation instead of window.location.href
+    navigate("/results");
+  };
+
+  return (
+    <div className="relative">
+      {quizData && (
+        <QuizCompletionLoading
+          quizData={quizData}
+          onComplete={handleLoadingComplete}
+        />
+      )}
+      {showCongratulations && quizData && (
+        <EmailCapture
+          onEmailSubmit={handleCongratulationsComplete}
+          onContinueAsGuest={handleCongratulationsComplete}
+          onReturnToQuiz={() => navigate("/quiz")}
+          quizData={quizData}
+          onStartAIGeneration={handleCongratulationsComplete}
+        />
+      )}
     </div>
   );
 };
