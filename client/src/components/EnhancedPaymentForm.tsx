@@ -118,8 +118,10 @@ const PaymentMethodSelector: React.FC<{
               className="h-6"
               onError={(e) => {
                 // Fallback to text if image fails
-                e.currentTarget.style.display = "none";
-                e.currentTarget.nextElementSibling!.style.display = "block";
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+                (
+                  e.currentTarget.nextElementSibling as HTMLElement
+                ).style.display = "block";
               }}
             />
             <div
