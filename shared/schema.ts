@@ -79,6 +79,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertQuizAttemptSchema = createInsertSchema(quizAttempts);
 export const insertPaymentSchema = createInsertSchema(payments);
 export const insertUnpaidUserEmailSchema = createInsertSchema(unpaidUserEmails);
+export const insertPasswordResetTokenSchema =
+  createInsertSchema(passwordResetTokens);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
