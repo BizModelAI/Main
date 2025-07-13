@@ -25,13 +25,15 @@ export const pool = process.env.DATABASE_URL
   : null;
 
 // Add connection error handling
-pool.on("error", (err) => {
-  console.error("Database pool error:", err);
-});
+if (pool) {
+  pool.on("error", (err) => {
+    console.error("Database pool error:", err);
+  });
 
-pool.on("connect", () => {
-  console.log("Database connection established");
-});
+  pool.on("connect", () => {
+    console.log("Database connection established");
+  });
+}
 
 // Test database connection asynchronously (non-blocking)
 if (pool) {
@@ -45,7 +47,7 @@ if (pool) {
         ),
       ),
     ])
-      .then((client) => {
+      .then((client: any) => {
         console.log("✅ Database connection test successful");
         if (client && typeof client.release === "function") {
           client.release();
