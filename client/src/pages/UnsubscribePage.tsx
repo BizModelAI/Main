@@ -1,14 +1,51 @@
-import { useState } from 'react';
-import BizModelAILogo from '../components/BizModelAILogo';
-import { CheckCircle, Mail } from 'lucide-react';
+import { useState } from "react";
+import BizModelAILogo from "../components/BizModelAILogo";
+import { CheckCircle, Mail } from "lucide-react";
 
 export default function UnsubscribePage() {
   const [isUnsubscribed, setIsUnsubscribed] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleUnsubscribe = () => {
-    // In a real implementation, this would call an API endpoint
-    // For now, we'll just show a success message
-    setIsUnsubscribed(true);
+  // Check URL params for email (from unsubscribe links)
+  useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  });
+
+  const handleUnsubscribe = async () => {
+    if (!email.trim()) {
+      setError("Please enter your email address");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/auth/unsubscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (response.ok) {
+        setIsUnsubscribed(true);
+      } else {
+        const data = await response.json();
+        setError(data.error || "Failed to unsubscribe. Please try again.");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -19,16 +56,17 @@ export default function UnsubscribePage() {
             <BizModelAILogo size="md" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {isUnsubscribed ? 'Successfully Unsubscribed' : 'Unsubscribe from Emails'}
+            {isUnsubscribed
+              ? "Successfully Unsubscribed"
+              : "Unsubscribe from Emails"}
           </h1>
           <p className="text-gray-600">
-            {isUnsubscribed 
-              ? 'You have been successfully unsubscribed from all BizModelAI emails.'
-              : 'We\'re sorry to see you go. You can unsubscribe from all BizModelAI emails below.'
-            }
+            {isUnsubscribed
+              ? "You have been successfully unsubscribed from all BizModelAI emails."
+              : "We're sorry to see you go. You can unsubscribe from all BizModelAI emails below."}
           </p>
         </div>
-        
+
         <div className="space-y-6">
           {!isUnsubscribed ? (
             <>
@@ -37,15 +75,15 @@ export default function UnsubscribePage() {
                 <span>This will stop all emails from BizModelAI</span>
               </div>
               <div className="space-y-3">
-                <button 
+                <button
                   onClick={handleUnsubscribe}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                 >
                   Unsubscribe from All Emails
                 </button>
-                <button 
-                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-4 rounded-lg transition-colors" 
-                  onClick={() => window.location.href = '/'}
+                <button
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-4 rounded-lg transition-colors"
+                  onClick={() => (window.location.href = "/")}
                 >
                   Return to BizModelAI
                 </button>
@@ -59,12 +97,12 @@ export default function UnsubscribePage() {
               </div>
               <div className="text-center space-y-4">
                 <p className="text-sm text-gray-600">
-                  You won't receive any more emails from us. If you change your mind, you can always 
-                  take our quiz again to re-subscribe.
+                  You won't receive any more emails from us. If you change your
+                  mind, you can always take our quiz again to re-subscribe.
                 </p>
-                <button 
-                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-4 rounded-lg transition-colors" 
-                  onClick={() => window.location.href = '/'}
+                <button
+                  className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-4 rounded-lg transition-colors"
+                  onClick={() => (window.location.href = "/")}
                 >
                   Return to BizModelAI
                 </button>
