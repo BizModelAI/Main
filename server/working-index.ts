@@ -135,6 +135,55 @@ app.get("/api/health/detailed", async (req, res) => {
   res.status(statusCode).json(health);
 });
 
+// Database test endpoint for debugging signup issues
+app.get("/api/test/database", async (req, res) => {
+  res.header("Content-Type", "application/json");
+
+  const results = {
+    timestamp: new Date().toISOString(),
+    tests: {} as any,
+  };
+
+  try {
+    // Test 1: Basic connection
+    const { pool } = await import("./db.js");
+    const client = await pool.connect();
+    await client.query("SELECT 1 as test");
+    client.release();
+    results.tests.basicConnection = {
+      status: "success",
+      message: "Database connection working",
+    };
+
+    // Test 2: Storage functions
+    const { storage } = await import("./storage.js");
+
+    // Test getUserByUsername
+    try {
+      const testUser = await storage.getUserByUsername("nonexistent@test.com");
+      results.tests.getUserByUsername = {
+        status: "success",
+        message: "getUserByUsername working",
+        result:
+          testUser === undefined ? "no user found (expected)" : "user found",
+      };
+    } catch (error) {
+      results.tests.getUserByUsername = {
+        status: "error",
+        message: error instanceof Error ? error.message : String(error),
+      };
+    }
+
+    res.json(results);
+  } catch (error) {
+    results.tests.basicConnection = {
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    };
+    res.status(500).json(results);
+  }
+});
+
 const port = 5000;
 
 // Global error handler for unhandled errors
