@@ -58,10 +58,10 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
     },
     {
       id: "insights",
-      title: "Generating AI Insights",
-      subtitle: "Creating personalized recommendations just for you",
+      title: "Generating Complete AI Analysis",
+      subtitle: "Creating all insights and recommendations for your results",
       icon: Sparkles,
-      duration: 4,
+      duration: 6,
       completed: false,
     },
     {
