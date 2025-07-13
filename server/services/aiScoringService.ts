@@ -2,7 +2,9 @@ import OpenAI from "openai";
 import { QuizData, BusinessPath } from "../../shared/types.js";
 import { businessPaths } from "../../shared/businessPaths.js";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 export interface BusinessFitAnalysis {
   fitScore: number;
