@@ -145,7 +145,7 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
         JSON.stringify({
           insights: null,
           analysis: null,
-          topPaths: topPaths.slice(0, 3),
+          topPaths: [], // Empty array as fallback
           timestamp: Date.now(),
           error: true,
           complete: false,
