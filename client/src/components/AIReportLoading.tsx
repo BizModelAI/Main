@@ -12,7 +12,6 @@ import {
   Award,
   Calendar,
   Lightbulb,
-  ChevronLeft,
 } from "lucide-react";
 import { QuizData, BusinessPath } from "../types";
 
