@@ -144,7 +144,6 @@ const CreditCardForm: React.FC<{
 }> = ({ onSubmit, isProcessing, clientSecret }) => {
   const [billingDetails, setBillingDetails] = useState({
     name: "Casey Dunham",
-    useShippingAddress: true,
   });
 
   const cardElementOptions = {
@@ -170,39 +169,9 @@ const CreditCardForm: React.FC<{
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Card number
         </label>
-        <div className="relative border border-gray-300 rounded-lg p-3 bg-white">
+        <div className="relative border border-gray-300 rounded-xl p-3 bg-white">
           <CardElement options={cardElementOptions} />
           <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Expiration date (MM / YY)
-          </label>
-          <input
-            type="text"
-            placeholder="Expiration date (MM / YY)"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            style={{ backgroundColor: "#f9f9f9" }}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Security code
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Security code"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-              style={{ backgroundColor: "#f9f9f9" }}
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 border border-gray-400 rounded-sm text-xs flex items-center justify-center text-gray-500">
-              ?
-            </div>
-          </div>
         </div>
       </div>
 
@@ -217,7 +186,7 @@ const CreditCardForm: React.FC<{
             onChange={(e) =>
               setBillingDetails({ ...billingDetails, name: e.target.value })
             }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
           />
           <button
             type="button"
@@ -226,24 +195,6 @@ const CreditCardForm: React.FC<{
             ×
           </button>
         </div>
-      </div>
-
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="use-shipping"
-          checked={billingDetails.useShippingAddress}
-          onChange={(e) =>
-            setBillingDetails({
-              ...billingDetails,
-              useShippingAddress: e.target.checked,
-            })
-          }
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
-        <label htmlFor="use-shipping" className="ml-2 text-sm text-gray-900">
-          Use shipping address as billing address
-        </label>
       </div>
 
       <button
@@ -371,7 +322,7 @@ const PayPalForm: React.FC<{
         disabled={isProcessing}
         style={{
           layout: "vertical",
-          color: "blue",
+          color: "black",
           shape: "rect",
           label: "paypal",
         }}
