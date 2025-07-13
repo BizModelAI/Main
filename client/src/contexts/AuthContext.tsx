@@ -22,6 +22,7 @@ interface AuthContextType {
     quizData?: any,
   ) => Promise<void>;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   getLatestQuizData: () => Promise<QuizData | null>;
   hasValidSession: () => boolean;
