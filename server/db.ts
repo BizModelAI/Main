@@ -33,15 +33,22 @@ pool.on("connect", () => {
   console.log("Database connection established");
 });
 
-// Test database connection on startup
-pool
-  .connect()
+// Test database connection on startup with timeout
+Promise.race([
+  pool.connect(),
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Database connection timeout")), 5000),
+  ),
+])
   .then((client) => {
     console.log("✅ Database connection test successful");
-    client.release();
+    if (client && typeof client.release === "function") {
+      client.release();
+    }
   })
   .catch((err) => {
-    console.error("❌ Database connection test failed:", err);
+    console.error("❌ Database connection test failed:", err.message);
+    console.log("Continuing server startup without database...");
   });
 
 export const db = drizzle({ client: pool, schema });
