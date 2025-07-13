@@ -287,7 +287,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // Generate AI content for results page (basic insights + preview analysis)
   const generateAIContent = async (paths: BusinessPath[]) => {
     try {
-      setIsGeneratingAI(true);
+      // Don't show loading state to prevent user from seeing API failures
+      // setIsGeneratingAI(true);
 
       // First, check if we have COMPLETE pre-generated AI content from the loading page
       const preGeneratedData = localStorage.getItem(
@@ -325,7 +326,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           if (isRecent && insights && analysis && complete && !error) {
             console.log(
-              "🎉 Using COMPLETE pre-generated AI content - NO additional API calls needed",
+              "��� Using COMPLETE pre-generated AI content - NO additional API calls needed",
             );
 
             // Set both insights and analysis immediately
