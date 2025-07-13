@@ -32,9 +32,10 @@ app.use(
       ttl: 86400000, // Session TTL
     }),
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
     // Improved settings for concurrent access
     rolling: true, // Reset expiry on activity
