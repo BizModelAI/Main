@@ -577,8 +577,8 @@ Return JSON format:
     );
 
     // Calculate progress range for this step (each step gets equal portion)
-    const startProgress = (stepIndex / loadingSteps.length) * 100;
-    const endProgress = ((stepIndex + 1) / loadingSteps.length) * 100;
+    const startProgress = (stepIndex / steps.length) * 100;
+    const endProgress = ((stepIndex + 1) / steps.length) * 100;
     const progressRange = endProgress - startProgress;
 
     // Start the async function
