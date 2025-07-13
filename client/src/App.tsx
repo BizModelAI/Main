@@ -383,6 +383,9 @@ function App() {
 
             {/* Unsubscribe Page */}
             <Route path="/unsubscribe" element={<UnsubscribePage />} />
+
+            {/* Admin Page */}
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </Router>
       </PaywallProvider>
