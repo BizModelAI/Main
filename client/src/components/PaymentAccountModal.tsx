@@ -156,9 +156,10 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setIsProcessing(true);
     try {
       await login(loginEmail, formData.password);
-      // After successful login, always proceed to payment
-      // The user accessed this modal because they want to unlock premium features
-      // Even if they have paid before, they need to pay for this specific unlock
+
+      // Critical security fix: When logging in through payment modal,
+      // users must complete payment regardless of their existing access status.
+      // This prevents bypassing the paywall by entering existing credentials.
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
