@@ -45,7 +45,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   });
 
   const { signup, login, user } = useAuth();
-  const { setHasUnlockedAnalysis } = usePaywall();
+  const { setHasUnlockedAnalysis, setHasCompletedQuiz } = usePaywall();
 
   if (!isOpen) return null;
 
