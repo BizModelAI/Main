@@ -70,6 +70,13 @@ export class EmailService {
     }
 
     try {
+      // Check if user is unsubscribed before sending
+      const isUnsubscribed = await this.checkUnsubscribeStatus(options.to);
+      if (isUnsubscribed) {
+        console.log(`User ${options.to} is unsubscribed, skipping email`);
+        return false;
+      }
+
       console.log(`Attempting to send email to: ${options.to}`);
       console.log(`Subject: ${options.subject}`);
 
@@ -98,6 +105,17 @@ export class EmailService {
       console.error("Error sending email:", error);
       console.error("Full error details:", JSON.stringify(error, null, 2));
       return false;
+    }
+  }
+
+  private async checkUnsubscribeStatus(email: string): Promise<boolean> {
+    try {
+      const { storage } = await import("../storage.js");
+      const user = await storage.getUserByUsername(email);
+      return user?.isUnsubscribed || false;
+    } catch (error) {
+      console.error("Error checking unsubscribe status:", error);
+      return false; // Default to allowing emails if check fails
     }
   }
 
