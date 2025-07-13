@@ -1441,6 +1441,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       const uniqueEmails = new Map();
 
       allEmails.forEach((emailRecord) => {
+        if (!emailRecord.email) return;
         const email = emailRecord.email.toLowerCase();
         if (!uniqueEmails.has(email) || emailRecord.source === "paid_user") {
           // Prefer paid user records over unpaid user records
