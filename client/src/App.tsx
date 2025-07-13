@@ -75,6 +75,12 @@ function App() {
     if (savedCongratulationsShown) {
       setCongratulationsShown(JSON.parse(savedCongratulationsShown));
     }
+
+    // Clear congratulations tracking if there's no quiz data (fresh start)
+    if (!savedQuizData) {
+      setCongratulationsShown(false);
+      localStorage.setItem("congratulationsShown", "false");
+    }
   }, []);
 
   // Handler for AI loading completion
