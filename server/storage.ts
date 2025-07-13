@@ -316,6 +316,47 @@ export class MemStorage implements IStorage {
     return user ? user.hasAccessPass : false;
   }
 
+  async createPasswordResetToken(
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<PasswordResetToken> {
+    const id = this.currentPasswordResetTokenId++;
+    const resetToken: PasswordResetToken = {
+      id,
+      userId,
+      token,
+      expiresAt,
+      createdAt: new Date(),
+    };
+    this.passwordResetTokens.set(token, resetToken);
+    return resetToken;
+  }
+
+  async getPasswordResetToken(
+    token: string,
+  ): Promise<PasswordResetToken | undefined> {
+    return this.passwordResetTokens.get(token);
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    this.passwordResetTokens.delete(token);
+  }
+
+  async updateUserPassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      this.users.set(userId, {
+        ...user,
+        password: hashedPassword,
+        updatedAt: new Date(),
+      });
+    }
+  }
+
   async cleanupExpiredData(): Promise<void> {
     // Clean up expired unpaid email data
     await this.cleanupExpiredUnpaidEmails();
