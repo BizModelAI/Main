@@ -29,6 +29,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   type,
   title,
 }) => {
+  console.log("PaymentAccountModal render - isOpen:", isOpen, "type:", type);
+
   const [step, setStep] = useState<"account" | "login" | "payment">("account");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
