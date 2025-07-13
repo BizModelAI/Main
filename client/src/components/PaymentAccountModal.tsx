@@ -516,10 +516,10 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             {/* Login Form */}
             {step === "login" && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                  <p className="text-blue-800 text-sm">
-                    An account with this email already exists. Please log in to
-                    continue with your purchase.
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                  <p className="text-green-800 text-sm">
+                    Welcome back! We found your existing account. Log in to
+                    access your features.
                   </p>
                 </div>
 
