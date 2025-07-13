@@ -614,10 +614,11 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
-    const topBusinessModel = topPaths[0];
-    console.log("AI Challenges - Top business model:", topBusinessModel.name);
+    try {
+      const topBusinessModel = topPaths[0];
+      console.log("AI Challenges - Top business model:", topBusinessModel.name);
 
-    const prompt = `
+      const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), identify 4 specific challenges you might face when starting ${topBusinessModel.name} and how to address them.
 
 ${userProfile}
@@ -632,10 +633,10 @@ Format as a simple list, each item should be 1-2 sentences and specific to ${top
 CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
-    try {
       const content = await this.makeOpenAIRequest(prompt, 350, 0.7);
       return this.parseListResponse(content, 4);
     } catch (error) {
+      console.warn("generatePotentialChallenges error, using fallback:", error);
       return this.getFallbackChallenges();
     }
   }
@@ -644,13 +645,14 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
-    const topBusinessModel = topPaths[0];
-    console.log(
-      "AI Success Strategies - Top business model:",
-      topBusinessModel.name,
-    );
+    try {
+      const topBusinessModel = topPaths[0];
+      console.log(
+        "AI Success Strategies - Top business model:",
+        topBusinessModel.name,
+      );
 
-    const prompt = `
+      const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage your strengths for ${topBusinessModel.name}.
 
 ${userProfile}
@@ -670,10 +672,10 @@ Format as a simple list, each strategy should be 1-2 sentences and actionable fo
 CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
-    try {
       const content = await this.makeOpenAIRequest(prompt, 400, 0.7);
       return this.parseListResponse(content, 6);
     } catch (error) {
+      console.warn("generateSuccessStrategies error, using fallback:", error);
       return this.getFallbackStrategies();
     }
   }
