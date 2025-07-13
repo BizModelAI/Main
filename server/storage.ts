@@ -11,7 +11,7 @@ import {
   type InsertPayment,
   type UnpaidUserEmail,
   type InsertUnpaidUserEmail,
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, count, sql } from "drizzle-orm";
 
