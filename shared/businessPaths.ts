@@ -1330,7 +1330,7 @@ export const businessPaths: BusinessPath[] = [
       "Problem-solving",
       "Reliability",
     ],
-    icon: "UserCheck",
+    icon: "Users",
     marketSize: "Virtual assistant market worth $25B+ globally",
     averageIncome: {
       beginner: "$800-2K/month",
