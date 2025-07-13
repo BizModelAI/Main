@@ -191,7 +191,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         setHasUnlockedAnalysis(true);
         localStorage.setItem("hasAnyPayment", "true");
 
-        // Save quiz data if available
+        // Save quiz data if available (this enables access to new quiz results)
         const savedQuizData = localStorage.getItem("quizData");
         if (savedQuizData) {
           try {
@@ -204,6 +204,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
               credentials: "include",
               body: JSON.stringify({ quizData }),
             });
+            // Set quiz completion flag so user can access features
+            setHasCompletedQuiz(true);
+            localStorage.setItem("hasCompletedQuiz", "true");
           } catch (error) {
             console.error("Error saving quiz data:", error);
           }
