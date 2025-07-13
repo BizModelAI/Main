@@ -561,7 +561,10 @@ export class DatabaseStorage implements IStorage {
       return newUnpaidUserEmail;
     } catch (error) {
       console.error("Error in storeUnpaidUserEmail:", error);
-      console.error("Error stack:", error.stack);
+      console.error(
+        "Error stack:",
+        error instanceof Error ? error.stack : "No stack trace",
+      );
       throw error;
     }
   }
