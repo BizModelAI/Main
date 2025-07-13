@@ -221,6 +221,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       if (userData.hasAccessPass && userData.quizRetakesRemaining <= 0) {
         // Set a flag to indicate this is a retake payment, not initial access
         // Don't save quiz data yet - only after payment
+        setIsRetakePayment(true);
         setStep("payment");
         return;
       }
