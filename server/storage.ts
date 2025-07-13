@@ -43,6 +43,20 @@ export interface IStorage {
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
   getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
+  getAllPayments(): Promise<Payment[]>;
+
+  // Refund operations
+  createRefund(refund: Omit<InsertRefund, "id">): Promise<Refund>;
+  updateRefundStatus(
+    refundId: number,
+    status: string,
+    processedAt?: Date,
+    stripeRefundId?: string,
+    paypalRefundId?: string,
+  ): Promise<void>;
+  getRefundsByPayment(paymentId: number): Promise<Refund[]>;
+  getRefundById(refundId: number): Promise<Refund | undefined>;
+  getAllRefunds(): Promise<Refund[]>;
 
   // Unpaid user email tracking
   storeUnpaidUserEmail(
