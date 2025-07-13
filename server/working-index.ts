@@ -6,24 +6,6 @@ import { createServer } from "http";
 
 console.log("Starting server initialization...");
 
-// Import routes asynchronously to prevent blocking
-let registerRoutes, setupAuthRoutes;
-try {
-  const routesModule = await import("./routes.js");
-  registerRoutes = routesModule.registerRoutes;
-  console.log("Routes imported successfully");
-} catch (error) {
-  console.error("Failed to import routes:", error);
-}
-
-try {
-  const authModule = await import("./auth.js");
-  setupAuthRoutes = authModule.setupAuthRoutes;
-  console.log("Auth routes imported successfully");
-} catch (error) {
-  console.error("Failed to import auth routes:", error);
-}
-
 const MemoryStoreSession = MemoryStore(session);
 const app = express();
 
