@@ -98,7 +98,12 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
     }
   }, [hasCompletedQuiz, user]);
 
-  const isUnlocked = () => hasUnlockedAnalysis;
+  const isUnlocked = () => {
+    // For logged-in users with access pass, consider them unlocked even if local state is stale
+    if (user && user.hasAccessPass) return true;
+
+    return hasUnlockedAnalysis;
+  };
 
   const canAccessBusinessModel = (modelId?: string) => {
     // Must have completed quiz to access any business model details
