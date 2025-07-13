@@ -70,7 +70,7 @@ const ForgotPassword: React.FC = () => {
         <div className="text-center mb-8 mt-8">
           <div className="w-16 h-16 mx-auto mb-4">
             <img
-              src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F905039f609774caf89de42433de1911e?format=webp&width=800"
+              src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F2ba216d8797f4dda8547258818f985d3?format=webp&width=800"
               alt="BizModelAI Logo"
               className="w-full h-full object-contain"
             />
