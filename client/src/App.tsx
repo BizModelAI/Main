@@ -225,23 +225,6 @@ function App() {
   return (
     <AuthProvider>
       <PaywallProvider>
-        {/* Environment indicator for debugging */}
-        {process.env.NODE_ENV === "development" && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              right: 0,
-              background: "red",
-              color: "white",
-              padding: "4px 8px",
-              fontSize: "12px",
-              zIndex: 9999,
-            }}
-          >
-            LOCAL DEV
-          </div>
-        )}
         <Router>
           <Routes>
             {/* Public routes with layout */}
