@@ -72,6 +72,24 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Refunds table for tracking refund history
+export const refunds = pgTable("refunds", {
+  id: serial("id").primaryKey(),
+  paymentId: integer("payment_id")
+    .references(() => payments.id, { onDelete: "cascade" })
+    .notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency").default("usd").notNull(),
+  reason: varchar("reason").notNull(), // "requested_by_customer", "duplicate", "fraudulent", etc.
+  status: varchar("status").default("pending").notNull(), // "pending", "succeeded", "failed", "cancelled"
+  stripeRefundId: varchar("stripe_refund_id"),
+  paypalRefundId: varchar("paypal_refund_id"),
+  adminUserId: integer("admin_user_id"), // Track which admin processed the refund
+  adminNote: text("admin_note"), // Optional note from admin
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
