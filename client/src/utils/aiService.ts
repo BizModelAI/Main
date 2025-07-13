@@ -45,6 +45,20 @@ export class AIService {
     motivationalMessage: string;
   }> {
     try {
+      // Create cache key based on quiz data and top paths
+      const cacheKey = this.createCacheKey(quizData, topPaths);
+
+      // Check for existing cached insights
+      const cached = this.getCachedInsights(cacheKey);
+      if (cached) {
+        console.log("✅ Using cached AI insights (no API call needed)");
+        return cached;
+      }
+
+      console.log(
+        "🔄 Generating fresh AI insights with single comprehensive call",
+      );
+
       // Create a comprehensive user profile for the AI
       const userProfile = this.createUserProfile(quizData);
       const topBusinessPaths = topPaths.map((path) => ({
@@ -53,50 +67,17 @@ export class AIService {
         description: path.description,
       }));
 
-      // Generate personalized summary
-      const personalizedSummary = await this.generatePersonalizedSummary(
+      // Make SINGLE comprehensive OpenAI call
+      const insights = await this.generateComprehensiveInsights(
         userProfile,
         topBusinessPaths,
       );
 
-      // Generate custom recommendations
-      const customRecommendations = await this.generateCustomRecommendations(
-        userProfile,
-        topBusinessPaths,
-      );
+      // Cache the results
+      this.cacheInsights(cacheKey, insights);
 
-      // Generate potential challenges
-      const potentialChallenges = await this.generatePotentialChallenges(
-        userProfile,
-        topBusinessPaths,
-      );
-
-      // Generate success strategies
-      const successStrategies = await this.generateSuccessStrategies(
-        userProfile,
-        topBusinessPaths,
-      );
-
-      // Generate personalized action plan
-      const personalizedActionPlan = await this.generatePersonalizedActionPlan(
-        userProfile,
-        topBusinessPaths[0],
-      );
-
-      // Generate motivational message
-      const motivationalMessage = await this.generateMotivationalMessage(
-        userProfile,
-        topBusinessPaths,
-      );
-
-      return {
-        personalizedSummary,
-        customRecommendations,
-        potentialChallenges,
-        successStrategies,
-        personalizedActionPlan,
-        motivationalMessage,
-      };
+      console.log("✅ Fresh AI insights generated and cached");
+      return insights;
     } catch (error) {
       console.error("Error generating AI insights:", error);
       // Always return fallback content instead of throwing
