@@ -1869,13 +1869,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         <PaywallModal
           isOpen={showUnlockModal}
           onClose={() => setShowUnlockModal(false)}
-          onUnlock={
-            paywallType === "business-model"
-              ? handleBusinessCardPayment
-              : user
-                ? handlePayment
-                : handlePaymentWithAccount
-          }
+          onUnlock={user ? handlePayment : handlePaymentWithAccount}
           type={paywallType}
         />
 
