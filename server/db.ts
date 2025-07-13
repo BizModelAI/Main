@@ -53,6 +53,6 @@ setImmediate(() => {
     });
 });
 
-export const db = drizzle({ client: pool, schema });
+export const db = pool ? drizzle({ client: pool, schema }) : null;
 
 console.log("Database module loaded successfully");
