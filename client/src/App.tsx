@@ -537,6 +537,9 @@ const QuizWithNavigation: React.FC<{
 
   const handleCongratulationsComplete = (email?: string) => {
     console.log("Congratulations complete, navigating to results");
+    console.log("Current quizData state:", quizData);
+    console.log("Current loadedReportData state:", loadedReportData);
+
     if (email) {
       setUserEmail(email);
       localStorage.setItem("userEmail", email);
@@ -547,15 +550,23 @@ const QuizWithNavigation: React.FC<{
 
     // Store quiz data and loaded report data before navigation
     if (quizData) {
+      console.log("Storing quizData in localStorage");
       localStorage.setItem("quizData", JSON.stringify(quizData));
+    } else {
+      console.error(
+        "No quizData to store - this may cause the results page to fail",
+      );
     }
+
     if (loadedReportData) {
+      console.log("Storing loadedReportData in localStorage");
       localStorage.setItem(
         "loadedReportData",
         JSON.stringify(loadedReportData),
       );
     }
 
+    console.log("Navigating to /results in 100ms");
     // Small delay to ensure state update is processed
     setTimeout(() => {
       navigate("/results");
