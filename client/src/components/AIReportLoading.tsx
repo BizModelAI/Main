@@ -739,11 +739,9 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
                 initial={{ width: "0%" }}
                 animate={{ width: `${progress}%` }}
                 transition={{
-                  duration: 0.8,
-                  ease: "easeOut",
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15,
+                  duration: 0.5,
+                  ease: "easeInOut",
+                  type: "tween",
                 }}
               />
             </div>
