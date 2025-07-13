@@ -121,67 +121,85 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
   };
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    let progressInterval: NodeJS.Timeout;
+    let cleanup: (() => void) | null = null;
 
     const runSteps = async () => {
-      const totalDuration = 15; // 15 seconds total
-      const stepDuration = totalDuration / steps.length;
+      const minimumDuration = 10000; // 10 seconds minimum
+      const startTime = Date.now();
+      let aiInsightsPromise: Promise<any> | null = null;
 
-      for (let i = 0; i < steps.length; i++) {
-        setCurrentStepIndex(i);
+      // Start AI insights generation immediately
+      aiInsightsPromise = generateAIInsights();
 
-        // Mark current step as active
-        setSteps((prev) =>
-          prev.map((step, index) => ({
-            ...step,
-            completed: index < i,
-          })),
-        );
+      // Smooth progress animation using requestAnimationFrame
+      let animationFrame: number;
+      const progressStartTime = Date.now();
 
-        // Special handling for AI insights step
-        if (steps[i].id === "insights") {
-          generateAIInsights();
+      const animateProgress = () => {
+        const elapsed = Date.now() - progressStartTime;
+        const baseProgress = Math.min((elapsed / minimumDuration) * 100, 100);
+
+        // Smooth easing function for natural progression
+        const easedProgress =
+          baseProgress < 100
+            ? baseProgress -
+              ((Math.cos((baseProgress * Math.PI) / 100) - 1) / 2) * 3
+            : 100;
+
+        setProgress(easedProgress);
+
+        // Update current step based on progress
+        const stepIndex = Math.floor((easedProgress / 100) * steps.length);
+        const clampedStepIndex = Math.min(stepIndex, steps.length - 1);
+
+        if (clampedStepIndex !== currentStepIndex) {
+          setCurrentStepIndex(clampedStepIndex);
+          setSteps((prev) =>
+            prev.map((step, index) => ({
+              ...step,
+              completed: index < clampedStepIndex,
+            })),
+          );
         }
 
-        // Smooth progress animation for current step
-        const stepStart = (i / steps.length) * 100;
-        const stepEnd = ((i + 1) / steps.length) * 100;
+        if (baseProgress < 100) {
+          animationFrame = requestAnimationFrame(animateProgress);
+        }
+      };
 
-        let currentProgress = stepStart;
-        const progressIncrement = (stepEnd - stepStart) / (stepDuration * 20); // 20 updates per second
+      animationFrame = requestAnimationFrame(animateProgress);
 
-        progressInterval = setInterval(() => {
-          currentProgress = Math.min(
-            currentProgress + progressIncrement,
-            stepEnd,
-          );
-          setProgress(currentProgress);
+      cleanup = () => {
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+      };
 
-          if (currentProgress >= stepEnd) {
-            clearInterval(progressInterval);
-          }
-        }, 50);
+      // Wait for both minimum time and AI insights completion
+      try {
+        const [_, aiResults] = await Promise.all([
+          new Promise((resolve) => setTimeout(resolve, minimumDuration)),
+          aiInsightsPromise || Promise.resolve(null),
+        ]);
 
-        // Wait for step duration
-        await new Promise((resolve) => {
-          timeoutId = setTimeout(resolve, stepDuration * 1000);
-        });
+        console.log("AI insights generated:", aiResults ? "Success" : "Failed");
+      } catch (error) {
+        console.error("Error in AI generation:", error);
+      }
 
-        // Mark step as completed
-        setCompletedSteps((prev) => new Set([...prev, i]));
-        setSteps((prev) =>
-          prev.map((step, index) => ({
-            ...step,
-            completed: index <= i,
-          })),
+      // Check if we need additional time for API completion
+      const elapsed = Date.now() - startTime;
+      if (elapsed < minimumDuration) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, minimumDuration - elapsed),
         );
       }
 
-      // Ensure we reach 100%
+      // Final progress update
       setProgress(100);
+      setSteps((prev) => prev.map((step) => ({ ...step, completed: true })));
 
-      // Small delay before completing
+      // Small delay for visual completion
       setTimeout(() => {
         onComplete();
       }, 500);
@@ -190,10 +208,9 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
     runSteps();
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (progressInterval) clearInterval(progressInterval);
+      if (cleanup) cleanup();
     };
-  }, [onComplete, steps.length]);
+  }, [onComplete]);
 
   const getRandomMotivationalText = () => {
     const texts = [
