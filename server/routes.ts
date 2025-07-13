@@ -783,6 +783,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let event: Stripe.Event;
 
     try {
+      if (!stripe) {
+        return res.status(400).send("Payment processing not configured");
+      }
+
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
