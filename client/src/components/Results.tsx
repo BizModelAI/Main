@@ -638,15 +638,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   // New payment handler that forces account creation
   const handlePaymentWithAccount = () => {
-    console.log("handlePaymentWithAccount called");
-    console.log("Current showPaymentModal state:", showPaymentModal);
-    console.log("Current showUnlockModal state:", showUnlockModal);
-
     // Use PaymentAccountModal for all users (both new and existing)
     setShowPaymentModal(true);
     setShowUnlockModal(false);
-
-    console.log("Set showPaymentModal to true, showUnlockModal to false");
   };
 
   const handlePaymentSuccess = () => {
