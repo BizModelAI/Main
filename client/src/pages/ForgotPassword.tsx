@@ -66,19 +66,14 @@ const ForgotPassword: React.FC = () => {
           <X className="h-5 w-5" />
         </button>
 
-        {/* Back to Login */}
-        <button
-          onClick={() => navigate("/login")}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-          aria-label="Back to login"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-
         {/* Header */}
         <div className="text-center mb-8 mt-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail className="text-white h-8 w-8" />
+          <div className="w-16 h-16 mx-auto mb-4">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F905039f609774caf89de42433de1911e?format=webp&width=800"
+              alt="BizModelAI Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             {isSuccess ? "Check Your Email" : "Forgot Password?"}
