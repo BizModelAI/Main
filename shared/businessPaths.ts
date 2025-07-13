@@ -1423,7 +1423,7 @@ export const businessPaths: BusinessPath[] = [
       "Customer service",
       "Inventory management",
     ],
-    icon: "ShoppingBag",
+    icon: "Package",
     marketSize: "Online resale market worth $200B+ globally",
     averageIncome: {
       beginner: "$500-2K/month",
