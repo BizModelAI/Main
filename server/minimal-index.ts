@@ -3,6 +3,7 @@ console.log("Minimal server starting...");
 import "dotenv/config";
 import express from "express";
 import { storage } from "./storage.js";
+import { registerRoutes } from "./routes.js";
 
 const app = express();
 const port = 5000;
