@@ -1758,6 +1758,9 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.log("Fetching all collected emails...");
 
       // Get emails from paid users (permanent storage)
+      if (!db) {
+        return res.status(500).json({ error: "Database not available" });
+      }
       const paidUsers = await db
         .select({
           email: users.email,
