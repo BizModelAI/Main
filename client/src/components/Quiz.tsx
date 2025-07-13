@@ -35,6 +35,294 @@ import { useQuizRetake } from "@/hooks/useQuizRetake";
 import { QuizRetakeModal } from "./QuizRetakeModal";
 import { useToast } from "@/hooks/use-toast";
 
+// Mobile-specific content for scale questions
+const mobileScaleContent: Record<
+  string,
+  {
+    title: string;
+    options: Array<{ label: string; description: string }>;
+  }
+> = {
+  passionIdentityAlignment: {
+    title:
+      "How important is it that your business reflects your personal identity or passion?",
+    options: [
+      { label: "Not important", description: "I'm fine separating work/life" },
+      { label: "Slightly important", description: "Some personal tie is nice" },
+      {
+        label: "Moderately important",
+        description: "Would be good, not vital",
+      },
+      { label: "Very important", description: "I want it to reflect me" },
+      {
+        label: "Extremely important",
+        description: "It must align with my values",
+      },
+    ],
+  },
+  passiveIncomeImportance: {
+    title: "How important is long-term passive income to you?",
+    options: [
+      { label: "Not important", description: "I'm fine trading time" },
+      { label: "Slightly important", description: "Nice to have, not key" },
+      {
+        label: "Moderately important",
+        description: "I'd like some passive flow",
+      },
+      { label: "Very important", description: "Freedom matters long-term" },
+      {
+        label: "Extremely important",
+        description: "My goal is income while I sleep",
+      },
+    ],
+  },
+  longTermConsistency: {
+    title: "How consistent are you with long-term goals?",
+    options: [
+      {
+        label: "I give up quickly",
+        description: "I struggle to stay on track",
+      },
+      {
+        label: "Sometimes stick with it",
+        description: "I try, but lose momentum",
+      },
+      {
+        label: "I follow through somewhat",
+        description: "I stay on it when needed",
+      },
+      {
+        label: "Mostly consistent",
+        description: "I'm fairly reliable long-term",
+      },
+      {
+        label: "I always follow through",
+        description: "I stick with big goals",
+      },
+    ],
+  },
+  trialErrorComfort: {
+    title: "How do you feel about trial and error?",
+    options: [
+      { label: "Avoid it", description: "I like clear directions" },
+      { label: "Hesitant", description: "I prefer structure" },
+      { label: "Tolerate it", description: "I'm okay with trying things" },
+      { label: "Open to it", description: "I test and adapt as needed" },
+      { label: "Embrace it", description: "I love experimenting" },
+    ],
+  },
+  systemsRoutinesEnjoyment: {
+    title: "How much do you enjoy building routines or systems?",
+    options: [
+      { label: "Not at all", description: "I prefer spontaneity" },
+      { label: "Slightly", description: "I avoid strict structure" },
+      { label: "Neutral", description: "Okay with loose systems" },
+      { label: "I like them", description: "I build systems when needed" },
+      {
+        label: "I thrive on routines",
+        description: "I love organized structure",
+      },
+    ],
+  },
+  discouragementResilience: {
+    title: "How discouraged do you get if something doesn't work right away?",
+    options: [
+      { label: "Very easily", description: "I lose motivation quickly" },
+      { label: "Somewhat", description: "I need fast results" },
+      { label: "Neutral", description: "I stay calm but unsure" },
+      { label: "Rarely discouraged", description: "I bounce back easily" },
+      {
+        label: "I keep going no matter what",
+        description: "I'm unstoppable through setbacks",
+      },
+    ],
+  },
+  organizationLevel: {
+    title: "How organized are you?",
+    options: [
+      { label: "Very disorganized", description: "Things often feel chaotic" },
+      { label: "Slightly organized", description: "I try but struggle" },
+      {
+        label: "Moderately organized",
+        description: "I manage okay with effort",
+      },
+      { label: "Mostly organized", description: "I have a system" },
+      { label: "Extremely organized", description: "I thrive on structure" },
+    ],
+  },
+  selfMotivationLevel: {
+    title: "How self-motivated are you without external pressure?",
+    options: [
+      {
+        label: "I need deadlines to act",
+        description: "I wait for outside pressure",
+      },
+      {
+        label: "Occasionally self-starting",
+        description: "Deadlines help me act",
+      },
+      {
+        label: "Somewhat self-driven",
+        description: "I can push myself sometimes",
+      },
+      { label: "Highly motivated", description: "I act without being told" },
+      {
+        label: "I'm highly self-driven",
+        description: "I stay driven on my own",
+      },
+    ],
+  },
+  uncertaintyHandling: {
+    title: "How well do you handle uncertainty and unclear steps?",
+    options: [
+      { label: "I need things clear", description: "I get overwhelmed easily" },
+      {
+        label: "I struggle with ambiguity",
+        description: "Unclear plans stress me",
+      },
+      { label: "I adapt slowly", description: "I try to adjust gradually" },
+      {
+        label: "I adapt fairly well",
+        description: "Uncertainty doesn't bother me",
+      },
+      { label: "I adapt easily", description: "I'm flexible and quick" },
+    ],
+  },
+  brandFaceComfort: {
+    title: "How comfortable are you being the face of a brand?",
+    options: [
+      {
+        label: "Extremely uncomfortable",
+        description: "I hate being on camera",
+      },
+      { label: "Slightly uncomfortable", description: "I avoid attention" },
+      { label: "Neutral", description: "I'll do it if needed" },
+      { label: "Fairly comfortable", description: "I'm getting used to it" },
+      { label: "Very comfortable", description: "I enjoy being seen" },
+    ],
+  },
+  competitivenessLevel: {
+    title: "How competitive are you?",
+    options: [
+      { label: "Not competitive", description: "I avoid competition" },
+      { label: "A little", description: "Winning isn't important" },
+      { label: "Somewhat", description: "I like to do well" },
+      { label: "Very", description: "I want to be the best" },
+      { label: "Extremely competitive", description: "I thrive on winning" },
+    ],
+  },
+  creativeWorkEnjoyment: {
+    title: "How much do you enjoy creative work (design, writing, ideation)?",
+    options: [
+      { label: "Not at all", description: "I avoid creative work" },
+      { label: "Slightly", description: "I do it when needed" },
+      { label: "Neutral", description: "I don't mind it" },
+      { label: "I enjoy it", description: "I find it fulfilling" },
+      { label: "I love it", description: "Creative work energizes me" },
+    ],
+  },
+  directCommunicationEnjoyment: {
+    title: "How much do you enjoy direct communication with others?",
+    options: [
+      { label: "I avoid it", description: "I don't like social roles" },
+      { label: "Slightly", description: "I prefer working alone" },
+      { label: "Neutral", description: "I can handle interactions" },
+      { label: "I enjoy it", description: "I like helping people" },
+      { label: "I enjoy it a lot", description: "Service work excites me" },
+    ],
+  },
+  techSkillsRating: {
+    title: "How would you rate your tech skills overall?",
+    options: [
+      { label: "Very low", description: "I struggle with digital tools" },
+      { label: "Basic", description: "I know the basics" },
+      { label: "Moderate", description: "I can learn quickly" },
+      { label: "Skilled", description: "I'm confident using tech" },
+      { label: "Very tech-savvy", description: "I can figure out anything" },
+    ],
+  },
+  internetDeviceReliability: {
+    title: "How reliable is your access to internet and devices?",
+    options: [
+      { label: "Not reliable", description: "Often disconnected or limited" },
+      { label: "Somewhat reliable", description: "Occasional access issues" },
+      { label: "Mostly reliable", description: "It usually works fine" },
+      { label: "Very reliable", description: "I rarely have problems" },
+      {
+        label: "Extremely reliable",
+        description: "Always connected and ready",
+      },
+    ],
+  },
+  riskComfortLevel: {
+    title: "How comfortable are you taking risks?",
+    options: [
+      { label: "I avoid risks", description: "I prefer stability" },
+      { label: "Slightly comfortable", description: "I take small risks" },
+      { label: "Somewhat comfortable", description: "I weigh the options" },
+      { label: "Very comfortable", description: "I don't overthink risk" },
+      { label: "Totally comfortable", description: "I embrace uncertainty" },
+    ],
+  },
+  feedbackRejectionResponse: {
+    title: "How do you usually respond to negative feedback or rejection?",
+    options: [
+      {
+        label: "I take it personally",
+        description: "It affects my confidence",
+      },
+      { label: "I feel discouraged", description: "I dwell on it sometimes" },
+      { label: "I reflect on it", description: "I try to stay neutral" },
+      { label: "I learn from it", description: "I use it constructively" },
+      {
+        label: "I use it as motivation",
+        description: "It fuels me to improve",
+      },
+    ],
+  },
+  controlImportance: {
+    title:
+      "How important is it for you to stay in full control of your business decisions?",
+    options: [
+      { label: "Not important", description: "I'm open to collaboration" },
+      { label: "Slightly important", description: "I like shared decisions" },
+      { label: "Somewhat important", description: "I want some autonomy" },
+      { label: "Very important", description: "I need to lead decisions" },
+      { label: "Extremely important", description: "I want full control" },
+    ],
+  },
+  socialMediaInterest: {
+    title: "How interested are you in using social media to grow a business?",
+    options: [
+      { label: "Not at all", description: "I avoid all platforms" },
+      { label: "Slightly", description: "I rarely post online" },
+      { label: "Neutral", description: "I could use it casually" },
+      { label: "Very interested", description: "I'm open to growing online" },
+      {
+        label: "Extremely interested",
+        description: "Social media is my strategy",
+      },
+    ],
+  },
+  meaningfulContributionImportance: {
+    title:
+      "How important is it to you that your business contributes to something meaningful?",
+    options: [
+      { label: "Not important", description: "Business is just income" },
+      { label: "Slightly important", description: "Meaning is a bonus" },
+      {
+        label: "Moderately important",
+        description: "Some impact would be nice",
+      },
+      { label: "Very important", description: "I want it to matter" },
+      {
+        label: "Extremely important",
+        description: "Purpose is non-negotiable",
+      },
+    ],
+  },
+};
+
 interface QuizProps {
   onComplete: (data: QuizData) => void;
   onBack: () => void;
