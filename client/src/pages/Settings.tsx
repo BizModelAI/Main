@@ -308,6 +308,96 @@ const Settings: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Account Tab */}
+              {activeTab === "account" && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    Account Management
+                  </h2>
+
+                  {/* Danger Zone */}
+                  <div className="border-2 border-red-200 rounded-xl p-6 bg-red-50">
+                    <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
+                      <AlertCircle className="h-5 w-5 mr-2" />
+                      Danger Zone
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-md font-medium text-red-700 mb-2">
+                          Delete Account
+                        </h4>
+                        <p className="text-sm text-red-600 mb-4">
+                          This action cannot be undone. This will permanently
+                          delete your account, all quiz attempts, and remove all
+                          associated data from our servers.
+                        </p>
+                      </div>
+
+                      {!showDeleteConfirm ? (
+                        <button
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Account
+                        </button>
+                      ) : (
+                        <div className="space-y-4 p-4 bg-white rounded-lg border border-red-300">
+                          <div>
+                            <p className="text-sm text-gray-700 mb-3">
+                              To confirm account deletion, please type{" "}
+                              <strong>DELETE</strong> below:
+                            </p>
+                            <input
+                              type="text"
+                              value={deleteConfirmText}
+                              onChange={(e) =>
+                                setDeleteConfirmText(e.target.value)
+                              }
+                              placeholder="Type DELETE to confirm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={handleDeleteAccount}
+                              disabled={
+                                deleteConfirmText !== "DELETE" || isDeleting
+                              }
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                            >
+                              {isDeleting ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                  Deleting...
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Permanently Delete Account
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setShowDeleteConfirm(false);
+                                setDeleteConfirmText("");
+                              }}
+                              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
