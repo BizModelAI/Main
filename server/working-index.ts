@@ -3,11 +3,16 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { createServer } from "http";
+import { registerRoutes } from "./routes.js";
+import { setupAuthRoutes } from "./auth.js";
 
 const MemoryStoreSession = MemoryStore(session);
 const app = express();
 
-// Basic middleware
+// Raw body parsing for Stripe webhooks
+app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
+
+// JSON parsing for other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -29,13 +34,15 @@ app.use(
   }),
 );
 
+// Setup authentication routes
+setupAuthRoutes(app);
+
 // Basic health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running!" });
 });
 
 const port = 5000;
-const server = createServer(app);
 
 // Setup Vite development server
 async function setupApp() {
