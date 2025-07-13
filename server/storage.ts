@@ -283,6 +283,10 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getPaymentById(paymentId: number): Promise<Payment | undefined> {
+    return this.payments.get(paymentId);
+  }
+
   async storeUnpaidUserEmail(
     sessionId: string,
     email: string,
