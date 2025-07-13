@@ -607,7 +607,7 @@ export class DatabaseStorage implements IStorage {
 
     // Check if expired
     if (email.expiresAt < new Date()) {
-      await db
+      await this.ensureDb()
         .delete(unpaidUserEmails)
         .where(eq(unpaidUserEmails.sessionId, sessionId));
       return undefined;
@@ -618,7 +618,7 @@ export class DatabaseStorage implements IStorage {
 
   async cleanupExpiredUnpaidEmails(): Promise<void> {
     try {
-      await db
+      await this.ensureDb()
         .delete(unpaidUserEmails)
         .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
     } catch (error) {
