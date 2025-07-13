@@ -605,6 +605,63 @@ export class DatabaseStorage implements IStorage {
       .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
   }
 
+  async getAllPayments(): Promise<Payment[]> {
+    return await this.ensureDb()
+      .select()
+      .from(payments)
+      .orderBy(desc(payments.createdAt));
+  }
+
+  // Refund operations
+  async createRefund(refund: Omit<InsertRefund, "id">): Promise<Refund> {
+    const [newRefund] = await this.ensureDb()
+      .insert(refunds)
+      .values(refund)
+      .returning();
+    return newRefund;
+  }
+
+  async updateRefundStatus(
+    refundId: number,
+    status: string,
+    processedAt?: Date,
+    stripeRefundId?: string,
+    paypalRefundId?: string,
+  ): Promise<void> {
+    const updateData: any = { status };
+    if (processedAt) updateData.processedAt = processedAt;
+    if (stripeRefundId) updateData.stripeRefundId = stripeRefundId;
+    if (paypalRefundId) updateData.paypalRefundId = paypalRefundId;
+
+    await this.ensureDb()
+      .update(refunds)
+      .set(updateData)
+      .where(eq(refunds.id, refundId));
+  }
+
+  async getRefundsByPayment(paymentId: number): Promise<Refund[]> {
+    return await this.ensureDb()
+      .select()
+      .from(refunds)
+      .where(eq(refunds.paymentId, paymentId))
+      .orderBy(desc(refunds.createdAt));
+  }
+
+  async getRefundById(refundId: number): Promise<Refund | undefined> {
+    const [refund] = await this.ensureDb()
+      .select()
+      .from(refunds)
+      .where(eq(refunds.id, refundId));
+    return refund || undefined;
+  }
+
+  async getAllRefunds(): Promise<Refund[]> {
+    return await this.ensureDb()
+      .select()
+      .from(refunds)
+      .orderBy(desc(refunds.createdAt));
+  }
+
   async storeUnpaidUserEmail(
     sessionId: string,
     email: string,
