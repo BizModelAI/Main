@@ -1516,7 +1516,7 @@ export const businessPaths: BusinessPath[] = [
       "Customer service",
       "Social media marketing",
     ],
-    icon: "Palette",
+    icon: "Paintbrush",
     marketSize: "Handmade goods market worth $44B+ globally",
     averageIncome: {
       beginner: "$200-1K/month",
