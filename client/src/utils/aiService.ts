@@ -482,6 +482,204 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     }
   }
 
+  private createCacheKey(quizData: QuizData, topPaths: BusinessPath[]): string {
+    // Create a hash-like key based on quiz data and top paths
+    const quizKey = `${quizData.mainMotivation}_${quizData.successIncomeGoal}_${quizData.weeklyTimeCommitment}_${quizData.techSkillsRating}_${quizData.riskComfortLevel}`;
+    const pathsKey = topPaths
+      .slice(0, 3)
+      .map((p) => `${p.id}_${p.fitScore}`)
+      .join("_");
+    return `ai_insights_${quizKey}_${pathsKey}`;
+  }
+
+  private getCachedInsights(cacheKey: string): any | null {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const data = JSON.parse(cached);
+        // Check if cache is still valid (1 hour)
+        if (Date.now() - data.timestamp < 3600000) {
+          return data.insights;
+        } else {
+          // Remove expired cache
+          localStorage.removeItem(cacheKey);
+        }
+      }
+    } catch (error) {
+      console.error("Error reading cached insights:", error);
+    }
+    return null;
+  }
+
+  private cacheInsights(cacheKey: string, insights: any): void {
+    try {
+      const cacheData = {
+        insights,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error("Error caching insights:", error);
+    }
+  }
+
+  private async generateComprehensiveInsights(
+    userProfile: string,
+    topBusinessPaths: any[],
+  ): Promise<{
+    personalizedSummary: string;
+    customRecommendations: string[];
+    potentialChallenges: string[];
+    successStrategies: string[];
+    personalizedActionPlan: {
+      week1: string[];
+      month1: string[];
+      month3: string[];
+      month6: string[];
+    };
+    motivationalMessage: string;
+  }> {
+    const topBusinessModel = topBusinessPaths[0];
+
+    const comprehensivePrompt = `
+You are an expert business coach analyzing a user's entrepreneurial profile. Based on the user profile and their top business match, generate a comprehensive personalized business analysis.
+
+${userProfile}
+
+TOP BUSINESS MATCH:
+${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
+Description: ${topBusinessModel.description}
+
+Additional Top Matches:
+${topBusinessPaths
+  .slice(1, 3)
+  .map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`)
+  .join("\n")}
+
+Generate a comprehensive analysis in the following JSON format. Be specific, personal, and actionable for ${topBusinessModel.name}:
+
+{
+  "personalizedSummary": "2-3 sentence summary explaining why ${topBusinessModel.name} is perfect for this user",
+  "customRecommendations": [
+    "6 specific actionable recommendations for starting ${topBusinessModel.name}",
+    "Each should be 1-2 sentences and consider user's strengths, time, and goals"
+  ],
+  "potentialChallenges": [
+    "4 specific challenges this user might face in ${topBusinessModel.name}",
+    "Include brief solution or mitigation strategy for each"
+  ],
+  "successStrategies": [
+    "6 success strategies that leverage this user's strengths for ${topBusinessModel.name}",
+    "Each should be specific to both the user and the business model"
+  ],
+  "actionPlan": {
+    "week1": ["3 specific tasks for the first week"],
+    "month1": ["4 specific tasks for the first month"],
+    "month3": ["4 specific tasks for month 3"],
+    "month6": ["4 specific tasks for month 6"]
+  },
+  "motivationalMessage": "2-3 sentence inspirational message that acknowledges user's strengths and encourages action in ${topBusinessModel.name}"
+}
+
+CRITICAL REQUIREMENTS:
+- Use ONLY the actual data provided in the user profile
+- Do NOT make up specific numbers, amounts, or timeframes
+- Reference the exact ranges and values shown in the user profile
+- Be specific to ${topBusinessModel.name}, not generic business advice
+- All content should feel personal and tailored to this specific user
+- Action plan should be progressive and logical
+    `;
+
+    try {
+      const response = await this.makeOpenAIRequest(
+        comprehensivePrompt,
+        1200,
+        0.7,
+      );
+
+      // Clean up the response content (remove markdown code blocks if present)
+      let cleanContent = response;
+      if (cleanContent.includes("```json")) {
+        cleanContent = cleanContent
+          .replace(/```json\n?/g, "")
+          .replace(/```/g, "");
+      }
+
+      const parsed = JSON.parse(cleanContent);
+
+      // Validate and structure the response
+      return {
+        personalizedSummary:
+          parsed.personalizedSummary ||
+          `Your unique combination of traits makes you perfectly suited for ${topBusinessModel.name} success.`,
+        customRecommendations: this.validateArray(
+          parsed.customRecommendations,
+          6,
+          "Focus on building core skills and taking consistent action.",
+        ),
+        potentialChallenges: this.validateArray(
+          parsed.potentialChallenges,
+          4,
+          "Initial learning curve may require patience and persistence.",
+        ),
+        successStrategies: this.validateArray(
+          parsed.successStrategies,
+          6,
+          "Leverage your natural strengths while building new capabilities.",
+        ),
+        personalizedActionPlan: {
+          week1: this.validateArray(
+            parsed.actionPlan?.week1,
+            3,
+            "Research and plan your approach",
+          ),
+          month1: this.validateArray(
+            parsed.actionPlan?.month1,
+            4,
+            "Begin implementation and testing",
+          ),
+          month3: this.validateArray(
+            parsed.actionPlan?.month3,
+            4,
+            "Optimize and scale your efforts",
+          ),
+          month6: this.validateArray(
+            parsed.actionPlan?.month6,
+            4,
+            "Expand and grow your business",
+          ),
+        },
+        motivationalMessage:
+          parsed.motivationalMessage ||
+          `Your unique combination of skills and drive positions you perfectly for ${topBusinessModel.name} success. Trust in your abilities and take that first step.`,
+      };
+    } catch (error) {
+      console.error("Error in comprehensive insights generation:", error);
+      throw error; // Let the parent method handle fallback
+    }
+  }
+
+  private validateArray(
+    arr: any,
+    expectedLength: number,
+    fallback: string,
+  ): string[] {
+    if (!Array.isArray(arr)) {
+      return Array(expectedLength).fill(fallback);
+    }
+
+    const validItems = arr.filter(
+      (item) => typeof item === "string" && item.length > 10,
+    );
+
+    // Pad with fallback if needed
+    while (validItems.length < expectedLength) {
+      validItems.push(fallback);
+    }
+
+    return validItems.slice(0, expectedLength);
+  }
+
   private createUserProfile(quizData: QuizData): string {
     return `
 User Profile:
