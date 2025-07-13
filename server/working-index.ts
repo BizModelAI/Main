@@ -42,6 +42,72 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running!" });
 });
 
+// Comprehensive health check endpoint
+app.get("/api/health/detailed", async (req, res) => {
+  const health = {
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    checks: {
+      database: { status: "unknown", details: "" },
+      openai: { status: "unknown", details: "" },
+      environment: { status: "unknown", details: "" },
+    },
+  };
+
+  // Check database connection
+  try {
+    const { pool } = await import("./db.js");
+    const client = await pool.connect();
+    await client.query("SELECT 1");
+    client.release();
+    health.checks.database = {
+      status: "healthy",
+      details: "Connection successful",
+    };
+  } catch (error) {
+    health.checks.database = {
+      status: "unhealthy",
+      details:
+        error instanceof Error ? error.message : "Unknown database error",
+    };
+    health.status = "degraded";
+  }
+
+  // Check OpenAI API key
+  health.checks.openai = {
+    status: process.env.OPENAI_API_KEY ? "configured" : "missing",
+    details: process.env.OPENAI_API_KEY
+      ? "API key present"
+      : "API key not configured",
+  };
+
+  // Check critical environment variables
+  const requiredEnvVars = ["DATABASE_URL", "SESSION_SECRET"];
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName],
+  );
+
+  health.checks.environment = {
+    status: missingVars.length === 0 ? "healthy" : "unhealthy",
+    details:
+      missingVars.length === 0
+        ? "All required environment variables present"
+        : `Missing: ${missingVars.join(", ")}`,
+  };
+
+  if (missingVars.length > 0) {
+    health.status = "unhealthy";
+  }
+
+  const statusCode =
+    health.status === "healthy"
+      ? 200
+      : health.status === "degraded"
+        ? 207
+        : 503;
+  res.status(statusCode).json(health);
+});
+
 const port = 5000;
 
 // Setup server with routes
