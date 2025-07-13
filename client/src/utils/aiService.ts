@@ -377,11 +377,6 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     temperature: number = 0.7,
   ): Promise<string> {
     try {
-      console.log(
-        "Making OpenAI request to:",
-        window.location.origin + "/api/openai-chat",
-      );
-
       const response = await fetch("/api/openai-chat", {
         method: "POST",
         headers: {
@@ -394,24 +389,14 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
         }),
       });
 
-      console.log("OpenAI response status:", response.status);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server error response:", errorText);
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
+        throw new Error(`Server error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("OpenAI response received successfully");
       return data.content || "";
     } catch (error) {
       console.error("OpenAI API request failed:", error);
-      console.error("Error details:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
       throw error;
     }
   }
