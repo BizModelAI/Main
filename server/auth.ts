@@ -120,8 +120,24 @@ export function setupAuthRoutes(app: Express) {
       }
 
       console.log("Checking if user already exists...");
+
       // Check if user already exists as a paid user
-      const existingUser = await storage.getUserByUsername(email);
+      let existingUser;
+      try {
+        existingUser = await storage.getUserByUsername(email);
+      } catch (dbError) {
+        console.error("Database error checking existing user:", dbError);
+        return res.status(500).json({
+          error: "Database connection error. Please try again.",
+          details:
+            process.env.NODE_ENV === "development"
+              ? dbError instanceof Error
+                ? dbError.message
+                : String(dbError)
+              : undefined,
+        });
+      }
+
       if (existingUser) {
         console.log("User already exists, returning 409");
         return res.status(409).json({ error: "User already exists" });
@@ -141,15 +157,36 @@ export function setupAuthRoutes(app: Express) {
       const quizData = req.body.quizData || {};
 
       console.log("Hashing password...");
-      const hashedPassword = await bcrypt.hash(password, 10);
+      let hashedPassword;
+      try {
+        hashedPassword = await bcrypt.hash(password, 10);
+      } catch (hashError) {
+        console.error("Password hashing error:", hashError);
+        return res.status(500).json({
+          error: "Password processing error. Please try again.",
+        });
+      }
 
       console.log("Storing unpaid user email...");
-      await storage.storeUnpaidUserEmail(sessionId, email, {
-        email,
-        password: hashedPassword,
-        name,
-        quizData,
-      });
+      try {
+        await storage.storeUnpaidUserEmail(sessionId, email, {
+          email,
+          password: hashedPassword,
+          name,
+          quizData,
+        });
+      } catch (storageError) {
+        console.error("Storage error:", storageError);
+        return res.status(500).json({
+          error: "Failed to create account. Please try again.",
+          details:
+            process.env.NODE_ENV === "development"
+              ? storageError instanceof Error
+                ? storageError.message
+                : String(storageError)
+              : undefined,
+        });
+      }
 
       console.log("Signup successful, returning temporary user data");
       // Return a temporary user object for frontend
