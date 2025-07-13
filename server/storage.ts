@@ -375,6 +375,49 @@ export class MemStorage implements IStorage {
     }
   }
 
+  async getAllPayments(): Promise<Payment[]> {
+    return Array.from(this.payments.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+  }
+
+  // Refund operations (Note: MemStorage is for testing only)
+  async createRefund(refund: Omit<InsertRefund, "id">): Promise<Refund> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async updateRefundStatus(
+    refundId: number,
+    status: string,
+    processedAt?: Date,
+    stripeRefundId?: string,
+    paypalRefundId?: string,
+  ): Promise<void> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async getRefundsByPayment(paymentId: number): Promise<Refund[]> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async getRefundById(refundId: number): Promise<Refund | undefined> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async getAllRefunds(): Promise<Refund[]> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
   async cleanupExpiredData(): Promise<void> {
     // Clean up expired unpaid email data
     await this.cleanupExpiredUnpaidEmails();
