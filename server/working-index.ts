@@ -137,6 +137,15 @@ app.get("/api/health/detailed", async (req, res) => {
 
 const port = 5000;
 
+// Global error handler for unhandled errors
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+});
+
 // Setup server with routes
 async function setupApp() {
   try {
@@ -145,6 +154,26 @@ async function setupApp() {
 
     // Create HTTP server after registering routes
     const server = createServer(app);
+
+    // Add final error handler after all routes
+    app.use((err: any, req: any, res: any, next: any) => {
+      console.error("Final error handler:", err);
+
+      // For API routes, always return JSON
+      if (req.path.startsWith("/api/")) {
+        if (!res.headersSent) {
+          res.status(500).json({
+            error: "Internal server error",
+            timestamp: new Date().toISOString(),
+            path: req.path,
+          });
+        }
+        return;
+      }
+
+      // For non-API routes, pass to next handler
+      next(err);
+    });
 
     // Setup Vite development server AFTER API routes
     const { setupVite } = await import("./vite.js");
@@ -156,7 +185,16 @@ async function setupApp() {
     return server;
   } catch (error) {
     console.error("❌ Failed to start server:", error);
-    // Fallback to basic HTML
+
+    // Add emergency API error handler
+    app.use("/api/*", (req: any, res: any) => {
+      res.status(500).json({
+        error: "Server startup failed",
+        message: "Please try again later",
+      });
+    });
+
+    // Fallback to basic HTML for non-API routes
     app.get("*", (req, res) => {
       res.send(`
         <!DOCTYPE html>
