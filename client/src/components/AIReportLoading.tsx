@@ -713,7 +713,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Our advanced AI is analyzing your responses and generating custom
-            insights just for you. This will take about 10-15 seconds.
+            insights just for you. This will take about 15-30 seconds.
           </p>
         </motion.div>
 
