@@ -1434,19 +1434,19 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                     </motion.div>
                   )}
 
-                  <div className="h-full p-8 flex">
+                  <div className="h-full p-4 md:p-8 flex flex-col md:flex-row">
                     {/* Left Column - Main Info */}
-                    <div className="flex-1 pr-6">
+                    <div className="flex-1 md:pr-6 mb-6 md:mb-0">
                       <div className="flex items-center mb-4">
                         <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center mr-4 ${
+                          className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mr-3 md:mr-4 ${
                             index === 0 ? "bg-yellow-500" : "bg-blue-600"
                           }`}
                         >
-                          <IconComponent className="h-6 w-6 text-white" />
+                          <IconComponent className="h-5 w-5 md:h-6 md:w-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-gray-900">
+                          <h3 className="text-xl md:text-2xl font-bold text-gray-900">
                             {path.name}
                           </h3>
                           <div
@@ -1463,12 +1463,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                         </div>
                       </div>
 
-                      <p className="text-gray-600 mb-6 leading-relaxed">
+                      <p className="text-gray-600 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
                         {path.description}
                       </p>
 
                       {/* Key Metrics in compact grid */}
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-2 gap-2 md:gap-3 mb-4 md:mb-6">
                         <div
                           className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-3`}
                         >
