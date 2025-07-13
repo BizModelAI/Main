@@ -669,11 +669,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isTemporaryUser) {
         const payment = await storage.createPayment({
           userId: parseInt(userId),
-          amount: "9.99",
+          amount: (amount / 100).toFixed(2), // Convert cents to dollars
           currency: "usd",
-          type: "access_pass",
+          type: paymentType,
           status: "pending",
-          retakesGranted: 5,
+          retakesGranted: parseInt(retakesGranted),
           stripePaymentIntentId: paymentIntent.id,
         });
         paymentId = payment.id;
