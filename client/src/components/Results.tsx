@@ -1797,7 +1797,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           {/* Dashboard Link Section - Show when user has paid */}
           {hasUnlockedAnalysis && (
             <motion.div
-              className="bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden mt-12"
+              className="bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -1810,16 +1810,16 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
               <div className="relative max-w-4xl mx-auto">
                 <motion.div
-                  className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8"
+                  className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.8, delay: 0.7 }}
                 >
-                  <CheckCircle className="h-12 w-12 text-white" />
+                  <CheckCircle className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-white" />
                 </motion.div>
 
                 <motion.h2
-                  className="text-4xl md:text-5xl font-bold text-white mb-6"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 px-2 md:px-0"
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -1828,7 +1828,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.h2>
 
                 <motion.p
-                  className="text-xl text-gray-300 mb-10 leading-relaxed"
+                  className="text-base md:text-lg lg:text-xl text-gray-300 mb-6 md:mb-8 lg:mb-10 leading-relaxed px-4 md:px-0"
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -1845,7 +1845,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }, 100);
                   }}
-                  className="bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900 px-12 py-5 rounded-full text-xl font-bold hover:from-green-300 hover:to-emerald-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
+                  className="bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900 px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-full text-base md:text-lg lg:text-xl font-bold hover:from-green-300 hover:to-emerald-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
