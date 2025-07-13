@@ -16,7 +16,7 @@ app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Session configuration
+// Session configuration with improved concurrency support
 app.use(
   session({
     secret:
@@ -24,13 +24,18 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: new MemoryStoreSession({
-      checkPeriod: 86400000,
+      checkPeriod: 86400000, // 24 hours
+      max: 100000, // Increased max sessions for concurrent users
+      ttl: 86400000, // Session TTL
     }),
     cookie: {
       secure: false,
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
     },
+    // Improved settings for concurrent access
+    rolling: true, // Reset expiry on activity
+    name: "bizmodel.sid", // Custom session name
   }),
 );
 
