@@ -684,10 +684,10 @@ const ResultsWrapperWithReset: React.FC<{
     setShowCongratulations(false);
   }, [setShowCongratulations]);
 
-  if (quizData) {
+  if (savedQuizData) {
     return (
       <Results
-        quizData={quizData}
+        quizData={savedQuizData}
         onBack={onBack}
         userEmail={userEmail}
         preloadedReportData={loadedReportData}
