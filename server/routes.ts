@@ -60,7 +60,7 @@ const paypalClient =
         },
         environment:
           process.env.NODE_ENV === "production"
-            ? Environment.Live
+            ? Environment.Production
             : Environment.Sandbox,
       })
     : null;
