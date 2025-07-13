@@ -319,7 +319,6 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       console.log(
         "No valid pre-generated insights found, generating fresh AI content...",
       );
-      console.log("Current location:", window.location.href);
       console.log(
         "Top business model being passed to AI:",
         paths[0]?.name,
