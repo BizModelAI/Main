@@ -98,8 +98,52 @@ function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 BizModelAI. All rights reserved.</p>
+        <div className="border-t border-gray-800 mt-8 pt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
+            <p className="text-gray-400 text-center sm:text-left">
+              &copy; 2025 BizModelAI. All rights reserved.
+            </p>
+
+            {/* Social Media Links */}
+            <div className="flex space-x-4 mt-4 sm:mt-0">
+              <a
+                href="https://www.instagram.com/bizmodelai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Follow us on Instagram"
+              >
+                <FaInstagram size={24} />
+              </a>
+              <a
+                href="https://www.tiktok.com/@bizmodelai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Follow us on TikTok"
+              >
+                <FaTiktok size={24} />
+              </a>
+              <a
+                href="https://x.com/bizmodelai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Follow us on X (Twitter)"
+              >
+                <FaXTwitter size={24} />
+              </a>
+              <a
+                href="https://www.pinterest.com/bizmodelai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+                aria-label="Follow us on Pinterest"
+              >
+                <FaPinterest size={24} />
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
