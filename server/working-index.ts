@@ -9,12 +9,15 @@ import { setupAuthRoutes } from "./auth.js";
 const MemoryStoreSession = MemoryStore(session);
 const app = express();
 
+// Trust proxy for proper IP detection in rate limiting
+app.set("trust proxy", true);
+
 // Raw body parsing for Stripe webhooks
 app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 
 // JSON parsing for other routes
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "10mb" })); // Increased limit for quiz data
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // Session configuration with improved concurrency support
 app.use(
