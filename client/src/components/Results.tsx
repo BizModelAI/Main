@@ -146,7 +146,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     return false;
   })();
 
-  const [isGeneratingAI, setIsGeneratingAI] = useState(!hasCompleteAIContent);
+  // Always start with false to prevent API calls in production
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
 
   const [showPreview, setShowPreview] = useState(true);
