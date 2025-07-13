@@ -288,6 +288,14 @@ export async function registerRoutes(app: Express): Promise<void> {
   // AI-powered business fit scoring endpoint
   app.post("/api/ai-business-fit-analysis", async (req, res) => {
     try {
+      // Rate limiting for concurrent quiz takers
+      const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+      if (!openaiRateLimiter.canMakeRequest(clientIP)) {
+        return res.status(429).json({
+          error: "Too many requests. Please wait a moment before trying again.",
+        });
+      }
+
       const { quizData } = req.body;
 
       if (!quizData) {
@@ -298,7 +306,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.json(analysis);
     } catch (error) {
       console.error("Error in AI business fit analysis:", error);
-      res.status(500).json({ error: "Failed to analyze business fit" });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({
+        error: "Failed to analyze business fit",
+        details: errorMessage,
+      });
     }
   });
 
