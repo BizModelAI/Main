@@ -70,7 +70,7 @@ const Login: React.FC = () => {
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 mt-12">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Welcome Back
           </h1>
