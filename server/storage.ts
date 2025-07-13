@@ -667,7 +667,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePasswordResetToken(token: string): Promise<void> {
-    await db
+    await this.ensureDb()
       .delete(passwordResetTokens)
       .where(eq(passwordResetTokens.token, token));
   }
