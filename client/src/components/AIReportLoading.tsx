@@ -465,16 +465,21 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step2Result };
 
-        // Step 3: Generate AI insights
+        // Step 3: Generate AI insights (SINGLE API CALL)
         const step3Result = await executeStep(2, async () => {
+          console.log("🔄 Starting AI insights generation (single call)");
           const { AIService } = await import("../utils/aiService");
           const aiService = AIService.getInstance();
           const pathsForInsights =
             (currentResults as any).personalizedPaths?.slice(0, 3) || [];
+
+          // Make SINGLE comprehensive API call
           const insights = await aiService.generatePersonalizedInsights(
             activeQuizData,
             pathsForInsights,
           );
+
+          console.log("✅ AI insights generation completed successfully");
           return { aiInsights: insights };
         });
         currentResults = { ...currentResults, ...step3Result };
@@ -500,50 +505,50 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step5Result };
 
-        // Step 6: Generate personalized insights with OpenAI or use cached content
+        // Step 6: Finalize and store AI data for Results component
         const step6Result = await executeStep(5, async () => {
-          try {
-            const { AIService } = await import("../utils/aiService");
-            const aiService = AIService.getInstance();
-            const pathsForInsights =
-              (currentResults as any).personalizedPaths?.slice(0, 3) || [];
-            const insights = await aiService.generatePersonalizedInsights(
-              activeQuizData,
-              pathsForInsights,
-            );
-            return { aiInsights: insights };
-          } catch (error) {
-            console.log("OpenAI API failed, trying cached content:", error);
-            // Get the cached AI analysis that was already generated
-            const { aiCacheManager } = await import("../utils/aiCacheManager");
-            const cachedData =
-              aiCacheManager.getCachedAIContent(activeQuizData);
+          // Use the AI insights that were already generated in step 3
+          const existingInsights = (currentResults as any).aiInsights;
 
-            // Use the fullAnalysis from the cached data, or generate personalized fallback content
-            const topPath = (currentResults as any).personalizedPaths?.[0];
-            const insights =
-              cachedData.analysis?.fullAnalysis ||
-              `Your assessment reveals strong alignment with ${topPath?.name || "your top business match"}. Your ${activeQuizData.selfMotivationLevel >= 4 ? "high" : "moderate"} self-motivation level and ${activeQuizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
+          if (existingInsights) {
+            console.log("📦 Storing AI insights for Results component");
 
-Based on your ${activeQuizData.riskComfortLevel}/5 risk tolerance and ${activeQuizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of this business path. Your ${activeQuizData.learningPreference} learning style will help you adapt to the requirements of this field.
-
-With your income goal of ${activeQuizData.successIncomeGoal} per month and ${activeQuizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
-
-            return {
-              aiInsights: {
-                personalizedSummary: insights,
-                customRecommendations: [],
-                potentialChallenges: [],
-                successStrategies: [],
-                personalizedActionPlan: {
-                  week1: [],
-                  month1: [],
-                  month3: [],
-                  month6: [],
-                },
-                motivationalMessage: `Your unique combination of skills and drive positions you perfectly for ${topPath?.name || "entrepreneurial"} success. Trust in your abilities and take that first step.`,
-              },
+            // Store in localStorage for Results component to use
+            const aiData = {
+              insights: existingInsights,
+              analysis: null, // Will be generated on-demand if needed
+              topPaths:
+                (currentResults as any).personalizedPaths?.slice(0, 3) || [],
+              timestamp: Date.now(),
+              complete: true,
+              error: false,
             };
+            localStorage.setItem(
+              "quiz-completion-ai-insights",
+              JSON.stringify(aiData),
+            );
+
+            console.log("✅ AI data stored successfully for Results component");
+            return { finalizedData: true };
+          } else {
+            console.log("⚠️ No AI insights found, storing fallback data");
+
+            // Store fallback indicator
+            const aiData = {
+              insights: null,
+              analysis: null,
+              topPaths:
+                (currentResults as any).personalizedPaths?.slice(0, 3) || [],
+              timestamp: Date.now(),
+              complete: false,
+              error: true,
+            };
+            localStorage.setItem(
+              "quiz-completion-ai-insights",
+              JSON.stringify(aiData),
+            );
+
+            return { finalizedData: false };
           }
         });
         currentResults = { ...currentResults, ...step6Result };

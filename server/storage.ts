@@ -3,6 +3,7 @@ import {
   quizAttempts,
   payments,
   unpaidUserEmails,
+  passwordResetTokens,
   type User,
   type InsertUser,
   type QuizAttempt,
@@ -11,7 +12,9 @@ import {
   type InsertPayment,
   type UnpaidUserEmail,
   type InsertUnpaidUserEmail,
-} from "@shared/schema";
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
+} from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, count, sql } from "drizzle-orm";
 
@@ -50,6 +53,16 @@ export interface IStorage {
   // User status checks
   isPaidUser(userId: number): Promise<boolean>;
 
+  // Password reset operations
+  createPasswordResetToken(
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  deletePasswordResetToken(token: string): Promise<void>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<void>;
+
   // Data cleanup utilities
   cleanupExpiredData(): Promise<void>;
 }
@@ -59,20 +72,24 @@ export class MemStorage implements IStorage {
   private quizAttempts: Map<number, QuizAttempt>;
   private payments: Map<number, Payment>;
   private unpaidUserEmails: Map<string, UnpaidUserEmail>;
+  private passwordResetTokens: Map<string, PasswordResetToken>;
   currentId: number;
   currentQuizAttemptId: number;
   currentPaymentId: number;
   currentUnpaidEmailId: number;
+  currentPasswordResetTokenId: number;
 
   constructor() {
     this.users = new Map();
     this.quizAttempts = new Map();
     this.payments = new Map();
     this.unpaidUserEmails = new Map();
+    this.passwordResetTokens = new Map();
     this.currentId = 1;
     this.currentQuizAttemptId = 1;
     this.currentPaymentId = 1;
     this.currentUnpaidEmailId = 1;
+    this.currentPasswordResetTokenId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -297,6 +314,47 @@ export class MemStorage implements IStorage {
   async isPaidUser(userId: number): Promise<boolean> {
     const user = await this.getUser(userId);
     return user ? user.hasAccessPass : false;
+  }
+
+  async createPasswordResetToken(
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<PasswordResetToken> {
+    const id = this.currentPasswordResetTokenId++;
+    const resetToken: PasswordResetToken = {
+      id,
+      userId,
+      token,
+      expiresAt,
+      createdAt: new Date(),
+    };
+    this.passwordResetTokens.set(token, resetToken);
+    return resetToken;
+  }
+
+  async getPasswordResetToken(
+    token: string,
+  ): Promise<PasswordResetToken | undefined> {
+    return this.passwordResetTokens.get(token);
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    this.passwordResetTokens.delete(token);
+  }
+
+  async updateUserPassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      this.users.set(userId, {
+        ...user,
+        password: hashedPassword,
+        updatedAt: new Date(),
+      });
+    }
   }
 
   async cleanupExpiredData(): Promise<void> {
@@ -529,6 +587,51 @@ export class DatabaseStorage implements IStorage {
       console.error("Error checking if user is paid:", error);
       return false; // Default to unpaid if there's an error
     }
+  }
+
+  async createPasswordResetToken(
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<PasswordResetToken> {
+    const [resetToken] = await db
+      .insert(passwordResetTokens)
+      .values({
+        userId,
+        token,
+        expiresAt,
+      })
+      .returning();
+    return resetToken;
+  }
+
+  async getPasswordResetToken(
+    token: string,
+  ): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+    return resetToken || undefined;
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    await db
+      .delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  async updateUserPassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 
   async cleanupExpiredData(): Promise<void> {

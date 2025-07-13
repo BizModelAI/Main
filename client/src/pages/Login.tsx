@@ -70,14 +70,11 @@ const Login: React.FC = () => {
         </button>
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-xl">BP</span>
-          </div>
+        <div className="text-center mb-8 mt-12">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Welcome Back
           </h1>
-          <p className="text-gray-600">Sign in to your Business Path account</p>
+          <p className="text-gray-600">Sign in to BizModelAI</p>
         </div>
 
         {/* Error Message */}
@@ -165,6 +162,16 @@ const Login: React.FC = () => {
             )}
           </button>
         </form>
+
+        {/* Forgot Password Link */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate("/forgot-password")}
+            className="text-sm text-gray-600 hover:text-gray-800 underline"
+          >
+            Forget your password?
+          </button>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center">

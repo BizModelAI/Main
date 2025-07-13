@@ -6,7 +6,9 @@ import {
   getPersonalityDescription,
 } from "../../shared/personalityScoring.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 // Helper functions to convert stored numbers back to original quiz ranges
 const getIncomeRangeLabel = (value: number): string => {
@@ -120,6 +122,20 @@ export class EmailService {
   async sendFullReport(email: string, quizData: QuizData): Promise<boolean> {
     const subject = "Your Complete BizModelAI Business Report";
     const html = this.generateFullReportHTML(quizData);
+
+    return await this.sendEmail({
+      to: email,
+      subject,
+      html,
+    });
+  }
+
+  async sendPasswordResetEmail(
+    email: string,
+    resetUrl: string,
+  ): Promise<boolean> {
+    const subject = "Reset Your BizModelAI Password";
+    const html = this.generatePasswordResetHTML(resetUrl);
 
     return await this.sendEmail({
       to: email,
@@ -536,6 +552,74 @@ export class EmailService {
                 <a href="${process.env.FRONTEND_URL || "https://bizmodelai.com"}/unsubscribe" class="unsubscribe-link">
                   Unsubscribe
                 </a>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+        `;
+  }
+
+  private generatePasswordResetHTML(resetUrl: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="color-scheme" content="light only">
+          <meta name="supported-color-schemes" content="light">
+          <title>Reset Your Password - BizModelAI</title>
+          <style>
+            ${this.getBrighterStyles()}
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              <div class="logo" style="width: 70px; height: 70px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
+                <img src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F8de3245c79ad43b48b9a59be9364a64e?format=webp&width=800" alt="BizModelAI Logo" style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: white; padding: 8px; box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);">
+              </div>
+              <h1>Reset Your Password</h1>
+              <p>We received a request to reset your BizModelAI password</p>
+            </div>
+
+            <div class="content">
+              <div class="section">
+                <p style="margin-bottom: 24px; color: #374151; line-height: 1.6;">
+                  Click the button below to reset your password. This link will expire in 1 hour for security purposes.
+                </p>
+
+                <div class="cta-container">
+                  <a href="${resetUrl}" class="cta-button">
+                    Reset My Password
+                  </a>
+                </div>
+
+                <div style="margin-top: 32px; padding: 20px; background: #F3F4F6; border-radius: 12px; border-left: 4px solid #F59E0B;">
+                  <h3 style="margin: 0 0 12px; font-size: 16px; color: #92400E;">
+                    Security Tips:
+                  </h3>
+                  <ul style="margin: 0; padding-left: 20px; color: #78350F;">
+                    <li>This link expires in 1 hour</li>
+                    <li>If you didn't request this reset, you can safely ignore this email</li>
+                    <li>Never share your password with anyone</li>
+                  </ul>
+                </div>
+
+                <p style="margin-top: 24px; font-size: 14px; color: #6B7280;">
+                  If the button above doesn't work, copy and paste this link into your browser:<br>
+                  <a href="${resetUrl}" style="color: #7C3AED; word-break: break-all;">${resetUrl}</a>
+                </p>
+              </div>
+            </div>
+
+            <div class="footer">
+              <div class="footer-logo">BizModelAI</div>
+              <div class="footer-tagline">Your AI-Powered Business Discovery Platform</div>
+              <div class="footer-disclaimer">
+                If you didn't request this password reset, please ignore this email.<br>
+                Your account security is important to us.
               </div>
             </div>
           </div>

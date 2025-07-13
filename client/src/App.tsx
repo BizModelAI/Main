@@ -14,6 +14,8 @@ import BusinessExplorer from "./pages/BusinessExplorer";
 
 import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Quiz from "./components/Quiz";
@@ -39,12 +41,16 @@ function App() {
   const [showAILoading, setShowAILoading] = React.useState(false);
   const [loadedReportData, setLoadedReportData] = React.useState<any>(null);
   const [showCongratulations, setShowCongratulations] = React.useState(false);
+  const [congratulationsShown, setCongratulationsShown] = React.useState(false);
 
   // Restore data from localStorage on app start
   React.useEffect(() => {
     const savedQuizData = localStorage.getItem("quizData");
     const savedUserEmail = localStorage.getItem("userEmail");
     const savedLoadedReportData = localStorage.getItem("loadedReportData");
+    const savedCongratulationsShown = localStorage.getItem(
+      "congratulationsShown",
+    );
 
     if (savedQuizData) {
       try {
@@ -65,14 +71,35 @@ function App() {
         console.error("Error parsing saved loaded report data:", error);
       }
     }
+
+    if (savedCongratulationsShown) {
+      setCongratulationsShown(JSON.parse(savedCongratulationsShown));
+    }
+
+    // Clear congratulations tracking if there's no quiz data (fresh start)
+    if (!savedQuizData) {
+      setCongratulationsShown(false);
+      localStorage.setItem("congratulationsShown", "false");
+    }
   }, []);
 
   // Handler for AI loading completion
   const handleAILoadingComplete = (data: any) => {
-    console.log("AI loading complete, showing congratulations");
+    console.log(
+      "AI loading complete, checking if congratulations should be shown",
+    );
     setLoadedReportData(data);
     setShowAILoading(false);
-    setShowCongratulations(true);
+
+    // Only show congratulations if it hasn't been shown yet
+    if (!congratulationsShown) {
+      console.log("Showing congratulations for the first time");
+      setShowCongratulations(true);
+      setCongratulationsShown(true);
+      localStorage.setItem("congratulationsShown", "true");
+    } else {
+      console.log("Congratulations already shown, skipping");
+    }
   };
 
   // TEMPORARY: Mock quiz data for testing with COMPLETE data structure
@@ -200,6 +227,8 @@ function App() {
 
             {/* Auth routes (no layout) */}
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes with layout */}
             <Route
@@ -242,6 +271,8 @@ function App() {
                   setLoadedReportData={setLoadedReportData}
                   showCongratulations={showCongratulations}
                   setShowCongratulations={setShowCongratulations}
+                  congratulationsShown={congratulationsShown}
+                  setCongratulationsShown={setCongratulationsShown}
                   handleAILoadingComplete={handleAILoadingComplete}
                 />
               }
@@ -336,8 +367,20 @@ const AIReportLoadingWrapper: React.FC<{
   const navigate = useNavigate();
 
   const handleAILoadingComplete = (data: any) => {
-    console.log("AI loading complete after quiz, showing congratulations");
-    setShowCongratulations(true);
+    console.log(
+      "AI loading complete after quiz, checking congratulations tracking",
+    );
+
+    // Check if congratulations was already shown
+    const congratulationsShown = localStorage.getItem("congratulationsShown");
+    if (!congratulationsShown || congratulationsShown === "false") {
+      console.log("Showing congratulations for the first time");
+      setShowCongratulations(true);
+      localStorage.setItem("congratulationsShown", "true");
+    } else {
+      console.log("Congratulations already shown, skipping");
+    }
+
     // Navigate back to quiz route where congratulations popup will be handled
     navigate("/quiz");
   };
@@ -380,8 +423,19 @@ const QuizCompletionLoadingWrapper: React.FC<{
   const navigate = useNavigate();
 
   const handleLoadingComplete = () => {
-    console.log("Quiz completion loading complete, showing congratulations");
-    setShowCongratulations(true);
+    console.log(
+      "Quiz completion loading complete, checking congratulations tracking",
+    );
+
+    // Check if congratulations was already shown
+    const congratulationsShown = localStorage.getItem("congratulationsShown");
+    if (!congratulationsShown || congratulationsShown === "false") {
+      console.log("Showing congratulations for the first time");
+      setShowCongratulations(true);
+      localStorage.setItem("congratulationsShown", "true");
+    } else {
+      console.log("Congratulations already shown, skipping");
+    }
   };
 
   // Handler for congratulations completion with proper navigation
@@ -444,6 +498,8 @@ const QuizWithNavigation: React.FC<{
   setLoadedReportData: (data: any) => void;
   showCongratulations: boolean;
   setShowCongratulations: (show: boolean) => void;
+  congratulationsShown: boolean;
+  setCongratulationsShown: (shown: boolean) => void;
   handleAILoadingComplete: (data: any) => void;
 }> = ({
   quizData,
@@ -459,6 +515,8 @@ const QuizWithNavigation: React.FC<{
   setLoadedReportData,
   showCongratulations,
   setShowCongratulations,
+  congratulationsShown,
+  setCongratulationsShown,
   handleAILoadingComplete,
 }) => {
   const navigate = useNavigate();
@@ -467,6 +525,9 @@ const QuizWithNavigation: React.FC<{
   const handleQuizComplete = (data: QuizData) => {
     console.log("Quiz completed, navigating to quiz loading page");
     setQuizData(data);
+    // Reset congratulations tracking for this new quiz completion
+    setCongratulationsShown(false);
+    localStorage.setItem("congratulationsShown", "false");
     // Navigate to new loading page instead of showing congratulations immediately
     navigate("/quiz-loading");
   };
@@ -496,6 +557,9 @@ const QuizWithNavigation: React.FC<{
     console.log("Returning to quiz");
     setShowCongratulations(false);
     setQuizData(null);
+    // Reset congratulations tracking for next quiz completion
+    setCongratulationsShown(false);
+    localStorage.setItem("congratulationsShown", "false");
     // Stay on current page (quiz)
   };
 
@@ -514,6 +578,9 @@ const QuizWithNavigation: React.FC<{
     setShowAILoading(false);
     setShowCongratulations(false);
     setShowEmailCapture(false);
+    // Reset congratulations tracking
+    setCongratulationsShown(false);
+    localStorage.setItem("congratulationsShown", "false");
 
     console.log("Navigating to /results");
     // Navigate immediately for dev purposes

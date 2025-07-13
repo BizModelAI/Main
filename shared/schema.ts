@@ -60,6 +60,17 @@ export const unpaidUserEmails = pgTable("unpaid_user_emails", {
   expiresAt: timestamp("expires_at").notNull(),
 });
 
+// Password reset tokens table
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -68,6 +79,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertQuizAttemptSchema = createInsertSchema(quizAttempts);
 export const insertPaymentSchema = createInsertSchema(payments);
 export const insertUnpaidUserEmailSchema = createInsertSchema(unpaidUserEmails);
+export const insertPasswordResetTokenSchema =
+  createInsertSchema(passwordResetTokens);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -77,3 +90,7 @@ export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type UnpaidUserEmail = typeof unpaidUserEmails.$inferSelect;
 export type InsertUnpaidUserEmail = z.infer<typeof insertUnpaidUserEmailSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<
+  typeof insertPasswordResetTokenSchema
+>;

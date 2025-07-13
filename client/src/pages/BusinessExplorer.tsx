@@ -130,6 +130,11 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     loadPersonalizedPaths();
   }, [quizData, hasUnlockedAnalysis]);
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   // Calculate fit scores for business models if quiz data exists
   const businessModelsWithFitScores = useMemo(() => {
     if (!quizData || !hasUnlockedAnalysis) {

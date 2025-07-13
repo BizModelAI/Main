@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { storage } from "./storage.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 declare module "express-session" {
   interface SessionData {
@@ -91,12 +92,10 @@ export function setupAuthRoutes(app: Express) {
           .json({ error: "Password must be at least 8 characters long" });
       }
       if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Password must contain at least one uppercase letter, one lowercase letter, and one number",
-          });
+        return res.status(400).json({
+          error:
+            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        });
       }
 
       // Check if user already exists as a paid user
@@ -197,6 +196,145 @@ export function setupAuthRoutes(app: Express) {
       });
     } catch (error) {
       console.error("Error in /api/auth/account:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Forgot password
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByUsername(email);
+      if (!user) {
+        // Don't reveal whether the email exists or not for security
+        return res.json({
+          message:
+            "If an account with that email exists, we've sent password reset instructions.",
+        });
+      }
+
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+      // Store reset token in database
+      await storage.createPasswordResetToken(
+        user.id,
+        resetToken,
+        resetTokenExpiry,
+      );
+
+      // Send email with reset link
+      try {
+        const { emailService } = await import("./services/emailService.js");
+        const baseUrl = req.get("host")?.includes("localhost")
+          ? `${req.protocol}://${req.get("host")}`
+          : "https://bizmodelai.com";
+        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+
+        const success = await emailService.sendPasswordResetEmail(
+          email,
+          resetUrl,
+        );
+
+        if (success) {
+          res.json({
+            message:
+              "If an account with that email exists, we've sent password reset instructions.",
+          });
+        } else {
+          // Still return success message for security (don't reveal if email exists)
+          res.json({
+            message:
+              "If an account with that email exists, we've sent password reset instructions.",
+          });
+        }
+      } catch (emailError) {
+        console.error("Error sending password reset email:", emailError);
+        // Still return success message for security (don't reveal if email exists)
+        res.json({
+          message:
+            "If an account with that email exists, we've sent password reset instructions.",
+        });
+      }
+    } catch (error) {
+      console.error("Error in /api/auth/forgot-password:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Verify reset token
+  app.get("/api/auth/verify-reset-token/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      if (!token) {
+        return res.status(400).json({ error: "Reset token is required" });
+      }
+
+      const resetData = await storage.getPasswordResetToken(token);
+
+      if (!resetData || resetData.expiresAt < new Date()) {
+        return res
+          .status(400)
+          .json({ error: "Invalid or expired reset token" });
+      }
+
+      res.json({ valid: true });
+    } catch (error) {
+      console.error("Error in /api/auth/verify-reset-token:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Reset password
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        return res
+          .status(400)
+          .json({ error: "Token and password are required" });
+      }
+
+      // Validate password strength
+      if (password.length < 8) {
+        return res
+          .status(400)
+          .json({ error: "Password must be at least 8 characters long" });
+      }
+      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        return res.status(400).json({
+          error:
+            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        });
+      }
+
+      const resetData = await storage.getPasswordResetToken(token);
+
+      if (!resetData || resetData.expiresAt < new Date()) {
+        return res
+          .status(400)
+          .json({ error: "Invalid or expired reset token" });
+      }
+
+      // Update user password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await storage.updateUserPassword(resetData.userId, hashedPassword);
+
+      // Delete the used reset token
+      await storage.deletePasswordResetToken(token);
+
+      res.json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Error in /api/auth/reset-password:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

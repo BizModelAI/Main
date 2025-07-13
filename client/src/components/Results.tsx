@@ -285,126 +285,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setHasCompletedQuiz(true);
   }, [quizData, setHasCompletedQuiz]);
 
-  // Generate AI content for results page (basic insights + preview analysis)
+  // This function is no longer used - AI content comes from loading page
   const generateAIContent = async (paths: BusinessPath[]) => {
-    try {
-      // Don't show loading state to prevent user from seeing API failures
-      // setIsGeneratingAI(true);
-
-      // First, check if we have COMPLETE pre-generated AI content from the loading page
-      const preGeneratedData = localStorage.getItem(
-        "quiz-completion-ai-insights",
-      );
-
-      console.log("🔍 DEBUG: Checking for pre-generated AI content");
-      console.log("Pre-generated data exists:", !!preGeneratedData);
-      if (preGeneratedData) {
-        console.log("Data length:", preGeneratedData.length, "characters");
-      }
-
-      if (preGeneratedData) {
-        try {
-          const parsedData = JSON.parse(preGeneratedData);
-          console.log(
-            "✅ Data parsed successfully, keys:",
-            Object.keys(parsedData),
-          );
-
-          const { insights, analysis, topPaths, timestamp, error, complete } =
-            parsedData;
-
-          // Use pre-generated content if it's recent, valid, and complete
-          const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
-          const age = Math.round((Date.now() - timestamp) / 1000);
-
-          console.log("📊 Data validation:");
-          console.log("- Age:", age, "seconds");
-          console.log("- Has insights:", !!insights);
-          console.log("- Has analysis:", !!analysis);
-          console.log("- Complete flag:", complete);
-          console.log("- Error flag:", error);
-          console.log("- Is recent:", isRecent);
-
-          if (isRecent && insights && analysis && complete && !error) {
-            console.log(
-              "��� Using COMPLETE pre-generated AI content - NO additional API calls needed",
-            );
-
-            // Set both insights and analysis immediately
-            setAiInsights(insights);
-            setAiAnalysis(analysis);
-
-            // Cache the complete content
-            aiCacheManager.cacheAIContent(
-              quizData,
-              insights,
-              analysis,
-              paths[0],
-            );
-
-            // Clean up the temporary storage
-            localStorage.removeItem("quiz-completion-ai-insights");
-
-            // No loading needed!
-            setIsGeneratingAI(false);
-            return;
-          } else {
-            console.log(
-              "❌ Pre-generated data validation failed - falling back to fresh generation",
-            );
-          }
-        } catch (parseError) {
-          console.error(
-            "❌ Error parsing pre-generated AI content:",
-            parseError,
-          );
-        }
-
-        // Clean up invalid or incomplete data
-        console.log("🧹 Cleaning up invalid pre-generated data");
-        localStorage.removeItem("quiz-completion-ai-insights");
-      } else {
-        console.log("❌ No pre-generated data found in localStorage");
-      }
-
-      // Immediate fallback strategy - no API calls in production
-      console.log(
-        "🔄 Using immediate fallback strategy for production stability",
-      );
-
-      // Check if user has quiz data - if not, redirect to quiz
-      if (!quizData || !paths || paths.length === 0) {
-        console.log("❌ No quiz data available, redirecting to quiz");
-        window.location.href = "/quiz";
-        return;
-      }
-
-      // Use static fallback content immediately to prevent API errors
-      console.log(
-        "✅ Using static fallback content for stable user experience",
-      );
-      setAiInsights(generateFallbackInsights());
-      setAiAnalysis(generateFallbackAnalysis());
-
-      // Attempt to cache the fallback content (fail silently if not possible)
-      try {
-        aiCacheManager.cacheAIContent(
-          quizData,
-          generateFallbackInsights(),
-          generateFallbackAnalysis(),
-          paths[0],
-        );
-      } catch (cacheError) {
-        console.log("⚠️ Could not cache fallback content, continuing anyway");
-      }
-    } catch (error) {
-      console.error("Error generating AI content:", error);
-      // Fallback content
-      setAiInsights(generateFallbackInsights());
-      setAiAnalysis(generateFallbackAnalysis());
-    } finally {
-      setIsGeneratingAI(false);
-    }
+    console.log(
+      "⚠️ generateAIContent called but should not be used - AI content comes from loading page",
+    );
   };
 
   // Generate full AI content only when user accesses specific pages (on-demand)
@@ -424,11 +309,42 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     }
   };
 
-  // Immediately set fallback content when personalized paths are loaded (no API calls)
+  // Use cached AI data from loading page or set fallback content
   useEffect(() => {
     if (personalizedPaths.length > 0) {
+      // Check for cached AI data from the loading page first
+      const cachedAIData = localStorage.getItem("quiz-completion-ai-insights");
+
+      if (cachedAIData) {
+        try {
+          const { insights, analysis, complete, error, timestamp } =
+            JSON.parse(cachedAIData);
+          const isRecent = Date.now() - timestamp < 5 * 60 * 1000; // 5 minutes
+
+          if (isRecent && insights && complete) {
+            console.log(
+              "✅ Using cached AI insights from loading page - no API calls needed",
+            );
+            setAiInsights(insights);
+
+            // If analysis is also cached, use it
+            if (analysis) {
+              setAiAnalysis(analysis);
+            } else {
+              setAiAnalysis(generateFallbackAnalysis());
+            }
+
+            setIsGeneratingAI(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Error parsing cached AI data:", error);
+        }
+      }
+
+      // Fallback if no valid cached data
       console.log(
-        "🚀 Setting fallback AI content immediately (no API calls in production)",
+        "🚀 Setting fallback AI content (no API calls in production)",
       );
       setAiInsights(generateFallbackInsights());
       setAiAnalysis(generateFallbackAnalysis());
@@ -537,16 +453,16 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     const topPath = personalizedPaths[0];
     if (!topPath) {
       return {
-        overallScore: 75,
+        fullAnalysis:
+          "Complete your business assessment to get personalized insights and recommendations.",
         keyInsights: [
           "Complete your business assessment to get personalized insights",
         ],
+        personalizedRecommendations: [
+          "Take the quiz to discover your personalized recommendations",
+        ],
         successPredictors: ["Take the quiz to discover your success factors"],
         riskFactors: ["Assessment required for risk analysis"],
-        recommendations: ["Please complete the quiz first"],
-        timeline: ["Assessment needed"],
-        personalizedAdvice:
-          "Complete your quiz to receive personalized advice tailored to your goals and preferences.",
       };
     }
     return {
