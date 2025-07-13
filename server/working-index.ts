@@ -42,6 +42,40 @@ app.use(
   }),
 );
 
+// Middleware to ensure all API routes return JSON
+app.use("/api/*", (req: any, res: any, next: any) => {
+  // Override res.send for API routes to always return JSON
+  const originalSend = res.send;
+
+  res.send = function (data: any) {
+    // If data is not already JSON, wrap it
+    if (
+      typeof data === "string" &&
+      !data.trim().startsWith("{") &&
+      !data.trim().startsWith("[")
+    ) {
+      // This is likely an HTML error page, convert to JSON
+      return originalSend.call(
+        this,
+        JSON.stringify({
+          error: "Internal server error",
+          message: "An unexpected error occurred",
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+
+    // Set content type to JSON
+    if (!res.get("Content-Type")) {
+      res.set("Content-Type", "application/json");
+    }
+
+    return originalSend.call(this, data);
+  };
+
+  next();
+});
+
 // API error handling middleware - must be before routes
 app.use("/api/*", (err: any, req: any, res: any, next: any) => {
   console.error("API Error:", err);
