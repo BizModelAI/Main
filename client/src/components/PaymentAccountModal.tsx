@@ -262,6 +262,11 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
           credentials: "include",
           body: JSON.stringify({ quizData }),
         });
+
+        // Set quiz completion flag so user can access features
+        setHasCompletedQuiz(true);
+        localStorage.setItem("hasCompletedQuiz", "true");
+
         console.log("Quiz data saved to user account");
       } catch (error) {
         console.error("Error saving quiz data:", error);
