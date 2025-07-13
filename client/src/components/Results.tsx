@@ -690,11 +690,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handlePayment = async () => {
-    // DEV: Only allow simulation in development mode
-    if (import.meta.env.MODE !== "development") {
-      console.warn("Payment simulation disabled in production");
-      return;
-    }
+    // DEV bypass disabled - always disable payment simulation
+    // if (import.meta.env.MODE !== "development") {
+    console.warn("Payment simulation disabled in production");
+    return;
+    // }
 
     setIsProcessingPayment(true);
 
@@ -752,11 +752,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handleBusinessCardPayment = async () => {
-    // DEV: Only allow simulation in development mode
-    if (import.meta.env.MODE !== "development") {
-      console.warn("Payment simulation disabled in production");
-      return;
-    }
+    // DEV bypass disabled - always disable payment simulation
+    // if (import.meta.env.MODE !== "development") {
+    console.warn("Payment simulation disabled in production");
+    return;
+    // }
 
     setIsProcessingPayment(true);
 
