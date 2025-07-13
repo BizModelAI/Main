@@ -288,6 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     login,
     signup,
     logout,
+    deleteAccount,
     updateProfile,
     getLatestQuizData,
     hasValidSession,
