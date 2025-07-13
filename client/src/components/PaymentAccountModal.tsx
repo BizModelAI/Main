@@ -63,6 +63,23 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     }
   };
 
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, step, user]);
+
   if (!isOpen) return null;
 
   const getContent = () => {
