@@ -107,6 +107,9 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
     // If unlocked, can access all models
     if (hasUnlockedAnalysis) return true;
 
+    // For logged-in users with access pass, grant access even if local state is stale
+    if (user && user.hasAccessPass) return true;
+
     // If not unlocked, no access to detailed pages
     return false;
   };
