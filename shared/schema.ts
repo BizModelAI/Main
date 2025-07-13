@@ -72,6 +72,24 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Refunds table for tracking refund history
+export const refunds = pgTable("refunds", {
+  id: serial("id").primaryKey(),
+  paymentId: integer("payment_id")
+    .references(() => payments.id, { onDelete: "cascade" })
+    .notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency").default("usd").notNull(),
+  reason: varchar("reason").notNull(), // "requested_by_customer", "duplicate", "fraudulent", etc.
+  status: varchar("status").default("pending").notNull(), // "pending", "succeeded", "failed", "cancelled"
+  stripeRefundId: varchar("stripe_refund_id"),
+  paypalRefundId: varchar("paypal_refund_id"),
+  adminUserId: integer("admin_user_id"), // Track which admin processed the refund
+  adminNote: text("admin_note"), // Optional note from admin
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -82,6 +100,7 @@ export const insertPaymentSchema = createInsertSchema(payments);
 export const insertUnpaidUserEmailSchema = createInsertSchema(unpaidUserEmails);
 export const insertPasswordResetTokenSchema =
   createInsertSchema(passwordResetTokens);
+export const insertRefundSchema = createInsertSchema(refunds);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -89,6 +108,8 @@ export type QuizAttempt = typeof quizAttempts.$inferSelect;
 export type InsertQuizAttempt = z.infer<typeof insertQuizAttemptSchema>;
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Refund = typeof refunds.$inferSelect;
+export type InsertRefund = z.infer<typeof insertRefundSchema>;
 export type UnpaidUserEmail = typeof unpaidUserEmails.$inferSelect;
 export type InsertUnpaidUserEmail = z.infer<typeof insertUnpaidUserEmailSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

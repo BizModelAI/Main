@@ -27,6 +27,7 @@ import DownloadReportPage from "./pages/DownloadReportPage";
 import PDFReportPage from "./pages/PDFReportPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import UnsubscribePage from "./pages/UnsubscribePage";
+import AdminPage from "./pages/Admin";
 import AIReportLoading from "./components/AIReportLoading";
 import QuizCompletionLoading from "./components/QuizCompletionLoading";
 
@@ -382,6 +383,9 @@ function App() {
 
             {/* Unsubscribe Page */}
             <Route path="/unsubscribe" element={<UnsubscribePage />} />
+
+            {/* Admin Page */}
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </Router>
       </PaywallProvider>

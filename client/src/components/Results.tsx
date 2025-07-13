@@ -1280,7 +1280,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                 {/* Column 2 */}
                                 <div className="space-y-6">
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">���</div>
+                                    <div className="text-3xl mt-1">💪</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Your Strengths & Blind Spots

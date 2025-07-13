@@ -2,6 +2,7 @@ import {
   users,
   quizAttempts,
   payments,
+  refunds,
   unpaidUserEmails,
   passwordResetTokens,
   type User,
@@ -10,6 +11,8 @@ import {
   type InsertQuizAttempt,
   type Payment,
   type InsertPayment,
+  type Refund,
+  type InsertRefund,
   type UnpaidUserEmail,
   type InsertUnpaidUserEmail,
   type PasswordResetToken,
@@ -40,6 +43,21 @@ export interface IStorage {
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
   getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
+  getPaymentById(paymentId: number): Promise<Payment | undefined>;
+  getAllPayments(): Promise<Payment[]>;
+
+  // Refund operations
+  createRefund(refund: Omit<InsertRefund, "id">): Promise<Refund>;
+  updateRefundStatus(
+    refundId: number,
+    status: string,
+    processedAt?: Date,
+    stripeRefundId?: string,
+    paypalRefundId?: string,
+  ): Promise<void>;
+  getRefundsByPayment(paymentId: number): Promise<Refund[]>;
+  getRefundById(refundId: number): Promise<Refund | undefined>;
+  getAllRefunds(): Promise<Refund[]>;
 
   // Unpaid user email tracking
   storeUnpaidUserEmail(
@@ -265,6 +283,10 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getPaymentById(paymentId: number): Promise<Payment | undefined> {
+    return this.payments.get(paymentId);
+  }
+
   async storeUnpaidUserEmail(
     sessionId: string,
     email: string,
@@ -356,6 +378,49 @@ export class MemStorage implements IStorage {
         updatedAt: new Date(),
       });
     }
+  }
+
+  async getAllPayments(): Promise<Payment[]> {
+    return Array.from(this.payments.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+  }
+
+  // Refund operations (Note: MemStorage is for testing only)
+  async createRefund(refund: Omit<InsertRefund, "id">): Promise<Refund> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async updateRefundStatus(
+    refundId: number,
+    status: string,
+    processedAt?: Date,
+    stripeRefundId?: string,
+    paypalRefundId?: string,
+  ): Promise<void> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async getRefundsByPayment(paymentId: number): Promise<Refund[]> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async getRefundById(refundId: number): Promise<Refund | undefined> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
+  }
+
+  async getAllRefunds(): Promise<Refund[]> {
+    throw new Error(
+      "Refund operations not supported in MemStorage - use DatabaseStorage",
+    );
   }
 
   async cleanupExpiredData(): Promise<void> {
@@ -543,6 +608,71 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(payments)
       .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
+  }
+
+  async getPaymentById(paymentId: number): Promise<Payment | undefined> {
+    const [payment] = await this.ensureDb()
+      .select()
+      .from(payments)
+      .where(eq(payments.id, paymentId));
+    return payment || undefined;
+  }
+
+  async getAllPayments(): Promise<Payment[]> {
+    return await this.ensureDb()
+      .select()
+      .from(payments)
+      .orderBy(desc(payments.createdAt));
+  }
+
+  // Refund operations
+  async createRefund(refund: Omit<InsertRefund, "id">): Promise<Refund> {
+    const [newRefund] = await this.ensureDb()
+      .insert(refunds)
+      .values(refund)
+      .returning();
+    return newRefund;
+  }
+
+  async updateRefundStatus(
+    refundId: number,
+    status: string,
+    processedAt?: Date,
+    stripeRefundId?: string,
+    paypalRefundId?: string,
+  ): Promise<void> {
+    const updateData: any = { status };
+    if (processedAt) updateData.processedAt = processedAt;
+    if (stripeRefundId) updateData.stripeRefundId = stripeRefundId;
+    if (paypalRefundId) updateData.paypalRefundId = paypalRefundId;
+
+    await this.ensureDb()
+      .update(refunds)
+      .set(updateData)
+      .where(eq(refunds.id, refundId));
+  }
+
+  async getRefundsByPayment(paymentId: number): Promise<Refund[]> {
+    return await this.ensureDb()
+      .select()
+      .from(refunds)
+      .where(eq(refunds.paymentId, paymentId))
+      .orderBy(desc(refunds.createdAt));
+  }
+
+  async getRefundById(refundId: number): Promise<Refund | undefined> {
+    const [refund] = await this.ensureDb()
+      .select()
+      .from(refunds)
+      .where(eq(refunds.id, refundId));
+    return refund || undefined;
+  }
+
+  async getAllRefunds(): Promise<Refund[]> {
+    return await this.ensureDb()
+      .select()
+      .from(refunds)
+      .orderBy(desc(refunds.createdAt));
   }
 
   async storeUnpaidUserEmail(
