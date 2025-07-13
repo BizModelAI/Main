@@ -545,9 +545,15 @@ const QuizWithNavigation: React.FC<{
     // IMPORTANT: Reset congratulations state BEFORE navigation
     setShowCongratulations(false);
 
-    // Store quiz data before navigation
+    // Store quiz data and loaded report data before navigation
     if (quizData) {
       localStorage.setItem("quizData", JSON.stringify(quizData));
+    }
+    if (loadedReportData) {
+      localStorage.setItem(
+        "loadedReportData",
+        JSON.stringify(loadedReportData),
+      );
     }
 
     // Small delay to ensure state update is processed
