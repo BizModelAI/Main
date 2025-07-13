@@ -233,7 +233,10 @@ export function setupAuthRoutes(app: Express) {
       // Send email with reset link
       try {
         const { emailService } = await import("./services/emailService.js");
-        const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}`;
+        const baseUrl = req.get("host")?.includes("localhost")
+          ? `${req.protocol}://${req.get("host")}`
+          : "https://bizmodelai.com";
+        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
 
         const success = await emailService.sendPasswordResetEmail(
           email,
@@ -246,11 +249,19 @@ export function setupAuthRoutes(app: Express) {
               "If an account with that email exists, we've sent password reset instructions.",
           });
         } else {
-          res.status(500).json({ error: "Failed to send reset email" });
+          // Still return success message for security (don't reveal if email exists)
+          res.json({
+            message:
+              "If an account with that email exists, we've sent password reset instructions.",
+          });
         }
       } catch (emailError) {
         console.error("Error sending password reset email:", emailError);
-        res.status(500).json({ error: "Failed to send reset email" });
+        // Still return success message for security (don't reveal if email exists)
+        res.json({
+          message:
+            "If an account with that email exists, we've sent password reset instructions.",
+        });
       }
     } catch (error) {
       console.error("Error in /api/auth/forgot-password:", error);
