@@ -1035,12 +1035,15 @@ export async function registerRoutes(app: Express): Promise<void> {
 
         // Create the actual user account
         const user = await storage.createUser({
-          username: signupData.name || "PayPal User",
+          username: tempData.email, // Use email as username
+          password: signupData.passwordHash || "temp_password",
+        });
+
+        // Update the user with additional fields
+        await storage.updateUser(user.id, {
           email: tempData.email,
-          password: signupData.passwordHash || "",
           quizRetakesRemaining: parseInt(retakesGranted) || 5,
           hasAccessPass: true,
-          signupData: signupData.quizData || tempData.quizData,
         });
 
         // Create payment record
