@@ -270,32 +270,29 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     try {
       setIsGeneratingAI(true);
 
-      // First, check if we have pre-generated insights from the loading page
+      // First, check if we have COMPLETE pre-generated AI content from the loading page
       const preGeneratedData = localStorage.getItem(
         "quiz-completion-ai-insights",
       );
 
       if (preGeneratedData) {
         try {
-          const { insights, topPaths, timestamp, error } =
+          const { insights, analysis, topPaths, timestamp, error, complete } =
             JSON.parse(preGeneratedData);
 
-          // Use pre-generated insights if they're recent (within 5 minutes) and valid
+          // Use pre-generated content if it's recent, valid, and complete
           const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
 
-          if (isRecent && insights && !error) {
-            console.log("Using pre-generated AI insights from loading page");
-            setAiInsights(insights);
-
-            // Generate only the detailed analysis for preview (lighter API call)
-            const aiService = AIService.getInstance();
-            const analysis = await aiService.generateDetailedAnalysis(
-              quizData,
-              paths[0],
+          if (isRecent && insights && analysis && complete && !error) {
+            console.log(
+              "Using COMPLETE pre-generated AI content from loading page - NO additional API calls needed",
             );
+
+            // Set both insights and analysis immediately
+            setAiInsights(insights);
             setAiAnalysis(analysis);
 
-            // Cache the combined content
+            // Cache the complete content
             aiCacheManager.cacheAIContent(
               quizData,
               insights,
@@ -305,13 +302,16 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
             // Clean up the temporary storage
             localStorage.removeItem("quiz-completion-ai-insights");
+
+            // No loading needed!
+            setIsGeneratingAI(false);
             return;
           }
         } catch (parseError) {
-          console.error("Error parsing pre-generated insights:", parseError);
+          console.error("Error parsing pre-generated AI content:", parseError);
         }
 
-        // Clean up invalid data
+        // Clean up invalid or incomplete data
         localStorage.removeItem("quiz-completion-ai-insights");
       }
 
