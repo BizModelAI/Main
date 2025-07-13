@@ -3,8 +3,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { createServer } from "http";
-import { registerRoutes } from "./routes.js";
-import { setupAuthRoutes } from "./auth.js";
+
+console.log("Starting server initialization...");
 
 const MemoryStoreSession = MemoryStore(session);
 const app = express();
@@ -89,18 +89,38 @@ app.use("/api/*", (err: any, req: any, res: any, next: any) => {
   }
 });
 
-// Setup authentication routes
-setupAuthRoutes(app);
+// Import routes dynamically inside setup function
+async function setupRoutes() {
+  try {
+    console.log("Importing auth routes...");
+    const { setupAuthRoutes } = await import("./auth.js");
+    setupAuthRoutes(app);
+    console.log("Auth routes setup complete");
+  } catch (error) {
+    console.error("Failed to setup auth routes:", error);
+  }
+}
 
 // Setup server with routes BEFORE Vite middleware
 async function setupApiRoutes() {
-  // Register all API routes first
-  await registerRoutes(app);
+  try {
+    console.log("Importing and registering routes...");
+    const { registerRoutes } = await import("./routes.js");
+    await registerRoutes(app);
+    console.log("Routes registered successfully");
+  } catch (error) {
+    console.error("Failed to register routes:", error);
+  }
 }
 
 // Basic health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({ status: "Server is running!" });
+  res.json({
+    status: "Server is running!",
+    environment: "local-development",
+    timestamp: new Date().toISOString(),
+    host: req.get("host"),
+  });
 });
 
 // Comprehensive health check endpoint
@@ -232,8 +252,11 @@ process.on("uncaughtException", (error) => {
 // Setup server with routes
 async function setupApp() {
   try {
+    // Setup auth routes first
+    await setupRoutes();
+
     // Register all API routes FIRST, before Vite middleware
-    await registerRoutes(app);
+    await setupApiRoutes();
 
     // Create HTTP server after registering routes
     const server = createServer(app);
@@ -300,7 +323,16 @@ async function setupApp() {
   }
 }
 
-setupApp()
+// Add timeout for setup
+Promise.race([
+  setupApp(),
+  new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error("Server setup timeout after 30 seconds")),
+      30000,
+    ),
+  ),
+])
   .then((server) => {
     server.listen(port, () => {
       console.log(`Server running on port ${port}`);
@@ -308,5 +340,32 @@ setupApp()
   })
   .catch((error) => {
     console.error("Failed to setup app:", error);
-    process.exit(1);
+    console.error("Error details:", error.stack);
+
+    // Try basic fallback server
+    console.log("Starting fallback server...");
+    app.get("/api/health", (req, res) => {
+      res.json({ status: "Server is running (fallback mode)!" });
+    });
+
+    app.get("*", (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>BizModelAI</title>
+          </head>
+          <body>
+            <div id="root">
+              <h1>Server is running in fallback mode</h1>
+              <p>The application is starting up...</p>
+            </div>
+          </body>
+        </html>
+      `);
+    });
+
+    app.listen(port, () => {
+      console.log(`Fallback server running on port ${port}`);
+    });
   });

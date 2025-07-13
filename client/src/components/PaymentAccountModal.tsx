@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { usePaywall } from "../contexts/PaywallContext";
-import { StripePaymentWrapper } from "./StripePaymentForm";
+import { EnhancedPaymentWrapper } from "./EnhancedPaymentForm";
 
 interface PaymentAccountModalProps {
   isOpen: boolean;
@@ -45,8 +45,46 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     confirmPassword: "",
   });
 
-  const { signup, login, user } = useAuth();
+  const { signup, login, user, deleteAccount } = useAuth();
   const { setHasUnlockedAnalysis, setHasCompletedQuiz } = usePaywall();
+
+  // Handle cleanup when user closes modal on payment step
+  const handleClose = async () => {
+    if (step === "payment" && user) {
+      // For temporary accounts, attempt cleanup but don't block modal closing
+      try {
+        await deleteAccount();
+      } catch (error) {
+        // Ignore errors during cleanup - temporary accounts expire automatically
+        console.debug(
+          "Account cleanup skipped (will expire automatically):",
+          error.message,
+        );
+      }
+    }
+    onClose();
+  };
+
+  // Handle browser close/refresh during payment step
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (step === "payment" && user) {
+        // Show warning to user but don't attempt async operations
+        // Temporary accounts will expire automatically on the server
+        e.preventDefault();
+        e.returnValue =
+          "Are you sure you want to leave? Your payment process will be cancelled.";
+      }
+    };
+
+    if (step === "payment" && user) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [step, user]);
 
   if (!isOpen) return null;
 
@@ -363,7 +401,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -379,7 +417,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
           <div className="relative p-6">
             {/* Close button */}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close modal"
             >
@@ -672,22 +710,12 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             {/* Payment Form */}
             {step === "payment" && (
               <div className="space-y-4">
-                <StripePaymentWrapper
+                <EnhancedPaymentWrapper
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
                   isProcessing={isProcessing}
                   setIsProcessing={setIsProcessing}
                 />
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setStep("account")}
-                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    Back
-                  </button>
-                </div>
 
                 {/* Dev Bypass Button for payment step too */}
                 {import.meta.env.MODE === "development" && (

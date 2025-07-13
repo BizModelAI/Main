@@ -22,6 +22,7 @@ interface AuthContextType {
     quizData?: any,
   ) => Promise<void>;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   getLatestQuizData: () => Promise<QuizData | null>;
   hasValidSession: () => boolean;
@@ -187,6 +188,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const deleteAccount = async (): Promise<void> => {
+    if (!user) {
+      throw new Error("No user logged in");
+    }
+
+    try {
+      const response = await fetch("/api/auth/account", {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Account deletion failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Clear user state after successful deletion
+      setUser(null);
+    } catch (error) {
+      // Handle network errors gracefully (common during page unload)
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.debug("Account deletion skipped due to network unavailability");
+        // Still clear local state since temporary accounts expire automatically
+        setUser(null);
+        return;
+      }
+      throw error;
+    }
+  };
+
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
     if (!user) return;
 
@@ -226,9 +263,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return null;
 
     try {
-      const response = await fetch("/api/auth/latest-quiz-data", {
+      const url = "/api/auth/latest-quiz-data";
+      console.log("Making request to:", url);
+      console.log("Current window.location:", window.location.href);
+
+      const response = await fetch(url, {
         credentials: "include",
       });
+
+      console.log("Response URL:", response.url);
+      console.log("Response status:", response.status);
 
       if (response.ok) {
         const quizData = await response.json();
@@ -251,6 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     login,
     signup,
     logout,
+    deleteAccount,
     updateProfile,
     getLatestQuizData,
     hasValidSession,
