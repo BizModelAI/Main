@@ -270,9 +270,54 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     try {
       setIsGeneratingAI(true);
 
-      // Since we cleared the cache when the quiz was taken, always generate fresh content
+      // First, check if we have pre-generated insights from the loading page
+      const preGeneratedData = localStorage.getItem(
+        "quiz-completion-ai-insights",
+      );
+
+      if (preGeneratedData) {
+        try {
+          const { insights, topPaths, timestamp, error } =
+            JSON.parse(preGeneratedData);
+
+          // Use pre-generated insights if they're recent (within 5 minutes) and valid
+          const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
+
+          if (isRecent && insights && !error) {
+            console.log("Using pre-generated AI insights from loading page");
+            setAiInsights(insights);
+
+            // Generate only the detailed analysis for preview (lighter API call)
+            const aiService = AIService.getInstance();
+            const analysis = await aiService.generateDetailedAnalysis(
+              quizData,
+              paths[0],
+            );
+            setAiAnalysis(analysis);
+
+            // Cache the combined content
+            aiCacheManager.cacheAIContent(
+              quizData,
+              insights,
+              analysis,
+              paths[0],
+            );
+
+            // Clean up the temporary storage
+            localStorage.removeItem("quiz-completion-ai-insights");
+            return;
+          }
+        } catch (parseError) {
+          console.error("Error parsing pre-generated insights:", parseError);
+        }
+
+        // Clean up invalid data
+        localStorage.removeItem("quiz-completion-ai-insights");
+      }
+
+      // Fallback: Generate fresh AI content if no valid pre-generated data
       console.log(
-        "Generating fresh AI content from OpenAI for new quiz results...",
+        "No valid pre-generated insights found, generating fresh AI content...",
       );
       console.log(
         "Top business model being passed to AI:",
@@ -1053,7 +1098,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                 </div>
                               </div>
                               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-                                <div className="text-2xl mb-2">🕒</div>
+                                <div className="text-2xl mb-2">��</div>
                                 <div className="text-xs text-blue-200 mb-1">
                                   Time Commitment
                                 </div>
