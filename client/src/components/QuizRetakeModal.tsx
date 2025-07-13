@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, CreditCard, Gift, CheckCircle, Home } from 'lucide-react';
+import React, { useState } from "react";
+import { X, CreditCard, Gift, CheckCircle, Home } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,10 +28,14 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
   const handlePurchaseAccessPass = async () => {
     setIsProcessing(true);
     try {
-      const response = await apiRequest("POST", "/api/create-access-pass-payment", {
-        userId,
-      });
-      
+      const response = await apiRequest(
+        "POST",
+        "/api/create-access-pass-payment",
+        {
+          userId,
+        },
+      );
+
       if (response.success) {
         toast({
           title: "Access Pass Purchased!",
@@ -54,10 +58,14 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
   const handlePurchaseRetakeBundle = async () => {
     setIsProcessing(true);
     try {
-      const response = await apiRequest("POST", "/api/create-retake-bundle-payment", {
-        userId,
-      });
-      
+      const response = await apiRequest(
+        "POST",
+        "/api/create-retake-bundle-payment",
+        {
+          userId,
+        },
+      );
+
       if (response.success) {
         toast({
           title: "Retake Bundle Purchased!",
@@ -79,7 +87,7 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
 
   const handleGoHome = () => {
     // Navigate to home page
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   return (
@@ -90,15 +98,13 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               Quiz Retake Options
             </h2>
-            {/* Hide X button when user has access pass but no retakes remaining */}
-            {!(hasAccessPass && quizRetakesRemaining === 0) && (
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+            {/* Always show X button - users with access passes should be able to close and continue */}
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="space-y-4">
@@ -123,7 +129,7 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 disabled:opacity-50 transition-all duration-200 font-medium"
                   >
                     <CreditCard className="w-4 h-4" />
-                    {isProcessing ? 'Processing...' : 'Purchase'}
+                    {isProcessing ? "Processing..." : "Purchase"}
                   </button>
                 </div>
               </div>
@@ -138,7 +144,7 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
                 <p className="text-green-800 dark:text-green-200 mb-2">
                   You have {quizRetakesRemaining} quiz retakes remaining.
                 </p>
-                
+
                 {quizRetakesRemaining === 0 && (
                   <div className="mt-6 pt-6 border-t border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-3 mb-4">
@@ -160,10 +166,10 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
                         className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 disabled:opacity-50 transition-all duration-200 font-medium"
                       >
                         <CreditCard className="w-4 h-4" />
-                        {isProcessing ? 'Processing...' : 'Buy More'}
+                        {isProcessing ? "Processing..." : "Buy More"}
                       </button>
                     </div>
-                    
+
                     {/* Back to Home button for users with no retakes */}
                     <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-800">
                       <button
