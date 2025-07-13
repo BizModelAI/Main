@@ -920,15 +920,15 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Create PayPal order
       const request = {
         body: {
-          intent: "CAPTURE",
-          purchase_units: [
+          intent: "CAPTURE" as any,
+          purchaseUnits: [
             {
               amount: {
-                currency_code: "USD",
+                currencyCode: "USD",
                 value: amount,
               },
               description: description,
-              custom_id: JSON.stringify({
+              customId: JSON.stringify({
                 userIdentifier,
                 type: paymentType,
                 retakesGranted,
@@ -937,9 +937,9 @@ export async function registerRoutes(app: Express): Promise<void> {
               }),
             },
           ],
-          application_context: {
-            return_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success`,
-            cancel_url: `${process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancelled`,
+          applicationContext: {
+            returnUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/payment-success`,
+            cancelUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/payment-cancelled`,
           },
         },
       };
