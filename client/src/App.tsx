@@ -519,6 +519,9 @@ const QuizWithNavigation: React.FC<{
   const handleQuizComplete = (data: QuizData) => {
     console.log("Quiz completed, navigating to quiz loading page");
     setQuizData(data);
+    // Reset congratulations tracking for this new quiz completion
+    setCongratulationsShown(false);
+    localStorage.setItem("congratulationsShown", "false");
     // Navigate to new loading page instead of showing congratulations immediately
     navigate("/quiz-loading");
   };
