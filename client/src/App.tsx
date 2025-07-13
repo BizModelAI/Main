@@ -565,26 +565,27 @@ const QuizWithNavigation: React.FC<{
   );
 };
 
-// Wrapper component to handle results display
-const ResultsWrapper: React.FC<{
+// Wrapper component to handle results display with congratulations reset
+const ResultsWrapperWithReset: React.FC<{
   quizData: QuizData | null;
   userEmail: string | null;
   onBack: () => void;
   loadedReportData?: any;
-}> = ({ quizData, userEmail, onBack, loadedReportData }) => {
+  setShowCongratulations: (show: boolean) => void;
+}> = ({
+  quizData,
+  userEmail,
+  onBack,
+  loadedReportData,
+  setShowCongratulations,
+}) => {
   console.log("ResultsWrapper received quizData:", quizData);
   console.log("ResultsWrapper received userEmail:", userEmail);
 
-  // Ensure congratulations don't show on results page
+  // Clear congratulations state when component mounts (user navigated to results)
   React.useEffect(() => {
-    // This component is only rendered when we're on the results route
-    // So we can safely clear any lingering congratulations state
-    const clearCongratulations = () => {
-      // Access the parent component's state through a custom event
-      window.dispatchEvent(new CustomEvent("clearCongratulations"));
-    };
-    clearCongratulations();
-  }, []);
+    setShowCongratulations(false);
+  }, [setShowCongratulations]);
 
   if (quizData) {
     return (
