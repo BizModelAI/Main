@@ -46,7 +46,7 @@ function getInvestmentRange(value: number): string {
   return "$1,000+";
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   // put application routes here
   // prefix all routes with /api
 
@@ -1610,7 +1610,5 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
     }
   });
 
-  const httpServer = createServer(app);
-
-  return httpServer;
+  // Routes registered successfully
 }
