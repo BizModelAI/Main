@@ -71,8 +71,12 @@ const Login: React.FC = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-xl">BP</span>
+          <div className="w-16 h-16 mx-auto mb-4">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F2ba216d8797f4dda8547258818f985d3?format=webp&width=800"
+              alt="BizModelAI Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Welcome Back
