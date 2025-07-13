@@ -752,11 +752,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handleBusinessCardPayment = async () => {
-    // DEV bypass disabled - always disable payment simulation
-    // if (import.meta.env.MODE !== "development") {
-    console.warn("Payment simulation disabled in production");
+    // Redirect to proper payment flow instead of using simulation
+    console.log(
+      "handleBusinessCardPayment called - redirecting to PaymentAccountModal",
+    );
+    setShowPaymentModal(true);
+    setShowUnlockModal(false);
     return;
-    // }
 
     setIsProcessingPayment(true);
 
