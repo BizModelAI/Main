@@ -560,6 +560,17 @@ const ResultsWrapper: React.FC<{
   console.log("ResultsWrapper received quizData:", quizData);
   console.log("ResultsWrapper received userEmail:", userEmail);
 
+  // Ensure congratulations don't show on results page
+  React.useEffect(() => {
+    // This component is only rendered when we're on the results route
+    // So we can safely clear any lingering congratulations state
+    const clearCongratulations = () => {
+      // Access the parent component's state through a custom event
+      window.dispatchEvent(new CustomEvent("clearCongratulations"));
+    };
+    clearCongratulations();
+  }, []);
+
   if (quizData) {
     return (
       <Results
