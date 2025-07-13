@@ -202,6 +202,8 @@ function App() {
 
             {/* Auth routes (no layout) */}
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes with layout */}
             <Route
