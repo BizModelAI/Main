@@ -626,6 +626,9 @@ Return JSON format:
           setProgress(100);
         }
 
+        // Clear the generation flag even on error
+        localStorage.removeItem("ai-generation-in-progress");
+
         // In case of error, still complete with current data
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
