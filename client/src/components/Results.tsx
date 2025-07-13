@@ -405,7 +405,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         console.error("❌ Failed to generate AI content on-demand:", error);
 
         // Check if it's a network error and show appropriate message
-        if (error.message && error.message.includes("Network error")) {
+        if (error instanceof Error && error.message.includes("Network error")) {
           console.log("🌐 Detected network connectivity issue");
         }
 
