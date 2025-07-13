@@ -160,12 +160,12 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
     let cleanup: (() => void) | null = null;
 
     const runSteps = async () => {
-      const minimumDuration = 10000; // 10 seconds minimum
+      const totalDuration = 12000; // 12 seconds total
       const startTime = Date.now();
       let aiInsightsPromise: Promise<any> | null = null;
+      let aiCompleted = false;
 
       // Start AI insights generation immediately
-      let aiCompleted = false;
       aiInsightsPromise = generateAIInsights()
         .then((result) => {
           aiCompleted = true;
@@ -178,87 +178,112 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           return null;
         });
 
-      // Smooth progress animation using requestAnimationFrame
-      let animationFrame: number;
+      // Process each step with smooth progress
+      for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+        const stepStartTime = Date.now();
+        const stepDuration = stepIndex === 2 ? 4000 : 2000; // AI insights step takes longer
 
-      const animateProgress = () => {
-        const elapsed = Date.now() - startTime;
+        // Mark current step as active
+        setCurrentStepIndex(stepIndex);
+        setSteps((prev) =>
+          prev.map((step, index) => ({
+            ...step,
+            completed: index < stepIndex,
+          })),
+        );
 
-        // Calculate progress: 80% for time passage, 20% for AI completion
-        const timeProgress = Math.min((elapsed / minimumDuration) * 80, 80);
-        const aiProgress = aiCompleted ? 20 : 0;
-        const totalProgress = timeProgress + aiProgress;
+        // Calculate progress range for this step
+        const stepStartProgress = (stepIndex / steps.length) * 100;
+        const stepEndProgress = ((stepIndex + 1) / steps.length) * 100;
 
-        // Only allow 100% when both conditions are met
-        const maxProgress =
-          elapsed >= minimumDuration && aiCompleted ? 100 : 95;
-        const currentProgress = Math.min(totalProgress, maxProgress);
+        // Animate progress smoothly for this step
+        let animationFrame: number;
+        const animateStepProgress = () => {
+          const stepElapsed = Date.now() - stepStartTime;
+          const stepProgressRatio = Math.min(stepElapsed / stepDuration, 1);
 
-        // Smooth easing function for natural progression
-        const easedProgress =
-          currentProgress < 100
-            ? currentProgress -
-              ((Math.cos((currentProgress * Math.PI) / 100) - 1) / 2) * 2
-            : 100;
+          // Smooth easing for natural progression
+          const easedRatio =
+            stepProgressRatio -
+            ((Math.cos(stepProgressRatio * Math.PI) - 1) / 2) * 0.1;
 
-        setProgress(easedProgress);
+          const currentProgress =
+            stepStartProgress +
+            (stepEndProgress - stepStartProgress) * easedRatio;
+          setProgress(currentProgress);
 
-        // Update current step based on progress
-        const stepIndex = Math.floor((easedProgress / 100) * steps.length);
-        const clampedStepIndex = Math.min(stepIndex, steps.length - 1);
+          if (stepProgressRatio < 1) {
+            animationFrame = requestAnimationFrame(animateStepProgress);
+          }
+        };
 
-        if (clampedStepIndex !== currentStepIndex) {
-          setCurrentStepIndex(clampedStepIndex);
-          setSteps((prev) =>
-            prev.map((step, index) => ({
-              ...step,
-              completed: index < clampedStepIndex,
-            })),
-          );
-        }
+        animationFrame = requestAnimationFrame(animateStepProgress);
 
-        // Continue animation until we reach the final state
-        if (currentProgress < maxProgress) {
-          animationFrame = requestAnimationFrame(animateProgress);
-        }
-      };
+        cleanup = () => {
+          if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+          }
+        };
 
-      animationFrame = requestAnimationFrame(animateProgress);
+        // Wait for step to complete
+        await new Promise((resolve) => setTimeout(resolve, stepDuration));
 
-      cleanup = () => {
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
-        }
-      };
+        // Mark step as completed
+        setSteps((prev) =>
+          prev.map((step, index) => ({
+            ...step,
+            completed: index <= stepIndex,
+          })),
+        );
 
-      // Wait for both minimum time and AI insights completion
-      try {
-        const [_, aiResults] = await Promise.all([
-          new Promise((resolve) => setTimeout(resolve, minimumDuration)),
-          aiInsightsPromise || Promise.resolve(null),
-        ]);
-
-        console.log("AI insights generated:", aiResults ? "Success" : "Failed");
-      } catch (error) {
-        console.error("Error in AI generation:", error);
+        cancelAnimationFrame(animationFrame);
       }
 
-      // Check if we need additional time for API completion
+      // Ensure AI generation is complete
+      if (!aiCompleted) {
+        console.log("Waiting for AI insights to complete...");
+        await aiInsightsPromise;
+      }
+
+      // Ensure minimum total time
       const elapsed = Date.now() - startTime;
+      const minimumDuration = 10000;
       if (elapsed < minimumDuration) {
         await new Promise((resolve) =>
           setTimeout(resolve, minimumDuration - elapsed),
         );
       }
 
-      // Final progress update
-      setProgress(100);
-      setSteps((prev) => prev.map((step) => ({ ...step, completed: true })));
+      // Final progress animation to 100%
+      let finalAnimationFrame: number;
+      const animateFinalProgress = () => {
+        setProgress((prev) => {
+          const remaining = 100 - prev;
+          const increment = remaining * 0.1; // Smooth final animation
+          const newProgress = Math.min(prev + increment, 100);
 
-      // Small delay for visual completion
+          if (newProgress < 100) {
+            finalAnimationFrame = requestAnimationFrame(animateFinalProgress);
+          }
+          return newProgress;
+        });
+      };
+
+      finalAnimationFrame = requestAnimationFrame(animateFinalProgress);
+
+      // Clean up final animation
       setTimeout(() => {
-        onComplete();
-      }, 500);
+        if (finalAnimationFrame) {
+          cancelAnimationFrame(finalAnimationFrame);
+        }
+        setProgress(100);
+        setSteps((prev) => prev.map((step) => ({ ...step, completed: true })));
+
+        // Complete loading
+        setTimeout(() => {
+          onComplete();
+        }, 500);
+      }, 1000);
     };
 
     runSteps();
