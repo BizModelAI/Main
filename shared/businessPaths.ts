@@ -403,7 +403,7 @@ export const businessPaths: BusinessPath[] = [
       "Analytics",
       "Design",
     ],
-    icon: "ShoppingCart",
+    icon: "ShoppingBag",
     marketSize: "Global e-commerce worth $6.2T+ annually",
     averageIncome: {
       beginner: "$0-2K/month",
