@@ -293,11 +293,12 @@ function App() {
               path="/results"
               element={
                 <Layout>
-                  <ResultsWrapper
+                  <ResultsWrapperWithReset
                     quizData={quizData}
                     userEmail={userEmail}
                     onBack={() => window.history.back()}
                     loadedReportData={loadedReportData}
+                    setShowCongratulations={setShowCongratulations}
                   />
                 </Layout>
               }
