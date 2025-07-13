@@ -517,7 +517,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     } catch (error) {
       console.error("Error sharing results:", error);
       // Fallback to manual copy
-      const shareText = `My Business Path Results - ${personalizedPaths[0]?.name}\n\nI just discovered my perfect business match! ${personalizedPaths[0]?.name} is a ${personalizedPaths[0]?.fitScore}% fit for my goals and personality.\n\n${window.location.href}`;
+      const topPath = personalizedPaths[0];
+      if (!topPath) {
+        alert("No business paths available to share. Please retake the quiz.");
+        return;
+      }
+
+      const shareText = `My Business Path Results - ${topPath.name}\n\nI just discovered my perfect business match! ${topPath.name} is a ${topPath.fitScore}% fit for my goals and personality.\n\n${window.location.href}`;
       try {
         await navigator.clipboard.writeText(shareText);
         alert("Share text copied to clipboard!");
