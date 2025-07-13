@@ -599,14 +599,14 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
     const startProgress = (stepIndex / loadingSteps.length) * 100;
     const endProgress = ((stepIndex + 1) / loadingSteps.length) * 100;
 
-    // Gradually increase progress during step execution
+    // Gradually increase progress during step execution with smoother animation
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        const increment = (endProgress - startProgress) / 50; // Divide into 50 smaller increments
-        const newProgress = Math.min(prev + increment, endProgress - 2);
+        const increment = (endProgress - startProgress) / 100; // Divide into 100 smaller increments for smoother animation
+        const newProgress = Math.min(prev + increment, endProgress - 1);
         return newProgress;
       });
-    }, 50); // Update every 50ms for smoother animation
+    }, 30); // Update every 30ms for even smoother animation
 
     try {
       const result = await asyncFunction();
