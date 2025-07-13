@@ -472,6 +472,8 @@ const QuizWithNavigation: React.FC<{
       setUserEmail(email);
       localStorage.setItem("userEmail", email);
     }
+
+    // IMPORTANT: Reset congratulations state BEFORE navigation
     setShowCongratulations(false);
 
     // Store quiz data before navigation
@@ -479,7 +481,10 @@ const QuizWithNavigation: React.FC<{
       localStorage.setItem("quizData", JSON.stringify(quizData));
     }
 
-    navigate("/results");
+    // Small delay to ensure state update is processed
+    setTimeout(() => {
+      navigate("/results");
+    }, 100);
   };
 
   const handleReturnToQuiz = () => {
