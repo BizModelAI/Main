@@ -99,17 +99,11 @@ export class AIService {
       };
     } catch (error) {
       console.error("Error generating AI insights:", error);
-      // Only fallback after multiple attempts and clear failure
-      if (
-        error instanceof Error &&
-        (error.message.includes("Server error") ||
-          error.message.includes("fetch"))
-      ) {
-        console.log("Server/network error - using fallback");
-        return this.generateFallbackInsights(quizData, topPaths);
-      }
-      // Re-throw other errors to be handled upstream
-      throw error;
+      // Always return fallback content instead of throwing
+      console.log(
+        "AI insights generation failed - using comprehensive fallback",
+      );
+      return this.generateFallbackInsights(quizData, topPaths);
     }
   }
 
