@@ -529,7 +529,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPaymentsByUser(userId: number): Promise<Payment[]> {
-    return await db
+    return await this.ensureDb()
       .select()
       .from(payments)
       .where(eq(payments.userId, userId))
