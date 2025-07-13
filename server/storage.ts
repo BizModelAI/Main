@@ -610,6 +610,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
   }
 
+  async getPaymentById(paymentId: number): Promise<Payment | undefined> {
+    const [payment] = await this.ensureDb()
+      .select()
+      .from(payments)
+      .where(eq(payments.id, paymentId));
+    return payment || undefined;
+  }
+
   async getAllPayments(): Promise<Payment[]> {
     return await this.ensureDb()
       .select()
