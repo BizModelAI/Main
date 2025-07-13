@@ -715,15 +715,18 @@ const ResultsWrapperWithReset: React.FC<{
   }, [setShowCongratulations]);
 
   if (savedQuizData) {
+    console.log("Rendering Results component with savedQuizData");
     return (
       <Results
         quizData={savedQuizData}
         onBack={onBack}
         userEmail={userEmail}
-        preloadedReportData={loadedReportData}
+        preloadedReportData={savedLoadedReportData}
       />
     );
   } else {
+    console.error("No quiz data available - showing fallback message");
+    console.log("Current localStorage keys:", Object.keys(localStorage));
     return (
       <div className="py-20 text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
