@@ -11,6 +11,34 @@ import { users, unpaidUserEmails } from "../shared/schema.js";
 import { sql } from "drizzle-orm";
 import Stripe from "stripe";
 
+// Simple rate limiter for OpenAI requests
+class OpenAIRateLimiter {
+  private requests = new Map<string, number[]>();
+  private readonly maxRequestsPerIP = 20; // Max requests per IP per minute
+  private readonly windowMs = 60000; // 1 minute window
+
+  canMakeRequest(ip: string): boolean {
+    const now = Date.now();
+    const userRequests = this.requests.get(ip) || [];
+
+    // Remove old requests outside the window
+    const recentRequests = userRequests.filter(
+      (time) => now - time < this.windowMs,
+    );
+    this.requests.set(ip, recentRequests);
+
+    if (recentRequests.length >= this.maxRequestsPerIP) {
+      return false;
+    }
+
+    recentRequests.push(now);
+    this.requests.set(ip, recentRequests);
+    return true;
+  }
+}
+
+const openaiRateLimiter = new OpenAIRateLimiter();
+
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2025-06-30.basil",
