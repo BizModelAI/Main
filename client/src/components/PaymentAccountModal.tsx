@@ -227,6 +227,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       }
 
       // If user doesn't have access at all, proceed to payment
+      setIsRetakePayment(false); // This is initial access payment
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
