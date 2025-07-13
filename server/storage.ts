@@ -3,6 +3,7 @@ import {
   quizAttempts,
   payments,
   unpaidUserEmails,
+  passwordResetTokens,
   type User,
   type InsertUser,
   type QuizAttempt,
@@ -11,6 +12,8 @@ import {
   type InsertPayment,
   type UnpaidUserEmail,
   type InsertUnpaidUserEmail,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
 } from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, count, sql } from "drizzle-orm";
