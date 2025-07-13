@@ -408,16 +408,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   }, [businessPath, businessModel]);
 
   const handlePaywallUnlock = () => {
-    // Only allow dev bypass in development mode
-    if (import.meta.env.MODE === "development") {
-      setHasUnlockedAnalysis(true);
-      setShowPaywallModal(false);
-      window.location.reload(); // Refresh to show content
-    } else {
-      // In production, redirect to proper payment flow
-      setShowPaywallModal(false);
-      setShowPaymentModal(true);
-    }
+    // Redirect to proper payment flow
+    setShowPaywallModal(false);
+    setShowPaymentModal(true);
   };
 
   const handlePaywallClose = () => {
