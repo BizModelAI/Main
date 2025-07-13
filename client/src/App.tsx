@@ -327,6 +327,35 @@ function App() {
   );
 }
 
+// Quiz completion loading wrapper component
+const QuizCompletionLoadingWrapper: React.FC<{
+  quizData: QuizData | null;
+  setShowCongratulations: (show: boolean) => void;
+}> = ({ quizData, setShowCongratulations }) => {
+  const navigate = useNavigate();
+
+  const handleLoadingComplete = () => {
+    console.log("Quiz completion loading complete, showing congratulations");
+    setShowCongratulations(true);
+  };
+
+  if (!quizData) {
+    // Fallback if no quiz data
+    navigate("/quiz");
+    return null;
+  }
+
+  return (
+    <div className="relative">
+      <QuizCompletionLoading
+        quizData={quizData}
+        onComplete={handleLoadingComplete}
+      />
+      {/* Note: Congratulations popup will be handled by the main QuizWithNavigation component */}
+    </div>
+  );
+};
+
 // Loading page wrapper component to handle navigation properly
 const LoadingPageWrapper: React.FC<{
   quizData: QuizData | null;
