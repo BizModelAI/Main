@@ -156,9 +156,36 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setIsProcessing(true);
     try {
       await login(loginEmail, formData.password);
-      // After successful login, always proceed to payment
-      // The user accessed this modal because they want to unlock premium features
-      // Even if they have paid before, they need to pay for this specific unlock
+
+      // Check if user already has access - if so, unlock immediately
+      // This is intentional: existing paid users shouldn't pay again
+      if (user?.hasAccessPass) {
+        setHasUnlockedAnalysis(true);
+        localStorage.setItem("hasAnyPayment", "true");
+
+        // Save quiz data if available
+        const savedQuizData = localStorage.getItem("quizData");
+        if (savedQuizData) {
+          try {
+            const quizData = JSON.parse(savedQuizData);
+            await fetch("/api/auth/save-quiz-data", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({ quizData }),
+            });
+          } catch (error) {
+            console.error("Error saving quiz data:", error);
+          }
+        }
+
+        onSuccess(); // Close modal and grant access
+        return;
+      }
+
+      // If user doesn't have access, proceed to payment
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
