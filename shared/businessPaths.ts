@@ -1237,7 +1237,7 @@ export const businessPaths: BusinessPath[] = [
       "A/B testing",
       "Client communication",
     ],
-    icon: "PenTool",
+    icon: "Edit",
     marketSize: "Content marketing industry worth $400B+ globally",
     averageIncome: {
       beginner: "$1K-3K/month",
