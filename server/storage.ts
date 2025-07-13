@@ -447,7 +447,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getQuizAttemptsCount(userId: number): Promise<number> {
-    const result = await db
+    const result = await this.ensureDb()
       .select({ count: count() })
       .from(quizAttempts)
       .where(eq(quizAttempts.userId, userId));
