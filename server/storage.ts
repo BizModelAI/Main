@@ -72,20 +72,24 @@ export class MemStorage implements IStorage {
   private quizAttempts: Map<number, QuizAttempt>;
   private payments: Map<number, Payment>;
   private unpaidUserEmails: Map<string, UnpaidUserEmail>;
+  private passwordResetTokens: Map<string, PasswordResetToken>;
   currentId: number;
   currentQuizAttemptId: number;
   currentPaymentId: number;
   currentUnpaidEmailId: number;
+  currentPasswordResetTokenId: number;
 
   constructor() {
     this.users = new Map();
     this.quizAttempts = new Map();
     this.payments = new Map();
     this.unpaidUserEmails = new Map();
+    this.passwordResetTokens = new Map();
     this.currentId = 1;
     this.currentQuizAttemptId = 1;
     this.currentPaymentId = 1;
     this.currentUnpaidEmailId = 1;
+    this.currentPasswordResetTokenId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
