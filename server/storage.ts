@@ -437,7 +437,7 @@ export class DatabaseStorage implements IStorage {
     attempt: Omit<InsertQuizAttempt, "id">,
   ): Promise<QuizAttempt> {
     // Use transaction for concurrent safety
-    return await db.transaction(async (tx) => {
+    return await this.ensureDb().transaction(async (tx) => {
       const [quizAttempt] = await tx
         .insert(quizAttempts)
         .values(attempt)
@@ -482,7 +482,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
-    const [newPayment] = await db.insert(payments).values(payment).returning();
+    const [newPayment] = await this.ensureDb()
+      .insert(payments)
+      .values(payment)
+      .returning();
     return newPayment;
   }
 
@@ -490,7 +493,7 @@ export class DatabaseStorage implements IStorage {
     paymentId: number,
     retakesGranted: number,
   ): Promise<void> {
-    await db.transaction(async (tx) => {
+    await this.ensureDb().transaction(async (tx) => {
       // Update payment status
       const [payment] = await tx
         .update(payments)
@@ -555,7 +558,7 @@ export class DatabaseStorage implements IStorage {
 
     try {
       // Use transaction for concurrent safety
-      return await db.transaction(async (tx) => {
+      return await this.ensureDb().transaction(async (tx) => {
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
         console.log("Calculated expiresAt:", expiresAt);
 
