@@ -156,23 +156,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setIsProcessing(true);
     try {
       await login(loginEmail, formData.password);
-      // After successful login, check user's payment status and retakes
-      const response = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const userData = await response.json();
-        if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
-          // User has access pass and retakes remaining, bypass payment
-          setHasUnlockedAnalysis(true);
-          onSuccess();
-          return;
-        }
-        // User either:
-        // 1. Doesn't have access pass (needs $9.99 payment)
-        // 2. Has access pass but no retakes (needs $4.99 retake bundle)
-        // Either way, they need to pay
-      }
+      // After successful login, always proceed to payment
+      // The user accessed this modal because they want to unlock premium features
+      // Even if they have paid before, they need to pay for this specific unlock
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
