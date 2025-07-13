@@ -89,33 +89,49 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
     try {
       setIsGeneratingInsights(true);
 
-      // Call the AI service to generate insights
-      const { AIService } = await import("../utils/aiService");
-      const aiService = AIService.getInstance();
-
-      // Get top business paths first
+      // Get top business paths for insights
       const { generateAIPersonalizedPaths } = await import(
         "../utils/quizLogic"
       );
       const topPaths = await generateAIPersonalizedPaths(quizData);
 
-      // Generate personalized insights
+      // Generate ONLY the personalized insights needed for Results page
+      const { AIService } = await import("../utils/aiService");
+      const aiService = AIService.getInstance();
+
       const insights = await aiService.generatePersonalizedInsights(
         quizData,
         topPaths.slice(0, 3), // Use top 3 paths
       );
 
-      // Store insights in cache for later use
-      const { aiCacheManager } = await import("../utils/aiCacheManager");
-      // For now, we'll cache just the insights. The full caching will be handled by the Results page
-      // This is a temporary storage for the quiz completion flow
-      localStorage.setItem("temp-ai-insights", JSON.stringify(insights));
+      // Store insights for Results page to consume
+      localStorage.setItem(
+        "quiz-completion-ai-insights",
+        JSON.stringify({
+          insights,
+          topPaths: topPaths.slice(0, 3),
+          timestamp: Date.now(),
+        }),
+      );
 
+      console.log("AI insights generated successfully for Results page");
       setIsGeneratingInsights(false);
       return insights;
     } catch (error) {
-      console.error("Error generating AI insights:", error);
+      console.error("Error generating AI insights for Results page:", error);
       setIsGeneratingInsights(false);
+
+      // Store a fallback indicator
+      localStorage.setItem(
+        "quiz-completion-ai-insights",
+        JSON.stringify({
+          insights: null,
+          topPaths: [],
+          timestamp: Date.now(),
+          error: true,
+        }),
+      );
+
       return null;
     }
   };
