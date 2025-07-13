@@ -418,12 +418,12 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
                     </div>
                   </div>
 
-                  {/* Animated dots for current step */}
-                  <div className="flex justify-center space-x-2">
+                                    {/* Animated dots for current step - enhanced for mobile */}
+                  <div className="flex justify-center space-x-3 md:space-x-2">
                     {[0, 1, 2].map((dot) => (
                       <motion.div
                         key={dot}
-                        className="w-2 h-2 bg-purple-500 rounded-full"
+                        className="w-3 h-3 md:w-2 md:h-2 bg-purple-500 rounded-full"
                         animate={{
                           scale: [1, 1.5, 1],
                           opacity: [0.5, 1, 0.5],
@@ -442,9 +442,11 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           </AnimatePresence>
         </motion.div>
 
-        {/* Steps Overview */}
+                {/* Steps Overview - Desktop: All steps, Mobile: Current step only */}
+
+        {/* Desktop View - All Steps */}
         <motion.div
-          className="grid grid-cols-5 gap-2"
+          className="hidden md:grid grid-cols-5 gap-2"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
@@ -481,6 +483,85 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
               <p className="text-xs font-medium">{step.title}</p>
             </div>
           ))}
+        </motion.div>
+
+        {/* Mobile View - Single Current Step Card */}
+        <motion.div
+          className="md:hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStepIndex}
+              className="bg-white rounded-2xl shadow-lg p-6 border-2 border-purple-200"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="text-center">
+                {/* Step Icon */}
+                <motion.div
+                  className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <steps[currentStepIndex].icon className="w-8 h-8 text-white" />
+                </motion.div>
+
+                {/* Step Info */}
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {steps[currentStepIndex].title}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {steps[currentStepIndex].subtitle}
+                </p>
+
+                {/* Progress Indicator */}
+                <div className="flex items-center justify-center space-x-2 mb-4">
+                  {steps.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index < currentStepIndex
+                          ? "bg-green-500"
+                          : index === currentStepIndex
+                            ? "bg-purple-500"
+                            : "bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Enhanced Mobile Loading Dots */}
+                <div className="flex justify-center space-x-2">
+                  {[0, 1, 2].map((dot) => (
+                    <motion.div
+                      key={dot}
+                      className="w-4 h-4 bg-purple-500 rounded-full"
+                      animate={{
+                        scale: [1, 1.4, 1],
+                        opacity: [0.4, 1, 0.4],
+                      }}
+                      transition={{
+                        duration: 1.2,
+                        repeat: Infinity,
+                        delay: dot * 0.15,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Step Counter */}
+                <p className="text-sm text-gray-500 mt-4">
+                  Step {currentStepIndex + 1} of {steps.length}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
 
         {/* Fun Fact */}
