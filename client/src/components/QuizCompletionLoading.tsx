@@ -107,10 +107,9 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
 
       // Store insights in cache for later use
       const { aiCacheManager } = await import("../utils/aiCacheManager");
-      aiCacheManager.cacheAIContent(quizData, {
-        analysis: insights,
-        timestamp: Date.now(),
-      });
+      // For now, we'll cache just the insights. The full caching will be handled by the Results page
+      // This is a temporary storage for the quiz completion flow
+      localStorage.setItem("temp-ai-insights", JSON.stringify(insights));
 
       setIsGeneratingInsights(false);
       return insights;
