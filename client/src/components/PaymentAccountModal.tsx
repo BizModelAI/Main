@@ -47,6 +47,22 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const { signup, login, user } = useAuth();
   const { setHasUnlockedAnalysis } = usePaywall();
 
+  // Prevent closing modal after login but before payment to avoid paywall bypass
+  const canCloseModal = () => {
+    // If user is logged in and we're showing login or payment step,
+    // they must complete payment - prevent closing
+    if (user && (step === "login" || step === "payment")) {
+      return false;
+    }
+    return true;
+  };
+
+  const handleClose = () => {
+    if (canCloseModal()) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   const getContent = () => {
