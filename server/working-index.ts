@@ -120,8 +120,10 @@ const port = 5000;
 async function setupApp() {
   try {
     // Register all API routes FIRST, before Vite middleware
-    const server = createServer(app);
     await registerRoutes(app);
+
+    // Create HTTP server after registering routes
+    const server = createServer(app);
 
     // Setup Vite development server AFTER API routes
     const { setupVite } = await import("./vite.js");
