@@ -147,7 +147,11 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       console.log("PaymentAccountModal: Signup successful, moving to payment");
       setStep("payment");
     } catch (err: any) {
-      console.log("PaymentAccountModal: Signup error caught:", err.message);
+      console.log("PaymentAccountModal: Signup error caught:", {
+        message: err.message,
+        status: err.status,
+        stack: err.stack,
+      });
 
       // Check for user already exists error - try multiple approaches
       const errorMessage = (err.message || "").toLowerCase();
@@ -160,7 +164,15 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         // Handle more variations
         errorMessage.includes("email already") ||
         errorMessage.includes("account already") ||
-        errorMessage.includes("email is already");
+        errorMessage.includes("email is already") ||
+        // Check HTTP status code for conflict
+        err.status === 409;
+
+      console.log("PaymentAccountModal: Error analysis:", {
+        errorMessage,
+        isUserExistsError,
+        status: err.status,
+      });
 
       if (isUserExistsError) {
         console.log(
