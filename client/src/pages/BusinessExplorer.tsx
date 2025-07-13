@@ -203,13 +203,18 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
       // Navigate to quiz
       navigate("/quiz");
     } else if (paywallType === "learn-more") {
-      // Simulate payment and unlock access
-      setHasUnlockedAnalysis(true);
-      // Set flag to indicate any payment has been made
-      localStorage.setItem("hasAnyPayment", "true");
-      setShowPaywallModal(false);
-      // Navigate to the business model page
-      navigate(`/business/${selectedBusinessId}`);
+      // Only allow dev bypass in development mode
+      if (import.meta.env.MODE === "development") {
+        // DEV: Simulate payment and unlock access
+        setHasUnlockedAnalysis(true);
+        localStorage.setItem("hasAnyPayment", "true");
+        setShowPaywallModal(false);
+        navigate(`/business/${selectedBusinessId}`);
+      } else {
+        // In production, redirect to proper payment flow
+        setShowPaywallModal(false);
+        setShowPaymentModal(true);
+      }
     }
   };
 
