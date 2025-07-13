@@ -1409,26 +1409,26 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   )}
                   {index === 1 && (
                     <motion.div
-                      className="absolute -top-4 right-1/4 transform translate-x-1/2"
+                      className="absolute -top-3 md:-top-4 right-1/4 transform translate-x-1/2"
                       initial={{ scale: 0, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ duration: 0.6, delay: 0.9 }}
                     >
-                      <div className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
-                        <Award className="h-4 w-4 mr-2" />
+                      <div className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-3 md:px-6 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center">
+                        <Award className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         2nd Best
                       </div>
                     </motion.div>
                   )}
                   {index === 2 && (
                     <motion.div
-                      className="absolute -top-4 right-1/4 transform translate-x-1/2"
+                      className="absolute -top-3 md:-top-4 right-1/4 transform translate-x-1/2"
                       initial={{ scale: 0, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ duration: 0.6, delay: 1.0 }}
                     >
-                      <div className="bg-gradient-to-r from-slate-400 to-slate-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
-                        <Award className="h-4 w-4 mr-2" />
+                      <div className="bg-gradient-to-r from-slate-400 to-slate-500 text-white px-3 md:px-6 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center">
+                        <Award className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         3rd Best
                       </div>
                     </motion.div>
