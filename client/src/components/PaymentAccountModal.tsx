@@ -489,6 +489,13 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     An account with this email already exists. Please log in to
                     continue with your purchase.
                   </p>
+                  {user && (
+                    <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-xs text-orange-800">
+                        🔒 Payment required to access premium features
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
