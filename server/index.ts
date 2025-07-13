@@ -9,7 +9,10 @@ import { setupAuthRoutes } from "./auth.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { storage } from "./storage.js";
 
+console.log("✓ All imports loaded");
+
 const MemoryStoreSession = MemoryStore(session);
+console.log("✓ MemoryStore created");
 
 const app = express();
 
