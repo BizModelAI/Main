@@ -324,13 +324,8 @@ const PayPalForm: React.FC<{
           color: "black",
           shape: "rect",
           label: "paypal",
-          fundingSource: undefined,
         }}
-        forceReRender={[
-          {
-            fundingSource: "paypal",
-          },
-        ]}
+        fundingSource={undefined}
       />
     </div>
   );
