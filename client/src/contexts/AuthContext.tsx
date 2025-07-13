@@ -142,9 +142,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const data = await response.json();
           errorMessage = data.error || errorMessage;
+          console.log("AuthContext signup error response:", {
+            status: response.status,
+            data,
+            errorMessage,
+          }); // Debug log
         } catch (parseError) {
           // If JSON parsing fails, use the response status text or default message
           errorMessage = response.statusText || errorMessage;
+          console.log("AuthContext signup error (JSON parse failed):", {
+            status: response.status,
+            errorMessage,
+            parseError,
+          }); // Debug log
         }
         throw new Error(errorMessage);
       }
