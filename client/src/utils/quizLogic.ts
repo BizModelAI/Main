@@ -152,7 +152,7 @@ export function calculateFitScore(pathId: string, data: QuizData): number {
       ]);
       break;
 
-    case "content-creation-ugc":
+    case "content-creation":
       factors.income = getIncomeMatch(incomeGoal, 1000, 6000);
       factors.timeline = getTimelineMatch(timeToIncome, [
         "6-12-months",
