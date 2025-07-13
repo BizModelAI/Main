@@ -67,11 +67,8 @@ app.use((req, res, next) => {
   next();
 });
 
-console.log("✓ Starting server...");
-
 (async () => {
   try {
-    console.log("✓ Inside async function");
     // Setup authentication routes
     setupAuthRoutes(app);
 
