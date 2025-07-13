@@ -398,6 +398,20 @@ Return JSON format:
 
   useEffect(() => {
     const generateReport = async () => {
+      // Check if AI insights generation is already in progress
+      const aiGenerationInProgress = localStorage.getItem(
+        "ai-generation-in-progress",
+      );
+      if (aiGenerationInProgress === "true") {
+        console.log(
+          "🔄 AI generation already in progress, skipping duplicate call",
+        );
+        return;
+      }
+
+      // Set flag to prevent duplicate calls
+      localStorage.setItem("ai-generation-in-progress", "true");
+
       const startTime = Date.now();
       let currentResults = {};
 
