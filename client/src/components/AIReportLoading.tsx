@@ -500,10 +500,17 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step5Result };
 
-        // Step 6: Finalize report
+        // Step 6: Generate personalized insights with OpenAI
         const step6Result = await executeStep(5, async () => {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          return { reportFinalized: true };
+          const { AIService } = await import("../utils/aiService");
+          const aiService = AIService.getInstance();
+          const pathsForInsights =
+            (currentResults as any).personalizedPaths?.slice(0, 3) || [];
+          const insights = await aiService.generatePersonalizedInsights(
+            activeQuizData,
+            pathsForInsights,
+          );
+          return { aiInsights: insights };
         });
         currentResults = { ...currentResults, ...step6Result };
 
