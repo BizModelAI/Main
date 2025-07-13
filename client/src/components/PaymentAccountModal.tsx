@@ -394,6 +394,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -731,13 +733,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                 )}
               </div>
             )}
-
-            {/* Security note */}
-            <div className="text-center mt-4">
-              <p className="text-xs text-gray-500">
-                🔒 Secure payment • 30-day guarantee • Cancel anytime
-              </p>
-            </div>
           </div>
         </motion.div>
       </motion.div>

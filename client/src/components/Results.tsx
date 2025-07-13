@@ -638,13 +638,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   // New payment handler that forces account creation
   const handlePaymentWithAccount = () => {
-    // If user is already logged in, use old flow for now
-    if (user) {
-      handlePayment();
-      return;
-    }
-
-    // Force account creation for new users
+    // Use PaymentAccountModal for all users (both new and existing)
     setShowPaymentModal(true);
     setShowUnlockModal(false);
   };
@@ -690,11 +684,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handlePayment = async () => {
-    // DEV bypass disabled - always disable payment simulation
-    // if (import.meta.env.MODE !== "development") {
-    console.warn("Payment simulation disabled in production");
+    // Redirect to proper payment flow instead of using simulation
+    console.log("handlePayment called - redirecting to PaymentAccountModal");
+    setShowPaymentModal(true);
+    setShowUnlockModal(false);
     return;
-    // }
 
     setIsProcessingPayment(true);
 
@@ -752,11 +746,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handleBusinessCardPayment = async () => {
-    // DEV bypass disabled - always disable payment simulation
-    // if (import.meta.env.MODE !== "development") {
-    console.warn("Payment simulation disabled in production");
+    // Redirect to proper payment flow instead of using simulation
+    console.log(
+      "handleBusinessCardPayment called - redirecting to PaymentAccountModal",
+    );
+    setShowPaymentModal(true);
+    setShowUnlockModal(false);
     return;
-    // }
 
     setIsProcessingPayment(true);
 
@@ -1284,7 +1280,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                 {/* Column 2 */}
                                 <div className="space-y-6">
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">💪</div>
+                                    <div className="text-3xl mt-1">���</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Your Strengths & Blind Spots
@@ -1772,7 +1768,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   transition={{ duration: 0.6, delay: 1 }}
                 >
                   <div className="text-gray-400 line-through text-lg md:text-xl mb-2">
-                    $197 Value
+                    $49.99 Value
                   </div>
                   <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
                     $9.99
@@ -1869,13 +1865,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         <PaywallModal
           isOpen={showUnlockModal}
           onClose={() => setShowUnlockModal(false)}
-          onUnlock={
-            paywallType === "business-model"
-              ? handleBusinessCardPayment
-              : user
-                ? handlePayment
-                : handlePaymentWithAccount
-          }
+          onUnlock={handlePaymentWithAccount}
           type={paywallType}
         />
 

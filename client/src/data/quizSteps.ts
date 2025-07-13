@@ -5,8 +5,7 @@ export const quizSteps: QuizStep[] = [
   {
     id: "main-motivation",
     title: "What is your main motivation for starting a business?",
-    subtitle:
-      "These questions focus on your goals, desired outcomes, and long-term vision.",
+    subtitle: "What's driving you to build something?",
     icon: "Heart",
     field: "mainMotivation",
     type: "select",
@@ -262,8 +261,7 @@ export const quizSteps: QuizStep[] = [
     id: "weekly-time-commitment",
     title:
       "How many hours per week can you realistically dedicate to your business?",
-    subtitle:
-      "These questions explore your availability, consistency, and how you like to learn.",
+    subtitle: "Be honest about your available time",
     icon: "Calendar",
     field: "weeklyTimeCommitment",
     type: "select",
@@ -660,8 +658,7 @@ export const quizSteps: QuizStep[] = [
   {
     id: "brand-face-comfort",
     title: "How comfortable are you being the face of a brand?",
-    subtitle:
-      "This section will help uncover your style, strengths, and working preferences.",
+    subtitle: "Think public content, visibility, and attention",
     icon: "Star",
     field: "brandFaceComfort",
     type: "scale",
@@ -841,7 +838,7 @@ export const quizSteps: QuizStep[] = [
   {
     id: "tech-skills-rating",
     title: "How would you rate your tech skills overall?",
-    subtitle: "Now we'll look at your environment and access to key tools.",
+    subtitle: "Consider your comfort with software and tools",
     icon: "Monitor",
     field: "techSkillsRating",
     type: "scale",
@@ -986,8 +983,7 @@ export const quizSteps: QuizStep[] = [
   {
     id: "decision-making-style",
     title: "How do you typically make decisions?",
-    subtitle:
-      "These questions dig into your strategic preferences and mindset.",
+    subtitle: "What's your natural approach to taking action?",
     icon: "Brain",
     field: "decisionMakingStyle",
     type: "select",
@@ -1157,8 +1153,7 @@ export const quizSteps: QuizStep[] = [
   {
     id: "online-presence-comfort",
     title: "Are you comfortable having your face and voice online?",
-    subtitle:
-      "Final stretch. These questions will help filter your best-fit business paths.",
+    subtitle: "Would you appear in video, voice, or photos?",
     icon: "Star",
     field: "onlinePresenceComfort",
     type: "select",
