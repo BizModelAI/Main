@@ -703,21 +703,6 @@ Return JSON format:
   return (
     <div className="min-h-screen bg-white py-4">
       <div className="max-w-4xl mx-auto px-4 relative pt-12">
-        {/* Exit Button */}
-        {onExit && (
-          <motion.button
-            onClick={onExit}
-            className="absolute top-2 left-2 z-10 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </motion.button>
-        )}
-
         {/* Header */}
         <motion.div
           className="text-center mb-6"
