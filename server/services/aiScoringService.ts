@@ -78,6 +78,9 @@ export class AIScoringService {
         return this.fallbackAnalysis(quizData);
       }
 
+      // Wait for rate limiter slot
+      await rateLimiter.waitForSlot();
+
       const prompt = this.buildAnalysisPrompt(quizData);
 
       const response = await openai.chat.completions.create({
