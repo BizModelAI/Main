@@ -265,6 +265,8 @@ function App() {
                   setLoadedReportData={setLoadedReportData}
                   showCongratulations={showCongratulations}
                   setShowCongratulations={setShowCongratulations}
+                  congratulationsShown={congratulationsShown}
+                  setCongratulationsShown={setCongratulationsShown}
                   handleAILoadingComplete={handleAILoadingComplete}
                 />
               }
