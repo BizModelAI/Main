@@ -1067,13 +1067,27 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
                 <IconComponent className="h-10 w-10 text-white" />
               </motion.div>
 
+              {/* Desktop Title */}
               <motion.h2
-                className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight"
+                className="hidden md:block text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 {currentStepData.title}
+              </motion.h2>
+
+              {/* Mobile Title - Use custom mobile content for scale questions */}
+              <motion.h2
+                className="md:hidden text-2xl font-bold text-gray-900 mb-3 leading-tight"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                {currentStepData.type === "scale" &&
+                mobileScaleContent[currentStepData.field]
+                  ? mobileScaleContent[currentStepData.field].title
+                  : currentStepData.title}
               </motion.h2>
 
               <motion.p
@@ -1145,26 +1159,39 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
                   {/* Mobile Layout - visible only on mobile */}
                   <div className="md:hidden space-y-3">
-                    {currentStepData.options?.map((option, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleOptionSelect(option.value)}
-                        className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-300 ${
-                          formData[currentStepData.field] === option.value
-                            ? "border-blue-500 bg-blue-50 shadow-lg"
-                            : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
-                        }`}
-                      >
-                        <div className="font-bold text-gray-900 text-base mb-1">
-                          {option.label}
-                        </div>
-                        {option.description && (
-                          <div className="text-gray-600 text-sm">
-                            {option.description}
+                    {(
+                      mobileScaleContent[currentStepData.field]?.options ||
+                      currentStepData.options
+                    )?.map((option, index) => {
+                      const mobileOption =
+                        mobileScaleContent[currentStepData.field]?.options[
+                          index
+                        ];
+                      const displayOption = mobileOption || option;
+                      const value =
+                        currentStepData.options?.[index]?.value || option.value;
+
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleOptionSelect(value)}
+                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-300 ${
+                            formData[currentStepData.field] === value
+                              ? "border-blue-500 bg-blue-50 shadow-lg"
+                              : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                          }`}
+                        >
+                          <div className="font-bold text-gray-900 text-base mb-1">
+                            {displayOption.label}
                           </div>
-                        )}
-                      </button>
-                    ))}
+                          {displayOption.description && (
+                            <div className="text-gray-600 text-sm">
+                              {displayOption.description}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
