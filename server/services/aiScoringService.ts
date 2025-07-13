@@ -44,6 +44,10 @@ export class AIScoringService {
     quizData: QuizData,
   ): Promise<ComprehensiveFitAnalysis> {
     try {
+      if (!openai) {
+        throw new Error("OpenAI API key not configured");
+      }
+
       const prompt = this.buildAnalysisPrompt(quizData);
 
       const response = await openai.chat.completions.create({

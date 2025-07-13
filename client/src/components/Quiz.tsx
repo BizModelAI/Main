@@ -35,6 +35,358 @@ import { useQuizRetake } from "@/hooks/useQuizRetake";
 import { QuizRetakeModal } from "./QuizRetakeModal";
 import { useToast } from "@/hooks/use-toast";
 
+// Mobile-specific content for scale questions
+const mobileScaleContent: Record<
+  string,
+  {
+    title: string;
+    options: Array<{ label: string; description: string }>;
+  }
+> = {
+  passionIdentityAlignment: {
+    title:
+      "How important is it that your business reflects your personal identity or passion?",
+    options: [
+      { label: "Not important", description: "Business is just business" },
+      {
+        label: "Slightly important",
+        description: "Some alignment would be nice",
+      },
+      {
+        label: "Moderately important",
+        description: "Personal fit adds value",
+      },
+      { label: "Very important", description: "Must reflect who I am" },
+      {
+        label: "Extremely important",
+        description: "Deep personal alignment required",
+      },
+    ],
+  },
+  passiveIncomeImportance: {
+    title: "How important is long-term passive income to you?",
+    options: [
+      { label: "Not important", description: "Fine trading time for money" },
+      {
+        label: "Slightly important",
+        description: "Passive income is optional",
+      },
+      {
+        label: "Moderately important",
+        description: "Want some passive income",
+      },
+      {
+        label: "Very important",
+        description: "Seeking long-term income freedom",
+      },
+      {
+        label: "Extremely important",
+        description: "Passive income is the goal",
+      },
+    ],
+  },
+  longTermConsistency: {
+    title: "How consistent are you with long-term goals?",
+    options: [
+      {
+        label: "I give up quickly",
+        description: "Lose motivation easily",
+      },
+      {
+        label: "Somewhat consistent",
+        description: "Need accountability to follow through",
+      },
+      {
+        label: "Moderately consistent",
+        description: "Usually finish what I start",
+      },
+      {
+        label: "Mostly consistent",
+        description: "Stay focused with little support",
+      },
+      {
+        label: "Always follow through",
+        description: "Very disciplined and committed",
+      },
+    ],
+  },
+  trialErrorComfort: {
+    title: "How do you feel about trial and error?",
+    options: [
+      { label: "Avoid it", description: "Need clear instructions" },
+      { label: "Hesitant", description: "Prefer step-by-step guidance" },
+      { label: "Tolerate it", description: "Open to trying things" },
+      { label: "Open to it", description: "Comfortable learning by doing" },
+      { label: "Embrace it", description: "Thrive through experimentation" },
+    ],
+  },
+  systemsRoutinesEnjoyment: {
+    title: "How much do you enjoy building routines or systems?",
+    options: [
+      { label: "Not at all", description: "Prefer unstructured work" },
+      { label: "Slightly", description: "Use systems when necessary" },
+      { label: "Moderately", description: "Appreciate simple routines" },
+      { label: "Very much", description: "Enjoy structured systems" },
+      {
+        label: "I thrive on routines",
+        description: "Routines drive my productivity",
+      },
+    ],
+  },
+  discouragementResilience: {
+    title: "How discouraged do you get if something doesn't work right away?",
+    options: [
+      { label: "Very easily", description: "Get discouraged quickly" },
+      { label: "Somewhat", description: "Struggle with slow progress" },
+      { label: "Occasionally", description: "Stay calm but uncertain" },
+      { label: "Rarely", description: "Bounce back quickly" },
+      {
+        label: "Never",
+        description: "Persist no matter what",
+      },
+    ],
+  },
+  organizationLevel: {
+    title: "How organized are you?",
+    options: [
+      { label: "Very disorganized", description: "Often feel scattered" },
+      { label: "Slightly organized", description: "Try to stay on track" },
+      {
+        label: "Moderately organized",
+        description: "Fair structure in place",
+      },
+      { label: "Very organized", description: "Work is well structured" },
+      {
+        label: "Extremely organized",
+        description: "Highly systematic and neat",
+      },
+    ],
+  },
+  selfMotivationLevel: {
+    title: "How self-motivated are you without external pressure?",
+    options: [
+      {
+        label: "Need deadlines to act",
+        description: "Rely on external pressure",
+      },
+      {
+        label: "Occasionally motivated",
+        description: "Push myself sometimes",
+      },
+      {
+        label: "Moderately motivated",
+        description: "Self-driven with reminders",
+      },
+      {
+        label: "Very motivated",
+        description: "Rarely need outside motivation",
+      },
+      {
+        label: "Highly self-driven",
+        description: "Always take initiative",
+      },
+    ],
+  },
+  uncertaintyHandling: {
+    title: "How well do you handle uncertainty and unclear steps?",
+    options: [
+      { label: "Need things clear", description: "Struggle with ambiguity" },
+      {
+        label: "Occasionally adaptable",
+        description: "Prefer structure but adjust",
+      },
+      {
+        label: "Somewhat adaptable",
+        description: "Adapt with some discomfort",
+      },
+      {
+        label: "Very adaptable",
+        description: "Manage well without clarity",
+      },
+      {
+        label: "Extremely adaptable",
+        description: "Thrive in uncertain situations",
+      },
+    ],
+  },
+  brandFaceComfort: {
+    title: "How comfortable are you being the face of a brand?",
+    options: [
+      {
+        label: "Extremely uncomfortable",
+        description: "Avoid being seen",
+      },
+      {
+        label: "Somewhat uncomfortable",
+        description: "Prefer staying private",
+      },
+      { label: "Neutral", description: "Open to showing up" },
+      { label: "Fairly comfortable", description: "Confident when visible" },
+      { label: "Very comfortable", description: "Enjoy public presence" },
+    ],
+  },
+  competitivenessLevel: {
+    title: "How competitive are you?",
+    options: [
+      {
+        label: "Not competitive",
+        description: "Prefer collaboration over winning",
+      },
+      {
+        label: "Slightly competitive",
+        description: "Like success, not competition",
+      },
+      {
+        label: "Moderately competitive",
+        description: "Competitive when needed",
+      },
+      { label: "Very competitive", description: "Push to be the best" },
+      {
+        label: "Extremely competitive",
+        description: "Thrive in high-stakes environments",
+      },
+    ],
+  },
+  creativeWorkEnjoyment: {
+    title: "How much do you enjoy creative work (design, writing, ideation)?",
+    options: [
+      { label: "Not at all", description: "Avoid creative tasks" },
+      { label: "Slightly", description: "Occasionally enjoy creativity" },
+      { label: "Moderately", description: "Enjoy creative projects sometimes" },
+      { label: "Very much", description: "Regularly pursue creative work" },
+      { label: "I love it", description: "Creativity is my passion" },
+    ],
+  },
+  directCommunicationEnjoyment: {
+    title:
+      "How much do you enjoy direct communication with others (support, coaching, service)?",
+    options: [
+      { label: "Avoid it", description: "Dislike direct interaction" },
+      {
+        label: "Occasionally enjoy it",
+        description: "Can manage some interaction",
+      },
+      {
+        label: "Moderately enjoy it",
+        description: "Comfortable with communication",
+      },
+      { label: "Very much enjoy it", description: "Like helping others" },
+      {
+        label: "I enjoy it a lot",
+        description: "Thrive in communication roles",
+      },
+    ],
+  },
+  techSkillsRating: {
+    title: "How would you rate your tech skills overall?",
+    options: [
+      { label: "Very low", description: "Struggle with most tools" },
+      { label: "Basic", description: "Know a few platforms" },
+      { label: "Moderate", description: "Can learn quickly" },
+      { label: "High", description: "Confident with new tools" },
+      { label: "Very tech-savvy", description: "Excel with digital platforms" },
+    ],
+  },
+  internetDeviceReliability: {
+    title: "How reliable is your access to internet and devices?",
+    options: [
+      { label: "Not reliable", description: "Frequent connection issues" },
+      {
+        label: "Occasionally reliable",
+        description: "Some tech problems occur",
+      },
+      { label: "Mostly reliable", description: "Reliable most of the time" },
+      { label: "Very reliable", description: "Few access limitations" },
+      {
+        label: "Extremely reliable",
+        description: "Always connected and ready",
+      },
+    ],
+  },
+  riskComfortLevel: {
+    title: "How comfortable are you taking risks?",
+    options: [
+      { label: "Avoid risks", description: "Prefer low-stakes options" },
+      {
+        label: "Slightly comfortable",
+        description: "Cautiously take small risks",
+      },
+      {
+        label: "Moderately comfortable",
+        description: "Balance risk and reward",
+      },
+      { label: "Very comfortable", description: "Comfortable with bold moves" },
+      {
+        label: "Totally comfortable",
+        description: "Thrive in uncertain situations",
+      },
+    ],
+  },
+  feedbackRejectionResponse: {
+    title: "How do you usually respond to negative feedback or rejection?",
+    options: [
+      {
+        label: "Take it personally",
+        description: "Feel discouraged quickly",
+      },
+      { label: "Feel discouraged", description: "Confidence takes a hit" },
+      { label: "Reflect on it", description: "Think it through objectively" },
+      { label: "Learn from it", description: "Improve and move forward" },
+      {
+        label: "Use it as motivation",
+        description: "Turn feedback into fuel",
+      },
+    ],
+  },
+  controlImportance: {
+    title:
+      "How important is it for you to stay in full control of your business decisions?",
+    options: [
+      { label: "Not important", description: "Open to collaboration" },
+      { label: "Slightly important", description: "Okay with shared input" },
+      {
+        label: "Moderately important",
+        description: "Prefer some independence",
+      },
+      { label: "Very important", description: "Want clear decision authority" },
+      {
+        label: "Extremely important",
+        description: "Need full decision control",
+      },
+    ],
+  },
+  socialMediaInterest: {
+    title: "How interested are you in using social media to grow a business?",
+    options: [
+      { label: "Not at all", description: "Avoid using social media" },
+      { label: "Slightly interested", description: "Rarely post or engage" },
+      { label: "Moderately interested", description: "Use it when helpful" },
+      { label: "Very interested", description: "See value in growth" },
+      {
+        label: "Extremely interested",
+        description: "Social media is key",
+      },
+    ],
+  },
+  meaningfulContributionImportance: {
+    title:
+      "How important is it to you that your business contributes to something meaningful?",
+    options: [
+      { label: "Not important", description: "Profit over purpose" },
+      { label: "Slightly important", description: "Purpose is secondary" },
+      {
+        label: "Moderately important",
+        description: "Meaning adds value",
+      },
+      { label: "Very important", description: "Want to create impact" },
+      {
+        label: "Extremely important",
+        description: "Mission comes first",
+      },
+    ],
+  },
+};
+
 interface QuizProps {
   onComplete: (data: QuizData) => void;
   onBack: () => void;
@@ -180,7 +532,7 @@ const ExitWarningModal: React.FC<ExitWarningModalProps> = ({
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50"></div>
 
-        <div className="relative p-8 py-12">
+        <div className="relative p-4 py-8 md:p-8 md:py-12">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -209,12 +561,12 @@ const ExitWarningModal: React.FC<ExitWarningModalProps> = ({
             transition={{ duration: 0.5, delay: 0.4 }}
             className="text-center mb-10"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+            <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
               Are you sure you want to exit?
             </h2>
 
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
-              <p className="text-lg font-semibold text-red-800 mb-2">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 md:p-6 mb-6 md:mb-8">
+              <p className="text-base md:text-lg font-semibold text-red-800 mb-2">
                 ⚠️ You will lose all progress!
               </p>
               <p className="text-red-700">
@@ -562,7 +914,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
     return (
       <div
-        className={`min-h-screen flex items-center justify-center p-4 bg-gradient-to-br ${currentRoundInfo.bgColor} relative`}
+        className={`min-h-screen flex items-center justify-center px-2 py-4 md:p-4 bg-gradient-to-br ${currentRoundInfo.bgColor} relative`}
       >
         {/* Back Arrow Button - Shows Exit Modal */}
         <motion.button
@@ -608,7 +960,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100 text-center relative"
+            className="bg-white rounded-3xl shadow-2xl px-4 py-8 md:p-12 border border-gray-100 text-center relative"
           >
             {/* Round Icon */}
             <motion.div
@@ -679,7 +1031,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
             {/* Navigation Hint */}
             <motion.p
-              className="text-sm text-gray-400 mb-6"
+              className="text-sm text-gray-400 mb-6 hidden md:block"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.8 }}
@@ -690,7 +1042,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             {/* Back Button - Bottom Left Corner */}
             {currentStep > 0 && (
               <motion.div
-                className="absolute bottom-8 left-8"
+                className="absolute bottom-2 left-4 md:bottom-8 md:left-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.9 }}
@@ -719,7 +1071,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
   // Regular Quiz Question
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-blue-50 relative">
+    <div className="min-h-screen flex items-center justify-center px-2 py-4 md:p-4 bg-gradient-to-br from-slate-50 to-blue-50 relative">
       {/* Back Arrow Button - Shows Exit Modal */}
       <motion.button
         onClick={handleBackButtonClick}
@@ -763,7 +1115,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
-            className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-gray-100"
+            className="bg-white rounded-3xl shadow-2xl px-4 py-6 md:p-8 border border-gray-100"
             initial={{ opacity: 0, x: 50, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -50, scale: 0.95 }}
@@ -779,13 +1131,27 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
                 <IconComponent className="h-10 w-10 text-white" />
               </motion.div>
 
+              {/* Desktop Title */}
               <motion.h2
-                className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight"
+                className="hidden md:block text-2xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 {currentStepData.title}
+              </motion.h2>
+
+              {/* Mobile Title - Use custom mobile content for scale questions */}
+              <motion.h2
+                className="md:hidden text-2xl font-bold text-gray-900 mb-3 leading-tight"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                {currentStepData.type === "scale" &&
+                mobileScaleContent[currentStepData.field]
+                  ? mobileScaleContent[currentStepData.field].title
+                  : currentStepData.title}
               </motion.h2>
 
               <motion.p
@@ -806,51 +1172,91 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             >
               {currentStepData.type === "scale" ? (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center px-4">
-                    <span className="text-sm font-medium text-gray-500">
-                      Low
-                    </span>
-                    <span className="text-sm font-medium text-gray-500">
-                      High
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-5 gap-3">
-                    {currentStepData.options?.map((option, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleOptionSelect(option.value)}
-                        className={`p-3 py-4 rounded-2xl border-2 text-center transition-all duration-300 hover:scale-105 min-h-[90px] flex flex-col justify-center ${
-                          formData[currentStepData.field] === option.value
-                            ? "border-blue-500 bg-blue-50 shadow-xl transform scale-110"
-                            : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
-                        }`}
+                  {/* Desktop Layout - hidden on mobile */}
+                  <div className="hidden md:block">
+                    <div className="flex justify-between items-center px-4">
+                      <span className="text-sm font-medium text-gray-500">
+                        Low
+                      </span>
+                      <span className="text-sm font-medium text-gray-500">
+                        High
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-3 mt-6">
+                      {currentStepData.options?.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleOptionSelect(option.value)}
+                          className={`p-3 py-4 rounded-2xl border-2 text-center transition-all duration-300 hover:scale-105 min-h-[90px] flex flex-col justify-center ${
+                            formData[currentStepData.field] === option.value
+                              ? "border-blue-500 bg-blue-50 shadow-xl transform scale-110"
+                              : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                          }`}
+                        >
+                          <div className="text-2xl font-bold text-gray-900 mb-2">
+                            {option.value}
+                          </div>
+                          <div className="text-xs text-gray-600 font-medium leading-tight">
+                            {option.label}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {formData[currentStepData.field] && (
+                      <motion.div
+                        className="text-center p-4 bg-blue-50 rounded-xl mt-6"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <div className="text-2xl font-bold text-gray-900 mb-2">
-                          {option.value}
-                        </div>
-                        <div className="text-xs text-gray-600 font-medium leading-tight">
-                          {option.label}
-                        </div>
-                      </button>
-                    ))}
+                        <p className="text-blue-800 font-medium">
+                          {
+                            currentStepData.options?.find(
+                              (opt) =>
+                                opt.value === formData[currentStepData.field],
+                            )?.description
+                          }
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
-                  {formData[currentStepData.field] && (
-                    <motion.div
-                      className="text-center p-4 bg-blue-50 rounded-xl"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <p className="text-blue-800 font-medium">
-                        {
-                          currentStepData.options?.find(
-                            (opt) =>
-                              opt.value === formData[currentStepData.field],
-                          )?.description
-                        }
-                      </p>
-                    </motion.div>
-                  )}
+
+                  {/* Mobile Layout - visible only on mobile */}
+                  <div className="md:hidden space-y-3">
+                    {(
+                      mobileScaleContent[currentStepData.field]?.options ||
+                      currentStepData.options
+                    )?.map((option, index) => {
+                      const mobileOption =
+                        mobileScaleContent[currentStepData.field]?.options[
+                          index
+                        ];
+                      const displayOption = mobileOption || option;
+                      const value =
+                        currentStepData.options?.[index]?.value || index + 1;
+
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleOptionSelect(value)}
+                          className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-300 ${
+                            formData[currentStepData.field] === value
+                              ? "border-blue-500 bg-blue-50 shadow-lg"
+                              : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                          }`}
+                        >
+                          <div className="font-bold text-gray-900 text-base mb-1">
+                            {displayOption.label}
+                          </div>
+                          {displayOption.description && (
+                            <div className="text-gray-600 text-sm">
+                              {displayOption.description}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto">
@@ -945,7 +1351,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
                 {/* Enter key hint */}
                 {canProceed && (
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-400 mt-2 hidden md:block">
                     Or press enter to continue
                   </p>
                 )}

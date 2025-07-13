@@ -73,6 +73,10 @@ export class EmailService {
       console.log(`Attempting to send email to: ${options.to}`);
       console.log(`Subject: ${options.subject}`);
 
+      if (!resend) {
+        throw new Error("Resend API key not configured");
+      }
+
       const { data, error } = await resend.emails.send({
         from: "BizModelAI <onboarding@resend.dev>",
         to: [options.to],

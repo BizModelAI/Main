@@ -663,14 +663,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Route based on which button was clicked
       if (paywallType === "learn-more" && selectedPath) {
         // Navigate to "How business model X works for you" page
-        navigate(`/business/${selectedPath.id}`);
+        navigate(`/business/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "business-model" && selectedPath) {
         // Navigate to business model guide page
-        navigate(`/guide/${selectedPath.id}`);
+        navigate(`/guide/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
@@ -690,11 +690,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handlePayment = async () => {
-    // DEV: Only allow simulation in development mode
-    if (import.meta.env.MODE !== "development") {
-      console.warn("Payment simulation disabled in production");
-      return;
-    }
+    // DEV bypass disabled - always disable payment simulation
+    // if (import.meta.env.MODE !== "development") {
+    console.warn("Payment simulation disabled in production");
+    return;
+    // }
 
     setIsProcessingPayment(true);
 
@@ -719,14 +719,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Route based on which button was clicked
       if (paywallType === "learn-more" && selectedPath) {
         // Navigate to "How business model X works for you" page
-        navigate(`/business/${selectedPath.id}`);
+        navigate(`/business/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "business-model" && selectedPath) {
         // Navigate to business model guide page
-        navigate(`/guide/${selectedPath.id}`);
+        navigate(`/guide/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
@@ -752,11 +752,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handleBusinessCardPayment = async () => {
-    // DEV: Only allow simulation in development mode
-    if (import.meta.env.MODE !== "development") {
-      console.warn("Payment simulation disabled in production");
-      return;
-    }
+    // DEV bypass disabled - always disable payment simulation
+    // if (import.meta.env.MODE !== "development") {
+    console.warn("Payment simulation disabled in production");
+    return;
+    // }
 
     setIsProcessingPayment(true);
 
@@ -772,7 +772,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
     // If this was triggered from "Start Business Model X" button, navigate to guide page
     if (paywallType === "business-model" && selectedPath) {
-      navigate(`/guide/${selectedPath.id}`);
+      navigate(`/guide/${selectedPath!.id}`);
       // Scroll to top after navigation
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
@@ -893,18 +893,18 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   return (
     <>
-      <div className="min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen p-4 md:p-4 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-5xl mx-auto">
           {/* Primary Heading - 30% viewport height */}
           <motion.div
-            className="text-center mb-12 pt-16"
-            style={{ minHeight: "30vh" }}
+            className="text-center mb-8 md:mb-12 pt-8 md:pt-16 px-2 md:px-0"
+            style={{ minHeight: window.innerWidth < 768 ? "25vh" : "30vh" }}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <motion.h1
-              className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-2 md:px-0"
               variants={fadeInUp}
               initial="initial"
               animate="animate"
@@ -922,10 +922,10 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="mt-6 inline-flex items-center bg-green-50 border border-green-200 rounded-full px-6 py-3"
+                className="mt-4 md:mt-6 inline-flex items-center bg-green-50 border border-green-200 rounded-full px-4 md:px-6 py-2 md:py-3 mx-2"
               >
                 <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-green-800 font-medium">
+                <span className="text-green-800 font-medium text-sm md:text-base">
                   Results link sent to {userEmail}
                 </span>
               </motion.div>
@@ -934,7 +934,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           {/* Visual Divider */}
           <motion.div
-            className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-12"
+            className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8 md:mb-12 mx-4 md:mx-0"
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
             transition={{ duration: 1, delay: 0.5 }}
@@ -942,15 +942,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           {/* Secondary Heading */}
           <motion.div
-            className="text-center mb-8"
+            className="text-center mb-6 md:mb-8 px-4 md:px-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Your AI-Powered Business Blueprint
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-2 md:px-0">
               Personalized recommendations based on your unique goals, skills,
               and preferences
             </p>
@@ -1267,7 +1267,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                   </div>
 
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">🚀</div>
+                                    <div className="text-3xl mt-1">��</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Step-by-Step Launch Guidance
@@ -1363,7 +1363,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           {/* Results - Customized width for better fit */}
           <motion.div
-            className="space-y-8 mb-12"
+            className="space-y-6 md:space-y-8 mb-8 md:mb-12 px-2 md:px-0"
             variants={staggerChildren}
             initial="initial"
             animate="animate"
@@ -1396,57 +1396,57 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   {/* Ranking bubbles */}
                   {index === 0 && (
                     <motion.div
-                      className="absolute -top-4 left-1/2 transform -translate-x-1/2"
+                      className="absolute -top-3 md:-top-4 left-1/2 transform -translate-x-1/2"
                       initial={{ scale: 0, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ duration: 0.6, delay: 0.8 }}
                     >
-                      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
-                        <Star className="h-4 w-4 mr-2" />
+                      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 md:px-6 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center">
+                        <Star className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         AI RECOMMENDED
                       </div>
                     </motion.div>
                   )}
                   {index === 1 && (
                     <motion.div
-                      className="absolute -top-4 right-1/4 transform translate-x-1/2"
+                      className="absolute -top-3 md:-top-4 right-1/4 transform translate-x-1/2"
                       initial={{ scale: 0, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ duration: 0.6, delay: 0.9 }}
                     >
-                      <div className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
-                        <Award className="h-4 w-4 mr-2" />
+                      <div className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-3 md:px-6 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center">
+                        <Award className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         2nd Best
                       </div>
                     </motion.div>
                   )}
                   {index === 2 && (
                     <motion.div
-                      className="absolute -top-4 right-1/4 transform translate-x-1/2"
+                      className="absolute -top-3 md:-top-4 right-1/4 transform translate-x-1/2"
                       initial={{ scale: 0, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ duration: 0.6, delay: 1.0 }}
                     >
-                      <div className="bg-gradient-to-r from-slate-400 to-slate-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
-                        <Award className="h-4 w-4 mr-2" />
+                      <div className="bg-gradient-to-r from-slate-400 to-slate-500 text-white px-3 md:px-6 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg flex items-center">
+                        <Award className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         3rd Best
                       </div>
                     </motion.div>
                   )}
 
-                  <div className="h-full p-8 flex">
+                  <div className="h-full p-4 md:p-8 flex flex-col md:flex-row">
                     {/* Left Column - Main Info */}
-                    <div className="flex-1 pr-6">
+                    <div className="flex-1 md:pr-6 mb-6 md:mb-0">
                       <div className="flex items-center mb-4">
                         <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center mr-4 ${
+                          className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mr-3 md:mr-4 ${
                             index === 0 ? "bg-yellow-500" : "bg-blue-600"
                           }`}
                         >
-                          <IconComponent className="h-6 w-6 text-white" />
+                          <IconComponent className="h-5 w-5 md:h-6 md:w-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-gray-900">
+                          <h3 className="text-xl md:text-2xl font-bold text-gray-900">
                             {path.name}
                           </h3>
                           <div
@@ -1463,70 +1463,70 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                         </div>
                       </div>
 
-                      <p className="text-gray-600 mb-6 leading-relaxed">
+                      <p className="text-gray-600 mb-4 md:mb-6 leading-relaxed text-sm md:text-base">
                         {path.description}
                       </p>
 
                       {/* Key Metrics in compact grid */}
-                      <div className="grid grid-cols-2 gap-3 mb-6">
+                      <div className="grid grid-cols-2 gap-2 md:gap-3 mb-4 md:mb-6">
                         <div
-                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-3`}
+                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-2 md:p-3`}
                         >
                           <div className="flex items-center mb-1">
-                            <Clock className="h-4 w-4 text-gray-500 mr-1" />
+                            <Clock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 mr-1" />
                             <span className="text-xs font-medium text-gray-700">
                               Time to Profit
                             </span>
                           </div>
-                          <div className="font-bold text-gray-900 text-sm">
+                          <div className="font-bold text-gray-900 text-xs md:text-sm">
                             {path.timeToProfit}
                           </div>
                         </div>
                         <div
-                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-3`}
+                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-2 md:p-3`}
                         >
                           <div className="flex items-center mb-1">
-                            <DollarSign className="h-4 w-4 text-gray-500 mr-1" />
+                            <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-gray-500 mr-1" />
                             <span className="text-xs font-medium text-gray-700">
                               Startup Cost
                             </span>
                           </div>
-                          <div className="font-bold text-gray-900 text-sm">
+                          <div className="font-bold text-gray-900 text-xs md:text-sm">
                             {path.startupCost}
                           </div>
                         </div>
                       </div>
 
                       {/* Action Elements */}
-                      <div className="space-y-3 mt-auto">
+                      <div className="space-y-2 md:space-y-3 mt-4 md:mt-auto">
                         {/* Primary CTA - Only show if card is not locked */}
                         {!(index > 0 && !hasUnlockedAnalysis) && (
                           <button
                             onClick={() => handleViewFullReport(path)}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform group-hover:scale-[1.02] flex items-center justify-center"
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 md:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform group-hover:scale-[1.02] flex items-center justify-center text-sm md:text-base"
                           >
-                            <FileText className="h-4 w-4 mr-2" />
+                            <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                             View Full Report
                           </button>
                         )}
 
                         {/* Secondary CTA - Only show if card is not locked */}
                         {!(index > 0 && !hasUnlockedAnalysis) && (
-                          <div className="text-center space-y-3">
+                          <div className="text-center space-y-2 md:space-y-3">
                             <button
                               onClick={() => handleLearnMore(path)}
-                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-sm font-bold flex items-center justify-center group"
+                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-xs md:text-sm font-bold flex items-center justify-center group"
                             >
                               Learn more about {path.name} for you
-                              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                              <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                             </button>
 
                             <button
                               onClick={() => handleStartBusinessModel(path)}
-                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-sm font-bold flex items-center justify-center group"
+                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-xs md:text-sm font-bold flex items-center justify-center group"
                             >
                               Complete Guide to {path.name}
-                              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                              <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                             </button>
                           </div>
                         )}
@@ -1534,11 +1534,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                     </div>
 
                     {/* Right Column - Score & Highlights */}
-                    <div className="w-48 flex flex-col">
+                    <div className="md:w-48 flex flex-col md:flex-col w-full">
                       {/* Fit Score */}
-                      <div className="text-center mb-6">
+                      <div className="text-center mb-4 md:mb-6">
                         <div
-                          className={`text-5xl font-bold mb-1 ${
+                          className={`text-3xl md:text-5xl font-bold mb-1 ${
                             index === 0 ? "text-yellow-600" : "text-blue-600"
                           }`}
                         >
@@ -1550,14 +1550,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       </div>
 
                       {/* Potential Income */}
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 md:p-4 mb-4 md:mb-6">
                         <div className="flex items-center mb-2">
-                          <TrendingUp className="h-4 w-4 text-green-600 mr-2" />
-                          <span className="text-sm font-medium text-green-800">
+                          <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-600 mr-2" />
+                          <span className="text-xs md:text-sm font-medium text-green-800">
                             Potential Income
                           </span>
                         </div>
-                        <div className="text-xl font-bold text-green-700">
+                        <div className="text-lg md:text-xl font-bold text-green-700">
                           {path.potentialIncome}
                         </div>
                       </div>
@@ -1588,38 +1588,38 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           {/* Action Buttons Section */}
           <motion.div
-            className="mt-12 text-center"
+            className="mt-8 md:mt-12 text-center px-4 md:px-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.2 }}
           >
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
               Take Action on Your Results
             </h3>
-            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto">
               <button
                 onClick={handleDownloadResults}
-                className={`p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
+                className={`p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
                   hasUnlockedAnalysis ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
                 {!hasUnlockedAnalysis && (
-                  <Lock className="h-4 w-4 text-gray-500 absolute top-3 right-3" />
+                  <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Download
-                  className={`h-8 w-8 mx-auto mb-4 group-hover:scale-110 transition-transform ${
+                  className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
                     hasUnlockedAnalysis ? "text-blue-600" : "text-gray-400"
                   }`}
                 />
                 <h4
-                  className={`font-bold mb-2 ${
+                  className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
                     hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Download as PDF
                 </h4>
                 <p
-                  className={`text-sm ${
+                  className={`text-xs md:text-sm ${
                     hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
@@ -1631,40 +1631,40 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
               <button
                 onClick={handleEmailResults}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
+                className="bg-white p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
               >
-                <Mail className="h-8 w-8 text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                <h4 className="font-bold text-gray-900 mb-2">
+                <Mail className="h-6 w-6 md:h-8 md:w-8 text-green-600 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform" />
+                <h4 className="font-bold text-gray-900 mb-1 md:mb-2 text-sm md:text-base">
                   Email My Results
                 </h4>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs md:text-sm">
                   Send this report to your email for easy access and sharing
                 </p>
               </button>
 
               <button
                 onClick={handleShareResults}
-                className={`p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
+                className={`p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
                   hasUnlockedAnalysis ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
                 {!hasUnlockedAnalysis && (
-                  <Lock className="h-4 w-4 text-gray-500 absolute top-3 right-3" />
+                  <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Share2
-                  className={`h-8 w-8 mx-auto mb-4 group-hover:scale-110 transition-transform ${
+                  className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
                     hasUnlockedAnalysis ? "text-purple-600" : "text-gray-400"
                   }`}
                 />
                 <h4
-                  className={`font-bold mb-2 ${
+                  className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
                     hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Share My Results
                 </h4>
                 <p
-                  className={`text-sm ${
+                  className={`text-xs md:text-sm ${
                     hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
@@ -1679,7 +1679,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           {/* Unlock Premium Section - Hide when user has paid */}
           {!hasUnlockedAnalysis && (
             <motion.div
-              className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden mt-12"
+              className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -1692,16 +1692,16 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
               <div className="relative max-w-4xl mx-auto">
                 <motion.div
-                  className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-8"
+                  className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.8, delay: 0.7 }}
                 >
-                  <Lock className="h-12 w-12 text-white" />
+                  <Lock className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-white" />
                 </motion.div>
 
                 <motion.h2
-                  className="text-4xl md:text-5xl font-bold text-white mb-6"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 px-2 md:px-0"
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -1710,7 +1710,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.h2>
 
                 <motion.p
-                  className="text-xl text-gray-300 mb-10 leading-relaxed"
+                  className="text-base md:text-lg lg:text-xl text-gray-300 mb-6 md:mb-8 lg:mb-10 leading-relaxed px-4 md:px-0"
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -1720,7 +1720,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.p>
 
                 <motion.div
-                  className="grid md:grid-cols-3 gap-6 mb-10"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8 lg:mb-10"
                   variants={staggerChildren}
                   initial="initial"
                   animate="animate"
@@ -1747,17 +1747,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   ].map((feature, index) => (
                     <motion.div
                       key={index}
-                      className="flex items-start text-left bg-white/10 backdrop-blur-sm rounded-2xl p-6"
+                      className="flex items-start text-left bg-white/10 backdrop-blur-sm rounded-2xl p-4 md:p-6"
                       variants={fadeInUp}
                     >
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
-                        <feature.icon className="h-6 w-6 text-white" />
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center mr-3 md:mr-4 flex-shrink-0">
+                        <feature.icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-white mb-2">
+                        <h3 className="font-bold text-white mb-1 md:mb-2 text-sm md:text-base">
                           {feature.title}
                         </h3>
-                        <p className="text-gray-300 text-sm">
+                        <p className="text-gray-300 text-xs md:text-sm">
                           {feature.description}
                         </p>
                       </div>
@@ -1766,25 +1766,25 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.div>
 
                 <motion.div
-                  className="mb-8"
+                  className="mb-6 md:mb-8"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 1 }}
                 >
-                  <div className="text-gray-400 line-through text-xl mb-2">
+                  <div className="text-gray-400 line-through text-lg md:text-xl mb-2">
                     $197 Value
                   </div>
-                  <div className="text-6xl font-bold text-white mb-2">
+                  <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
                     $9.99
                   </div>
-                  <div className="text-gray-300 text-lg">
+                  <div className="text-gray-300 text-sm md:text-base lg:text-lg px-2 md:px-0">
                     One-time payment • Instant access • 30-day guarantee
                   </div>
                 </motion.div>
 
                 <motion.button
                   onClick={handleUnlockAnalysis}
-                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-12 py-5 rounded-full text-xl font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
+                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-full text-base md:text-lg lg:text-xl font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -1797,7 +1797,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           {/* Dashboard Link Section - Show when user has paid */}
           {hasUnlockedAnalysis && (
             <motion.div
-              className="bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden mt-12"
+              className="bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -1810,16 +1810,16 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
               <div className="relative max-w-4xl mx-auto">
                 <motion.div
-                  className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8"
+                  className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.8, delay: 0.7 }}
                 >
-                  <CheckCircle className="h-12 w-12 text-white" />
+                  <CheckCircle className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 text-white" />
                 </motion.div>
 
                 <motion.h2
-                  className="text-4xl md:text-5xl font-bold text-white mb-6"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6 px-2 md:px-0"
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -1828,7 +1828,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.h2>
 
                 <motion.p
-                  className="text-xl text-gray-300 mb-10 leading-relaxed"
+                  className="text-base md:text-lg lg:text-xl text-gray-300 mb-6 md:mb-8 lg:mb-10 leading-relaxed px-4 md:px-0"
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -1845,7 +1845,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }, 100);
                   }}
-                  className="bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900 px-12 py-5 rounded-full text-xl font-bold hover:from-green-300 hover:to-emerald-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
+                  className="bg-gradient-to-r from-green-400 to-emerald-500 text-gray-900 px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-full text-base md:text-lg lg:text-xl font-bold hover:from-green-300 hover:to-emerald-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >

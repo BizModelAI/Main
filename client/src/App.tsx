@@ -45,6 +45,9 @@ function App() {
 
   // Restore data from localStorage on app start
   React.useEffect(() => {
+    console.log(
+      "App component initializing - restoring data from localStorage",
+    );
     const savedQuizData = localStorage.getItem("quizData");
     const savedUserEmail = localStorage.getItem("userEmail");
     const savedLoadedReportData = localStorage.getItem("loadedReportData");
@@ -52,9 +55,15 @@ function App() {
       "congratulationsShown",
     );
 
+    console.log("Saved quiz data found:", !!savedQuizData);
+    console.log("Saved user email found:", !!savedUserEmail);
+    console.log("Saved loaded report data found:", !!savedLoadedReportData);
+
     if (savedQuizData) {
       try {
-        setQuizData(JSON.parse(savedQuizData));
+        const parsed = JSON.parse(savedQuizData);
+        console.log("Restoring quiz data from localStorage");
+        setQuizData(parsed);
       } catch (error) {
         console.error("Error parsing saved quiz data:", error);
       }
@@ -66,7 +75,9 @@ function App() {
 
     if (savedLoadedReportData) {
       try {
-        setLoadedReportData(JSON.parse(savedLoadedReportData));
+        const parsed = JSON.parse(savedLoadedReportData);
+        console.log("Restoring loaded report data from localStorage");
+        setLoadedReportData(parsed);
       } catch (error) {
         console.error("Error parsing saved loaded report data:", error);
       }
@@ -82,6 +93,25 @@ function App() {
       localStorage.setItem("congratulationsShown", "false");
     }
   }, []);
+
+  // Ensure quiz data persists even if React state gets reset
+  React.useEffect(() => {
+    if (!quizData) {
+      // Check if localStorage has quiz data but React state doesn't
+      const savedQuizData = localStorage.getItem("quizData");
+      if (savedQuizData) {
+        try {
+          const parsed = JSON.parse(savedQuizData);
+          console.log(
+            "React state lost quiz data - restoring from localStorage",
+          );
+          setQuizData(parsed);
+        } catch (error) {
+          console.error("Error restoring quiz data from localStorage:", error);
+        }
+      }
+    }
+  });
 
   // Handler for AI loading completion
   const handleAILoadingComplete = (data: any) => {
@@ -371,6 +401,9 @@ const AIReportLoadingWrapper: React.FC<{
       "AI loading complete after quiz, checking congratulations tracking",
     );
 
+    // Store loaded report data in localStorage
+    localStorage.setItem("loadedReportData", JSON.stringify(data));
+
     // Check if congratulations was already shown
     const congratulationsShown = localStorage.getItem("congratulationsShown");
     if (!congratulationsShown || congratulationsShown === "false") {
@@ -534,6 +567,9 @@ const QuizWithNavigation: React.FC<{
 
   const handleCongratulationsComplete = (email?: string) => {
     console.log("Congratulations complete, navigating to results");
+    console.log("Current quizData state:", quizData);
+    console.log("Current loadedReportData state:", loadedReportData);
+
     if (email) {
       setUserEmail(email);
       localStorage.setItem("userEmail", email);
@@ -542,11 +578,25 @@ const QuizWithNavigation: React.FC<{
     // IMPORTANT: Reset congratulations state BEFORE navigation
     setShowCongratulations(false);
 
-    // Store quiz data before navigation
+    // Store quiz data and loaded report data before navigation
     if (quizData) {
+      console.log("Storing quizData in localStorage");
       localStorage.setItem("quizData", JSON.stringify(quizData));
+    } else {
+      console.error(
+        "No quizData to store - this may cause the results page to fail",
+      );
     }
 
+    if (loadedReportData) {
+      console.log("Storing loadedReportData in localStorage");
+      localStorage.setItem(
+        "loadedReportData",
+        JSON.stringify(loadedReportData),
+      );
+    }
+
+    console.log("Navigating to /results in 100ms");
     // Small delay to ensure state update is processed
     setTimeout(() => {
       navigate("/results");
@@ -554,9 +604,12 @@ const QuizWithNavigation: React.FC<{
   };
 
   const handleReturnToQuiz = () => {
-    console.log("Returning to quiz");
+    console.log("Returning to quiz - explicitly clearing quiz data");
     setShowCongratulations(false);
     setQuizData(null);
+    // Clear localStorage quiz data when user explicitly returns to quiz
+    localStorage.removeItem("quizData");
+    localStorage.removeItem("loadedReportData");
     // Reset congratulations tracking for next quiz completion
     setCongratulationsShown(false);
     localStorage.setItem("congratulationsShown", "false");
@@ -638,22 +691,75 @@ const ResultsWrapperWithReset: React.FC<{
 }) => {
   console.log("ResultsWrapper received quizData:", quizData);
   console.log("ResultsWrapper received userEmail:", userEmail);
+  console.log("ResultsWrapper received loadedReportData:", loadedReportData);
+
+  // Check localStorage if no quiz data is provided via props
+  const savedQuizData = React.useMemo(() => {
+    console.log("ResultsWrapper - checking quiz data...");
+    console.log("Props quizData:", quizData);
+
+    if (quizData) {
+      console.log("Using quizData from props");
+      return quizData;
+    }
+
+    console.log("No quizData in props, checking localStorage");
+    const saved = localStorage.getItem("quizData");
+    console.log("localStorage quizData:", saved);
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        console.log("Successfully parsed quizData from localStorage:", parsed);
+        return parsed;
+      } catch (error) {
+        console.error("Error parsing quizData from localStorage:", error);
+        return null;
+      }
+    }
+    console.log("No quizData found in localStorage");
+    return null;
+  }, [quizData]);
+
+  // Also check localStorage for loadedReportData
+  const savedLoadedReportData = React.useMemo(() => {
+    if (loadedReportData) return loadedReportData;
+
+    const saved = localStorage.getItem("loadedReportData");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        console.log("Retrieved loadedReportData from localStorage:", parsed);
+        return parsed;
+      } catch (error) {
+        console.error(
+          "Error parsing loadedReportData from localStorage:",
+          error,
+        );
+        return null;
+      }
+    }
+    return null;
+  }, [loadedReportData]);
 
   // Clear congratulations state when component mounts (user navigated to results)
   React.useEffect(() => {
     setShowCongratulations(false);
   }, [setShowCongratulations]);
 
-  if (quizData) {
+  if (savedQuizData) {
+    console.log("Rendering Results component with savedQuizData");
     return (
       <Results
-        quizData={quizData}
+        quizData={savedQuizData}
         onBack={onBack}
         userEmail={userEmail}
-        preloadedReportData={loadedReportData}
+        preloadedReportData={savedLoadedReportData}
       />
     );
   } else {
+    console.error("No quiz data available - showing fallback message");
+    console.log("Current localStorage keys:", Object.keys(localStorage));
     return (
       <div className="py-20 text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">

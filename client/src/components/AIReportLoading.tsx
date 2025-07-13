@@ -12,9 +12,26 @@ import {
   Award,
   Calendar,
   Lightbulb,
-  ChevronLeft,
 } from "lucide-react";
 import { QuizData, BusinessPath } from "../types";
+
+// Hook to detect mobile devices
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  return isMobile;
+};
 
 interface AIReportLoadingProps {
   quizData: QuizData;
@@ -48,6 +65,10 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
   const [progress, setProgress] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [loadingResults, setLoadingResults] = useState<any>({});
+  const [visibleMobileSteps, setVisibleMobileSteps] = useState<Set<number>>(
+    new Set([0]),
+  ); // Start with first step visible
+  const isMobile = useIsMobile();
 
   const loadingSteps: LoadingStep[] = [
     {
@@ -610,6 +631,12 @@ Return JSON format:
   ) => {
     // Mark step as active
     setCurrentStep(stepIndex);
+
+    // On mobile, make current step visible when it becomes active
+    if (isMobile) {
+      setVisibleMobileSteps((prev) => new Set([...prev, stepIndex]));
+    }
+
     setSteps((prev) =>
       prev.map((step, index) => ({
         ...step,
@@ -654,6 +681,12 @@ Return JSON format:
 
       // Mark step as completed
       setCompletedSteps((prev) => new Set([...prev, stepIndex]));
+
+      // On mobile, make next step visible when current step completes
+      if (isMobile && stepIndex < steps.length - 1) {
+        setVisibleMobileSteps((prev) => new Set([...prev, stepIndex + 1]));
+      }
+
       setSteps((prev) =>
         prev.map((step, index) => ({
           ...step,
@@ -670,6 +703,12 @@ Return JSON format:
 
       // Continue with fallback
       setCompletedSteps((prev) => new Set([...prev, stepIndex]));
+
+      // On mobile, make next step visible even on error
+      if (isMobile && stepIndex < steps.length - 1) {
+        setVisibleMobileSteps((prev) => new Set([...prev, stepIndex + 1]));
+      }
+
       setSteps((prev) =>
         prev.map((step, index) => ({
           ...step,
@@ -704,21 +743,6 @@ Return JSON format:
   return (
     <div className="min-h-screen bg-white py-4">
       <div className="max-w-4xl mx-auto px-4 relative pt-12">
-        {/* Exit Button */}
-        {onExit && (
-          <motion.button
-            onClick={onExit}
-            className="absolute top-2 left-2 z-10 bg-gray-100 hover:bg-gray-200 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          </motion.button>
-        )}
-
         {/* Header */}
         <motion.div
           className="text-center mb-6"
@@ -784,72 +808,84 @@ Return JSON format:
 
         {/* Compact Loading Steps Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-          {steps.map((step, index) => (
-            <motion.div
-              key={step.id}
-              className={`bg-gray-50 rounded-xl p-4 shadow-sm transition-all duration-300 ${
-                step.status === "active"
-                  ? "ring-2 ring-blue-500 bg-blue-50"
-                  : step.status === "completed"
-                    ? "ring-2 ring-green-500 bg-green-50"
-                    : "ring-1 ring-gray-200"
-              }`}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <div className="flex items-center mb-2">
-                <div className="flex-shrink-0 mr-3">
-                  {getStepIcon(step, index)}
-                </div>
-                {step.status === "active" && (
-                  <motion.div
-                    className="flex space-x-1 ml-auto"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    {[0, 1, 2].map((dot) => (
+          {steps
+            .filter((step, index) => {
+              // On mobile, only show steps that are in the visible set
+              // On desktop, show all steps
+              return !isMobile || visibleMobileSteps.has(index);
+            })
+            .map((step, index) => {
+              // Find the original index for proper step handling
+              const originalIndex = steps.findIndex((s) => s.id === step.id);
+              return (
+                <motion.div
+                  key={step.id}
+                  className={`bg-gray-50 rounded-xl p-4 shadow-sm transition-all duration-300 ${
+                    step.status === "active"
+                      ? "ring-2 ring-blue-500 bg-blue-50"
+                      : step.status === "completed"
+                        ? "ring-2 ring-green-500 bg-green-50"
+                        : "ring-1 ring-gray-200"
+                  }`}
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  layout
+                >
+                  <div className="flex items-center mb-2">
+                    <div className="flex-shrink-0 mr-3">
+                      {getStepIcon(step, originalIndex)}
+                    </div>
+                    {step.status === "active" && (
                       <motion.div
-                        key={dot}
-                        className="w-1.5 h-1.5 bg-blue-500 rounded-full"
-                        animate={{
-                          scale: [1, 1.2, 1],
-                          opacity: [0.5, 1, 0.5],
-                        }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                          delay: dot * 0.2,
-                        }}
-                      />
-                    ))}
-                  </motion.div>
-                )}
-              </div>
-              <h3
-                className={`text-lg font-semibold mb-1 ${
-                  step.status === "active"
-                    ? "text-blue-900"
-                    : step.status === "completed"
-                      ? "text-green-900"
-                      : "text-gray-700"
-                }`}
-              >
-                {step.title}
-              </h3>
-              <p
-                className={`text-sm ${
-                  step.status === "active"
-                    ? "text-blue-600"
-                    : step.status === "completed"
-                      ? "text-green-600"
-                      : "text-gray-500"
-                }`}
-              >
-                {step.description}
-              </p>
-            </motion.div>
-          ))}
+                        className="flex space-x-1 ml-auto"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        {[0, 1, 2].map((dot) => (
+                          <motion.div
+                            key={dot}
+                            className="w-1.5 h-1.5 bg-blue-500 rounded-full"
+                            animate={{
+                              scale: [1, 1.2, 1],
+                              opacity: [0.5, 1, 0.5],
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              delay: dot * 0.2,
+                            }}
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                  </div>
+                  <h3
+                    className={`text-lg font-semibold mb-1 ${
+                      step.status === "active"
+                        ? "text-blue-900"
+                        : step.status === "completed"
+                          ? "text-green-900"
+                          : "text-gray-700"
+                    }`}
+                  >
+                    {step.title}
+                  </h3>
+                  <p
+                    className={`text-sm ${
+                      step.status === "active"
+                        ? "text-blue-600"
+                        : step.status === "completed"
+                          ? "text-green-600"
+                          : "text-gray-500"
+                    }`}
+                  >
+                    {step.description}
+                  </p>
+                </motion.div>
+              );
+            })}
         </div>
 
         {/* Compact Fun Facts */}

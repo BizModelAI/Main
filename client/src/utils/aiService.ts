@@ -99,17 +99,11 @@ export class AIService {
       };
     } catch (error) {
       console.error("Error generating AI insights:", error);
-      // Only fallback after multiple attempts and clear failure
-      if (
-        error instanceof Error &&
-        (error.message.includes("Server error") ||
-          error.message.includes("fetch"))
-      ) {
-        console.log("Server/network error - using fallback");
-        return this.generateFallbackInsights(quizData, topPaths);
-      }
-      // Re-throw other errors to be handled upstream
-      throw error;
+      // Always return fallback content instead of throwing
+      console.log(
+        "AI insights generation failed - using comprehensive fallback",
+      );
+      return this.generateFallbackInsights(quizData, topPaths);
     }
   }
 
@@ -408,16 +402,11 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
         );
 
         if (attempt === retries) {
-          // Final attempt failed, check if it's a network error
-          if (
-            error instanceof Error &&
-            error.message.includes("Failed to fetch")
-          ) {
-            throw new Error(
-              "Network error: Unable to connect to API. Please check your internet connection and try again.",
-            );
-          }
-          throw error;
+          // Final attempt failed, return fallback content instead of throwing
+          console.warn(
+            "⚠️ All OpenAI API attempts failed, using fallback content",
+          );
+          return this.getFallbackContent(prompt);
         }
 
         // Wait before retrying (exponential backoff)
@@ -619,10 +608,11 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
-    const topBusinessModel = topPaths[0];
-    console.log("AI Challenges - Top business model:", topBusinessModel.name);
+    try {
+      const topBusinessModel = topPaths[0];
+      console.log("AI Challenges - Top business model:", topBusinessModel.name);
 
-    const prompt = `
+      const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), identify 4 specific challenges you might face when starting ${topBusinessModel.name} and how to address them.
 
 ${userProfile}
@@ -637,10 +627,10 @@ Format as a simple list, each item should be 1-2 sentences and specific to ${top
 CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
-    try {
       const content = await this.makeOpenAIRequest(prompt, 350, 0.7);
       return this.parseListResponse(content, 4);
     } catch (error) {
+      console.warn("generatePotentialChallenges error, using fallback:", error);
       return this.getFallbackChallenges();
     }
   }
@@ -649,13 +639,14 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     userProfile: string,
     topPaths: any[],
   ): Promise<string[]> {
-    const topBusinessModel = topPaths[0];
-    console.log(
-      "AI Success Strategies - Top business model:",
-      topBusinessModel.name,
-    );
+    try {
+      const topBusinessModel = topPaths[0];
+      console.log(
+        "AI Success Strategies - Top business model:",
+        topBusinessModel.name,
+      );
 
-    const prompt = `
+      const prompt = `
 Based on this user profile and your top business match (${topBusinessModel.name}), generate 6 specific success strategies that leverage your strengths for ${topBusinessModel.name}.
 
 ${userProfile}
@@ -675,10 +666,10 @@ Format as a simple list, each strategy should be 1-2 sentences and actionable fo
 CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up specific numbers, amounts, or timeframes. Reference the exact ranges and values shown.
     `;
 
-    try {
       const content = await this.makeOpenAIRequest(prompt, 400, 0.7);
       return this.parseListResponse(content, 6);
     } catch (error) {
+      console.warn("generateSuccessStrategies error, using fallback:", error);
       return this.getFallbackStrategies();
     }
   }
@@ -1005,5 +996,31 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     if (value <= 125) return "Under $250";
     if (value <= 625) return "$250–$1,000";
     return "$1,000+";
+  }
+
+  private getFallbackContent(prompt: string): string {
+    // Provide meaningful fallback content based on the prompt type
+    if (prompt.includes("action plan") || prompt.includes("actionable steps")) {
+      return `Week 1:\n• Research your target market and competition\n• Set up basic business infrastructure\n• Define your value proposition\n\nMonth 1:\n• Launch your minimum viable product/service\n• Start building your customer base\n• Establish your online presence\n\nMonth 3:\n• Optimize based on customer feedback\n• Scale your marketing efforts\n• Build strategic partnerships\n\nMonth 6:\n• Expand your offerings\n• Consider hiring or outsourcing\n• Plan for next growth phase`;
+    }
+
+    if (prompt.includes("avoid") || prompt.includes("poor fit")) {
+      return "Models that require high upfront investment, complex technical skills you don't have, or time commitments that don't match your availability may not be ideal fits for your current situation.";
+    }
+
+    if (prompt.includes("challenge") || prompt.includes("obstacle")) {
+      return "Common challenges include time management, maintaining motivation during slow initial growth, building consistent systems, and balancing learning new skills with executing your business plan.";
+    }
+
+    if (prompt.includes("strength") || prompt.includes("advantage")) {
+      return "Your analytical approach to decision-making, willingness to learn, and realistic expectations about business growth create a strong foundation for entrepreneurial success.";
+    }
+
+    if (prompt.includes("recommendation") || prompt.includes("advice")) {
+      return "Focus on building one core skill deeply rather than spreading yourself thin. Start with proven systems and gradually customize them to fit your unique situation. Prioritize consistency over perfection in your daily actions.";
+    }
+
+    // Generic fallback
+    return "Based on your profile, focus on systematic execution of proven business strategies while leveraging your natural strengths and addressing potential challenges through continuous learning and adaptation.";
   }
 }
