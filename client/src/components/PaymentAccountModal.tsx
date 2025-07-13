@@ -707,7 +707,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             {/* Payment Form */}
             {step === "payment" && (
               <div className="space-y-4">
-                <StripePaymentWrapper
+                <EnhancedPaymentWrapper
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentError}
                   isProcessing={isProcessing}
