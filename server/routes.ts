@@ -97,6 +97,14 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.header("Access-Control-Allow-Headers", "Content-Type");
 
     try {
+      // Rate limiting for concurrent users
+      const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+      if (!openaiRateLimiter.canMakeRequest(clientIP)) {
+        return res.status(429).json({
+          error: "Too many requests. Please wait a moment before trying again.",
+        });
+      }
+
       // Check if OpenAI API key is configured
       if (!process.env.OPENAI_API_KEY) {
         console.error("OpenAI API key not configured");
