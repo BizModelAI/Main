@@ -422,9 +422,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Can retake if:
       // 1. Guest user (unlimited free attempts)
-      // 2. Paid user with remaining retakes
+      // 2. User with access pass (unlimited retakes)
+      // 3. User without access pass but with remaining retakes
       const canRetake =
-        isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
+        isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
 
       res.json({
         canRetake,
