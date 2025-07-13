@@ -689,10 +689,30 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     }
   };
 
-    const handlePayment = async () => {
-    console.warn("Payment simulation disabled in production");
-    return;
-  };
+  const handlePayment = async () => {
+    // DEV: Only allow simulation in development mode
+    if (import.meta.env.MODE !== "development") {
+      console.warn("Payment simulation disabled in production");
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setHasUnlockedAnalysis(true);
+    // Set flag to indicate any payment has been made
+    localStorage.setItem("hasAnyPayment", "true");
+    setShowPreview(false);
+    setShowUnlockModal(false);
+    setIsProcessingPayment(false);
+
+    // Execute pending action if user paid for download/share
+    if (pendingAction === "download") {
+      await executeDownloadAction();
+      setPendingAction(null);
+    } else if (pendingAction === "share") {
       await executeShareAction();
       setPendingAction(null);
     } else {
@@ -731,10 +751,28 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     // 4. Redirect to dedicated results page
   };
 
-    const handleBusinessCardPayment = async () => {
-    console.warn("Payment simulation disabled in production");
-    return;
-  };
+  const handleBusinessCardPayment = async () => {
+    // DEV: Only allow simulation in development mode
+    if (import.meta.env.MODE !== "development") {
+      console.warn("Payment simulation disabled in production");
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setHasUnlockedAnalysis(true);
+    // Set flag to indicate any payment has been made
+    localStorage.setItem("hasAnyPayment", "true");
+    setShowPreview(false);
+    setShowUnlockModal(false);
+    setIsProcessingPayment(false);
+
+    // If this was triggered from "Start Business Model X" button, navigate to guide page
+    if (paywallType === "business-model" && selectedPath) {
+      navigate(`/guide/${selectedPath.id}`);
       // Scroll to top after navigation
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
