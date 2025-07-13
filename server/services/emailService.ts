@@ -562,9 +562,26 @@ export class EmailService {
               </div>
             </div>
 
-            <div class="footer">
+                        <div class="footer">
               <div class="footer-logo">BizModelAI</div>
               <div class="footer-tagline">Your AI-Powered Business Discovery Platform</div>
+
+              <!-- Social Media Links -->
+              <div class="social-media" style="margin-bottom: 20px;">
+                <a href="https://www.instagram.com/bizmodelai/" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/112-instagram-512.png" alt="Instagram" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://www.tiktok.com/@bizmodelai" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/113-tiktok-512.png" alt="TikTok" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://x.com/bizmodelai" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/121-twitter-512.png" alt="X (Twitter)" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://www.pinterest.com/bizmodelai/" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/114-pinterest-512.png" alt="Pinterest" style="width: 24px; height: 24px;">
+                </a>
+              </div>
+
               <div class="footer-disclaimer">
                 Ready to discover your perfect business path?<br>
                 We're here to guide you every step of the way.
