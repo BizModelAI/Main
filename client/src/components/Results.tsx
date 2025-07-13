@@ -128,7 +128,25 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   );
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(true);
+  // Check if we have complete pre-generated AI content to set initial loading state
+  const hasCompleteAIContent = (() => {
+    try {
+      const preGeneratedData = localStorage.getItem(
+        "quiz-completion-ai-insights",
+      );
+      if (preGeneratedData) {
+        const { insights, analysis, complete, error, timestamp } =
+          JSON.parse(preGeneratedData);
+        const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
+        return isRecent && insights && analysis && complete && !error;
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  })();
+
+  const [isGeneratingAI, setIsGeneratingAI] = useState(!hasCompleteAIContent);
   const [showAIInsights, setShowAIInsights] = useState(false);
 
   const [showPreview, setShowPreview] = useState(true);
