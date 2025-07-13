@@ -944,7 +944,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         },
       };
 
-      const order = await ordersController.ordersCreate(request);
+      const order = await ordersController.createOrder(request);
 
       if (!order.result?.id) {
         throw new Error("Failed to create PayPal order");
@@ -996,7 +996,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         body: {},
       };
 
-      const capture = await ordersController.ordersCapture(request);
+      const capture = await ordersController.captureOrder(request);
 
       if (capture.result?.status !== "COMPLETED") {
         throw new Error("PayPal payment capture failed");
