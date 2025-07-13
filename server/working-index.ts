@@ -89,8 +89,17 @@ app.use("/api/*", (err: any, req: any, res: any, next: any) => {
   }
 });
 
-// Setup authentication routes
-setupAuthRoutes(app);
+// Import routes dynamically inside setup function
+async function setupRoutes() {
+  try {
+    console.log("Importing auth routes...");
+    const { setupAuthRoutes } = await import("./auth.js");
+    setupAuthRoutes(app);
+    console.log("Auth routes setup complete");
+  } catch (error) {
+    console.error("Failed to setup auth routes:", error);
+  }
+}
 
 // Setup server with routes BEFORE Vite middleware
 async function setupApiRoutes() {
