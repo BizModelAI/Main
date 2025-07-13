@@ -493,7 +493,7 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           ))}
         </motion.div>
 
-        {/* Mobile View - Single Current Step Card */}
+        {/* Mobile View - Enhanced Step Switching with Prominent Loading */}
         <motion.div
           className="md:hidden"
           initial={{ opacity: 0, y: 20 }}
@@ -503,72 +503,129 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStepIndex}
-              className="bg-white rounded-2xl shadow-lg p-6 border-2 border-purple-200"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: -20 }}
-              transition={{ duration: 0.5 }}
+              className="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-xl p-8 border-2 border-purple-200"
+              initial={{ opacity: 0, scale: 0.8, y: 30, rotateY: -15 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotateY: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -30, rotateY: 15 }}
+              transition={{
+                duration: 0.6,
+                ease: "easeOut",
+                scale: { type: "spring", stiffness: 300, damping: 20 },
+              }}
             >
               <div className="text-center">
-                {/* Step Icon */}
+                {/* Step Icon with Enhanced Animation */}
                 <motion.div
-                  className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-20 h-20 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+                  animate={{
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                 >
                   {React.createElement(steps[currentStepIndex].icon, {
-                    className: "w-8 h-8 text-white",
+                    className: "w-10 h-10 text-white",
                   })}
                 </motion.div>
 
-                {/* Step Info */}
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {steps[currentStepIndex].title}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {steps[currentStepIndex].subtitle}
-                </p>
+                {/* Step Info with Enhanced Typography */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                >
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    {steps[currentStepIndex].title}
+                  </h3>
+                  <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                    {steps[currentStepIndex].subtitle}
+                  </p>
+                </motion.div>
 
-                {/* Progress Indicator */}
-                <div className="flex items-center justify-center space-x-2 mb-4">
+                {/* Progress Indicator with Enhanced Design */}
+                <motion.div
+                  className="flex items-center justify-center space-x-3 mb-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                >
                   {steps.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index < currentStepIndex
-                          ? "bg-green-500"
-                          : index === currentStepIndex
-                            ? "bg-purple-500"
-                            : "bg-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                {/* Enhanced Mobile Loading Dots */}
-                <div className="flex justify-center space-x-2">
-                  {[0, 1, 2].map((dot) => (
                     <motion.div
-                      key={dot}
-                      className="w-4 h-4 bg-purple-500 rounded-full"
-                      animate={{
-                        scale: [1, 1.4, 1],
-                        opacity: [0.4, 1, 0.4],
-                      }}
+                      key={index}
+                      className={`rounded-full transition-all duration-500 ${
+                        index < currentStepIndex
+                          ? "w-3 h-3 bg-green-500 shadow-green-200 shadow-lg"
+                          : index === currentStepIndex
+                            ? "w-4 h-4 bg-purple-500 shadow-purple-200 shadow-lg"
+                            : "w-2 h-2 bg-gray-300"
+                      }`}
+                      animate={
+                        index === currentStepIndex
+                          ? {
+                              scale: [1, 1.2, 1],
+                            }
+                          : {}
+                      }
                       transition={{
-                        duration: 1.2,
+                        duration: 2,
                         repeat: Infinity,
-                        delay: dot * 0.15,
                         ease: "easeInOut",
                       }}
                     />
                   ))}
-                </div>
+                </motion.div>
 
-                {/* Step Counter */}
-                <p className="text-sm text-gray-500 mt-4">
-                  Step {currentStepIndex + 1} of {steps.length}
-                </p>
+                {/* Enhanced Mobile Loading Dots - Much More Prominent */}
+                <motion.div
+                  className="flex justify-center space-x-4 mb-6"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4, duration: 0.4 }}
+                >
+                  {[0, 1, 2].map((dot) => (
+                    <motion.div
+                      key={dot}
+                      className="w-5 h-5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full shadow-lg"
+                      animate={{
+                        scale: [1, 1.6, 1],
+                        opacity: [0.3, 1, 0.3],
+                        y: [0, -8, 0],
+                      }}
+                      transition={{
+                        duration: 1.4,
+                        repeat: Infinity,
+                        delay: dot * 0.2,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </motion.div>
+
+                {/* Step Counter with Progress Bar */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.4 }}
+                  className="space-y-3"
+                >
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      className="h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                      initial={{ width: "0%" }}
+                      animate={{
+                        width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
+                      }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
+                  <p className="text-lg font-semibold text-gray-700">
+                    Step {currentStepIndex + 1} of {steps.length}
+                  </p>
+                </motion.div>
               </div>
             </motion.div>
           </AnimatePresence>
