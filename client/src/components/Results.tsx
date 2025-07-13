@@ -364,34 +364,50 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         console.log("❌ No pre-generated data found in localStorage");
       }
 
-      // Fallback: Generate fresh AI content if no valid pre-generated data
-      console.log("🔄 Starting fresh AI content generation...");
+      // Fallback: Handle missing pre-generated data
+      console.log("🔄 No pre-generated data available");
+
+      // Check if user has quiz data - if not, redirect to quiz
+      if (!quizData || !paths || paths.length === 0) {
+        console.log("❌ No quiz data available, redirecting to quiz");
+        window.location.href = "/quiz";
+        return;
+      }
+
+      console.log("⚠️  Quiz data exists but no pre-generated AI content found");
       console.log(
-        "Top business model being passed to AI:",
-        paths[0]?.name,
-        "with",
-        paths[0]?.fitScore,
-        "% fit",
+        "This suggests user may have navigated directly to results page",
       );
+      console.log("Generating AI content on-demand...");
 
-      const aiService = AIService.getInstance();
+      try {
+        const aiService = AIService.getInstance();
 
-      // Generate basic insights for results page
-      const insights = await aiService.generatePersonalizedInsights(
-        quizData,
-        paths.slice(0, 3),
-      );
-      setAiInsights(insights);
+        // Generate basic insights for results page
+        const insights = await aiService.generatePersonalizedInsights(
+          quizData,
+          paths.slice(0, 3),
+        );
+        setAiInsights(insights);
 
-      // Generate detailed AI analysis for full report preview
-      const analysis = await aiService.generateDetailedAnalysis(
-        quizData,
-        paths[0],
-      );
-      setAiAnalysis(analysis);
+        // Generate detailed AI analysis for full report preview
+        const analysis = await aiService.generateDetailedAnalysis(
+          quizData,
+          paths[0],
+        );
+        setAiAnalysis(analysis);
 
-      // Cache the generated content for subsequent page visits
-      aiCacheManager.cacheAIContent(quizData, insights, analysis, paths[0]);
+        // Cache the generated content for subsequent page visits
+        aiCacheManager.cacheAIContent(quizData, insights, analysis, paths[0]);
+
+        console.log("✅ On-demand AI content generation completed");
+      } catch (error) {
+        console.error("❌ Failed to generate AI content on-demand:", error);
+
+        // Set fallback content to prevent loading indefinitely
+        setAiInsights(generateFallbackInsights());
+        setAiAnalysis(generateFallbackAnalysis());
+      }
     } catch (error) {
       console.error("Error generating AI content:", error);
       // Fallback content
