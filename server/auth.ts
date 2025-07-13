@@ -194,6 +194,7 @@ export function setupAuthRoutes(app: Express) {
         id: `temp_${sessionId}`,
         username: email,
         email: email,
+        name: name,
         hasAccessPass: false,
         quizRetakesRemaining: 0,
         isTemporary: true,
