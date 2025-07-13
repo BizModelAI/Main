@@ -65,20 +65,6 @@ function App() {
         console.error("Error parsing saved loaded report data:", error);
       }
     }
-
-    // Add event listener to clear congratulations state from child components
-    const handleClearCongratulations = () => {
-      setShowCongratulations(false);
-    };
-
-    window.addEventListener("clearCongratulations", handleClearCongratulations);
-
-    return () => {
-      window.removeEventListener(
-        "clearCongratulations",
-        handleClearCongratulations,
-      );
-    };
   }, []);
 
   // Handler for AI loading completion
