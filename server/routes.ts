@@ -9,7 +9,7 @@ import { personalityAnalysisService } from "./services/personalityAnalysisServic
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2022-11-15",
+  apiVersion: "2025-06-30.basil",
 });
 
 function getRatingDescription(rating: number): string {
@@ -48,8 +48,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
+  // CORS preflight handler for OpenAI chat endpoint
+  app.options("/api/openai-chat", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.sendStatus(200);
+  });
+
   // General OpenAI chat endpoint
   app.post("/api/openai-chat", async (req, res) => {
+    // Add CORS headers
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+
     try {
       const {
         prompt,
@@ -422,9 +435,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Can retake if:
       // 1. Guest user (unlimited free attempts)
-      // 2. Paid user with remaining retakes
+      // 2. User with access pass (unlimited retakes)
+      // 3. User without access pass but with remaining retakes
       const canRetake =
-        isGuestUser || (hasAccessPass && user.quizRetakesRemaining > 0);
+        isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
 
       res.json({
         canRetake,
@@ -572,49 +586,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/create-access-pass-payment", async (req, res) => {
     try {
-      const { userId } = req.body;
+      const { userId, sessionId } = req.body;
 
-      if (!userId) {
-        return res.status(400).json({ error: "Missing userId" });
+      // Handle temporary users (sessionId provided) vs permanent users (userId provided)
+      let userIdentifier;
+      let isTemporaryUser = false;
+
+      if (sessionId) {
+        // This is a temporary user
+        isTemporaryUser = true;
+        userIdentifier = sessionId;
+
+        // Verify temporary user data exists
+        const tempData = await storage.getUnpaidUserEmail(sessionId);
+        if (!tempData) {
+          return res
+            .status(404)
+            .json({ error: "Temporary account data not found or expired" });
+        }
+      } else if (userId) {
+        // This is a permanent user
+        const user = await storage.getUser(parseInt(userId));
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+
+        // Check if user already has access pass but needs retakes
+        if (user.hasAccessPass && user.quizRetakesRemaining > 0) {
+          return res
+            .status(400)
+            .json({ error: "User already has access and retakes available" });
+        }
+
+        userIdentifier = userId.toString();
+      } else {
+        return res.status(400).json({ error: "Missing userId or sessionId" });
       }
 
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
+      // Determine payment amount and type
+      let amount, retakesGranted, paymentType, description;
+
+      if (!isTemporaryUser && userId) {
+        const user = await storage.getUser(parseInt(userId));
+        if (user && user.hasAccessPass) {
+          // User has access but needs more retakes - $4.99
+          amount = 499; // $4.99 in cents
+          retakesGranted = "4";
+          paymentType = "retakes";
+          description = "BizModelAI Quiz Retakes - 4 additional attempts";
+        } else {
+          // New user needs full access - $9.99
+          amount = 999; // $9.99 in cents
+          retakesGranted = "5";
+          paymentType = "access_pass";
+          description = "BizModelAI Access Pass - Unlock all features";
+        }
+      } else {
+        // Temporary user always gets full access - $9.99
+        amount = 999; // $9.99 in cents
+        retakesGranted = "5";
+        paymentType = "access_pass";
+        description = "BizModelAI Access Pass - Unlock all features";
       }
 
-      // Check if user already has access pass
-      if (user.hasAccessPass) {
-        return res.status(400).json({ error: "User already has access pass" });
-      }
-
-      // Create Stripe Payment Intent for $9.99 access pass
+      // Create Stripe Payment Intent
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 999, // $9.99 in cents
+        amount,
         currency: "usd",
         metadata: {
-          userId: userId.toString(),
-          type: "access_pass",
-          retakesGranted: "5",
+          userIdentifier,
+          type: paymentType,
+          retakesGranted,
+          isTemporaryUser: isTemporaryUser.toString(),
+          sessionId: sessionId || "",
         },
-        description: "BizModelAI Access Pass - Unlock all features",
+        description,
       });
 
-      // Create payment record in our database
-      const payment = await storage.createPayment({
-        userId,
-        amount: "9.99",
-        currency: "usd",
-        type: "access_pass",
-        status: "pending",
-        retakesGranted: 5,
-        stripePaymentIntentId: paymentIntent.id,
-      });
+      // For temporary users, we don't create a payment record yet
+      // For permanent users, create payment record
+      let paymentId = null;
+      if (!isTemporaryUser) {
+        const payment = await storage.createPayment({
+          userId: parseInt(userId),
+          amount: (amount / 100).toFixed(2), // Convert cents to dollars
+          currency: "usd",
+          type: paymentType,
+          status: "pending",
+          retakesGranted: parseInt(retakesGranted),
+          stripePaymentIntentId: paymentIntent.id,
+        });
+        paymentId = payment.id;
+      }
 
       res.json({
         success: true,
         clientSecret: paymentIntent.client_secret,
-        paymentId: payment.id,
+        paymentId,
       });
     } catch (error) {
       console.error("Error creating access pass payment:", error);
@@ -715,9 +783,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Payment succeeded:", paymentIntent.id);
 
           // Get metadata from payment intent
-          const { userId, type, retakesGranted } = paymentIntent.metadata;
+          const {
+            userIdentifier,
+            type,
+            retakesGranted,
+            isTemporaryUser,
+            sessionId,
+          } = paymentIntent.metadata;
 
-          if (!userId || !type) {
+          if (!userIdentifier || !type) {
             console.error(
               "Missing metadata in payment intent:",
               paymentIntent.id,
@@ -725,30 +799,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           }
 
-          // Find the payment record in our database
-          const payments = await storage.getPaymentsByUser(parseInt(userId));
-          const payment = payments.find(
-            (p) => p.stripePaymentIntentId === paymentIntent.id,
-          );
+          if (isTemporaryUser === "true" && sessionId) {
+            // Handle temporary user - convert to permanent account
+            try {
+              // Get temporary account data
+              const tempData = await storage.getUnpaidUserEmail(sessionId);
+              if (!tempData) {
+                console.error(
+                  "Temporary account data not found for session:",
+                  sessionId,
+                );
+                break;
+              }
 
-          if (!payment) {
-            console.error(
-              "Payment record not found for Stripe payment:",
-              paymentIntent.id,
+              const { email, password, name } = tempData.quizData as {
+                email: string;
+                password: string;
+                name: string;
+                quizData?: any;
+              };
+
+              // Check if payment has already been processed for this payment intent
+              const existingPayments = await storage.getPaymentsByStripeId(
+                paymentIntent.id,
+              );
+              if (existingPayments.length > 0) {
+                console.log(
+                  `Payment ${paymentIntent.id} already processed, skipping.`,
+                );
+                break;
+              }
+
+              // Check if user already exists (safety check)
+              let user = await storage.getUserByUsername(email);
+              if (!user) {
+                try {
+                  // Create permanent user account
+                  user = await storage.createUser({
+                    username: email,
+                    password: password, // Already hashed
+                  });
+                } catch (createUserError) {
+                  // If user creation fails due to duplicate email, try to get the user again
+                  // This can happen in rare race conditions
+                  user = await storage.getUserByUsername(email);
+                  if (!user) {
+                    throw createUserError; // Re-throw if it's not a duplicate error
+                  }
+                  console.log(
+                    `User ${email} already existed, using existing user.`,
+                  );
+                }
+              }
+
+              // Create payment record
+              const payment = await storage.createPayment({
+                userId: user.id,
+                amount: (paymentIntent.amount / 100).toFixed(2), // Convert cents to dollars
+                currency: "usd",
+                type: type || "access_pass",
+                status: "pending",
+                retakesGranted: parseInt(retakesGranted) || 5,
+                stripePaymentIntentId: paymentIntent.id,
+              });
+
+              // Complete the payment
+              await storage.completePayment(
+                payment.id,
+                parseInt(retakesGranted) || 5,
+              );
+
+              // Clean up temporary data
+              await storage.cleanupExpiredUnpaidEmails();
+
+              console.log(
+                `Payment completed: ${type} for temporary user converted to user ${user.id}`,
+              );
+            } catch (error) {
+              console.error("Error converting temporary user:", error);
+            }
+          } else {
+            // Handle permanent user payment
+            const userId = parseInt(userIdentifier);
+
+            // Find the payment record in our database
+            const payments = await storage.getPaymentsByUser(userId);
+            const payment = payments.find(
+              (p) => p.stripePaymentIntentId === paymentIntent.id,
             );
-            break;
+
+            if (!payment) {
+              console.error(
+                "Payment record not found for Stripe payment:",
+                paymentIntent.id,
+              );
+              break;
+            }
+
+            // Complete the payment in our system
+            await storage.completePayment(
+              payment.id,
+              parseInt(retakesGranted) || 5,
+            );
+
+            console.log(`Payment completed: ${type} for user ${userId}`);
           }
-
-          // Complete the payment in our system
-          await storage.completePayment(
-            payment.id,
-            parseInt(retakesGranted) || 5,
-          );
-
-          // If there's quiz data in session storage, save it to the user's account
-          // This will be implemented with a separate endpoint for saving quiz data
-
-          console.log(`Payment completed: ${type} for user ${userId}`);
           break;
 
         case "payment_intent.payment_failed":
@@ -909,48 +1064,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error sending full report email:", error);
       res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // OpenAI chat endpoint for characteristics generation
-  app.post("/api/openai-chat", async (req, res) => {
-    try {
-      const { messages, response_format } = req.body;
-
-      if (!messages || !Array.isArray(messages)) {
-        return res
-          .status(400)
-          .json({ error: "Missing or invalid messages array" });
-      }
-
-      const openaiResponse = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-            messages: messages,
-            response_format: response_format || undefined,
-            temperature: 0.7,
-          }),
-        },
-      );
-
-      if (!openaiResponse.ok) {
-        throw new Error(`OpenAI API error: ${openaiResponse.status}`);
-      }
-
-      const data = await openaiResponse.json();
-      const content = data.choices[0].message.content;
-
-      res.json({ content });
-    } catch (error) {
-      console.error("Error in OpenAI chat:", error);
-      res.status(500).json({ error: "Failed to generate response" });
     }
   });
 

@@ -29,7 +29,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   quizData: propQuizData,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [selectedFitCategory, setSelectedFitCategory] = useState<string>("All");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
@@ -57,7 +56,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     "All",
     ...Array.from(new Set(businessModels.map((model) => model.category))),
   ];
-  const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
   const fitCategories = ["All", "Best", "Strong", "Possible", "Poor"];
 
   // Function to determine fit category based on score
@@ -164,12 +162,10 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   const filteredModels = businessModelsWithFitScores.filter((model) => {
     const categoryMatch =
       selectedCategory === "All" || model.category === selectedCategory;
-    const difficultyMatch =
-      selectedDifficulty === "All" || model.difficulty === selectedDifficulty;
     const fitCategoryMatch =
       selectedFitCategory === "All" ||
       model.fitCategory === selectedFitCategory;
-    return categoryMatch && difficultyMatch && fitCategoryMatch;
+    return categoryMatch && fitCategoryMatch;
   });
 
   const handleCardExpand = (modelId: string) => {
@@ -207,13 +203,18 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
       // Navigate to quiz
       navigate("/quiz");
     } else if (paywallType === "learn-more") {
-      // Simulate payment and unlock access
-      setHasUnlockedAnalysis(true);
-      // Set flag to indicate any payment has been made
-      localStorage.setItem("hasAnyPayment", "true");
-      setShowPaywallModal(false);
-      // Navigate to the business model page
-      navigate(`/business/${selectedBusinessId}`);
+      // Only allow dev bypass in development mode
+      if (import.meta.env.MODE === "development") {
+        // DEV: Simulate payment and unlock access
+        setHasUnlockedAnalysis(true);
+        localStorage.setItem("hasAnyPayment", "true");
+        setShowPaywallModal(false);
+        navigate(`/business/${selectedBusinessId}`);
+      } else {
+        // In production, redirect to proper payment flow
+        setShowPaywallModal(false);
+        setShowPaymentModal(true);
+      }
     }
   };
 
@@ -263,22 +264,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
                 {categories.map((category) => (
                   <option key={category} value={category}>
                     {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
-                Difficulty:
-              </label>
-              <select
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                {difficulties.map((difficulty) => (
-                  <option key={difficulty} value={difficulty}>
-                    {difficulty}
                   </option>
                 ))}
               </select>
@@ -385,19 +370,6 @@ const BusinessModelCard = ({
 }) => {
   const [showAllSkills, setShowAllSkills] = useState(false);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-100 text-green-800";
-      case "Intermediate":
-        return "bg-yellow-100 text-yellow-800";
-      case "Advanced":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getScalabilityColor = (scalability: string) => {
     switch (scalability) {
       case "Low":
@@ -457,18 +429,14 @@ const BusinessModelCard = ({
             {model.title}
           </h3>
           <div className="flex flex-col gap-1 items-end">
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getDifficultyColor(model.difficulty)}`}
-            >
-              {model.difficulty}
-            </span>
-            {/* Fit Badge - Only show if user has paid */}
-            {showFitBadge && fitCategory && getFitCategoryColor && (
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getFitCategoryColor(fitCategory)}`}
-              >
-                {fitCategory} Fit
-              </span>
+            {/* Show fit percentage if user has paid and quiz data exists */}
+            {showFitBadge && fitScore !== undefined && (
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">
+                  {Math.round(fitScore)}%
+                </div>
+                <div className="text-xs text-gray-500">Fit</div>
+              </div>
             )}
           </div>
         </div>

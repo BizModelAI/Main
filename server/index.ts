@@ -1,21 +1,27 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import MemoryStore from "memorystore";
 import { createServer } from "http";
 import { registerRoutes } from "./routes.js";
 import { setupAuthRoutes } from "./auth.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { storage } from "./storage.js";
 
+const MemoryStoreSession = MemoryStore(session);
+
 const app = express();
 
-// Session configuration
+// Session configuration with persistent storage
 app.use(
   session({
     secret:
       process.env.SESSION_SECRET || "your-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
@@ -109,13 +115,15 @@ app.use((req, res, next) => {
 })();
 
 function setupDataCleanupJob() {
-  // Run cleanup immediately on startup
-  cleanupExpiredData();
+  // Run cleanup after a delay to allow server to start properly
+  setTimeout(() => {
+    cleanupExpiredData();
+  }, 5000); // 5 second delay
 
   // Then run every hour (3600000 ms)
   setInterval(cleanupExpiredData, 60 * 60 * 1000);
 
-  log("Data cleanup job scheduled to run every hour");
+  log("Data cleanup job scheduled to run every hour (starting in 5 seconds)");
 }
 
 async function cleanupExpiredData() {
@@ -125,5 +133,7 @@ async function cleanupExpiredData() {
     log("Expired data cleanup completed successfully");
   } catch (error) {
     console.error("Error during scheduled data cleanup:", error);
+    // Don't throw the error - just log it and continue
+    // This prevents the cleanup job from crashing the server
   }
 }

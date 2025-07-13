@@ -35,6 +35,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
+  const [isRetakePayment, setIsRetakePayment] = useState(false);
 
   // Account form data
   const [formData, setFormData] = useState({
@@ -45,11 +46,20 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   });
 
   const { signup, login, user } = useAuth();
-  const { setHasUnlockedAnalysis } = usePaywall();
+  const { setHasUnlockedAnalysis, setHasCompletedQuiz } = usePaywall();
 
   if (!isOpen) return null;
 
   const getContent = () => {
+    // If this is a retake payment, show different messaging
+    if (isRetakePayment) {
+      return {
+        title: "Get 4 More Quiz Attempts",
+        subtitle:
+          "Continue exploring your personality with 4 additional attempts for $4.99",
+      };
+    }
+
     switch (type) {
       case "business-model":
         return {
@@ -93,8 +103,14 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       setError("Please enter a valid email");
       return false;
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return false;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      setError(
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      );
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -112,14 +128,23 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
     setIsProcessing(true);
     try {
-      await signup(formData.email, formData.password, formData.name);
+      // Include quiz data in signup for temporary account storage
+      const quizData = localStorage.getItem("quizData");
+      const parsedQuizData = quizData ? JSON.parse(quizData) : {};
+
+      await signup(
+        formData.email,
+        formData.password,
+        formData.name,
+        parsedQuizData,
+      );
       setStep("payment");
     } catch (err: any) {
       if (err.message === "User already exists") {
         setLoginEmail(formData.email);
         setStep("login");
         setError(
-          "An account with this email already exists. Please log in to continue with your purchase.",
+          "Welcome back! We found your existing account. Please log in to access your features.",
         );
       } else {
         setError(err.message || "Failed to create account");
@@ -140,24 +165,77 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
     setIsProcessing(true);
     try {
-      await login(loginEmail, formData.password);
-      // After successful login, check user's payment status and retakes
-      const response = await fetch("/api/auth/me", {
+      // Perform login and get user data
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
+        body: JSON.stringify({
+          email: loginEmail,
+          password: formData.password,
+        }),
       });
-      if (response.ok) {
-        const userData = await response.json();
-        if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
-          // User has access pass and retakes remaining, bypass payment
-          setHasUnlockedAnalysis(true);
-          onSuccess();
-          return;
+
+      if (!response.ok) {
+        let errorMessage = "Login failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          errorMessage = response.statusText || errorMessage;
         }
-        // User either:
-        // 1. Doesn't have access pass (needs $9.99 payment)
-        // 2. Has access pass but no retakes (needs $4.99 retake bundle)
-        // Either way, they need to pay
+        throw new Error(errorMessage);
       }
+
+      const userData = await response.json();
+
+      // Update auth context
+      await login(loginEmail, formData.password);
+
+      // Check if user already has access AND retakes available
+      // Only bypass payment if they have both access AND retakes remaining
+      if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
+        setHasUnlockedAnalysis(true);
+        localStorage.setItem("hasAnyPayment", "true");
+
+        // Save quiz data if available (this enables access to new quiz results)
+        const savedQuizData = localStorage.getItem("quizData");
+        if (savedQuizData) {
+          try {
+            const quizData = JSON.parse(savedQuizData);
+            await fetch("/api/auth/save-quiz-data", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({ quizData }),
+            });
+            // Set quiz completion flag so user can access features
+            setHasCompletedQuiz(true);
+            localStorage.setItem("hasCompletedQuiz", "true");
+          } catch (error) {
+            console.error("Error saving quiz data:", error);
+          }
+        }
+
+        onSuccess(); // Close modal and grant access
+        return;
+      }
+
+      // If user has access but no retakes, they need to pay for additional retakes
+      if (userData.hasAccessPass && userData.quizRetakesRemaining <= 0) {
+        // Set a flag to indicate this is a retake payment, not initial access
+        // Don't save quiz data yet - only after payment
+        setIsRetakePayment(true);
+        setStep("payment");
+        return;
+      }
+
+      // If user doesn't have access at all, proceed to payment
+      setIsRetakePayment(false); // This is initial access payment
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -183,6 +261,11 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
           credentials: "include",
           body: JSON.stringify({ quizData }),
         });
+
+        // Set quiz completion flag so user can access features
+        setHasCompletedQuiz(true);
+        localStorage.setItem("hasCompletedQuiz", "true");
+
         console.log("Quiz data saved to user account");
       } catch (error) {
         console.error("Error saving quiz data:", error);
@@ -461,10 +544,10 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             {/* Login Form */}
             {step === "login" && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                  <p className="text-blue-800 text-sm">
-                    An account with this email already exists. Please log in to
-                    continue with your purchase.
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                  <p className="text-green-800 text-sm">
+                    Welcome back! We found your existing account. Log in to
+                    access your features.
                   </p>
                 </div>
 
@@ -526,7 +609,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                       Logging In...
                     </>
                   ) : (
-                    "Log In & Continue"
+                    "Log In & Access Features"
                   )}
                 </button>
 

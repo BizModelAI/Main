@@ -8,13 +8,19 @@ interface User {
   name?: string;
   hasAccessPass: boolean;
   quizRetakesRemaining: number;
+  isTemporary?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    name: string,
+    quizData?: any,
+  ) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   getLatestQuizData: () => Promise<QuizData | null>;
@@ -38,37 +44,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const checkExistingSession = async () => {
+      try {
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!isMounted) return; // Component unmounted, don't update state
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else if (response.status === 401) {
+          // Not authenticated - this is expected, not an error
+          setUser(null);
+        } else {
+          console.warn(`Session check returned ${response.status}`);
+        }
+      } catch (error) {
+        if (!isMounted) return; // Component unmounted, don't update state
+        console.error("Error checking session:", error);
+        // Don't throw the error, just log it and continue
+        setUser(null);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     // Check for existing session on mount
     checkExistingSession();
+
+    return () => {
+      isMounted = false; // Cleanup function to prevent state updates after unmount
+    };
   }, []);
-
-  const checkExistingSession = async () => {
-    try {
-      const response = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else if (response.status === 401) {
-        // Not authenticated - this is expected, not an error
-        setUser(null);
-      } else {
-        console.warn(`Session check returned ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Error checking session:", error);
-      // Don't throw the error, just log it and continue
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -82,12 +99,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Login failed");
+        let errorMessage = "Login failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          // If JSON parsing fails, use the response status text or default message
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
+      const data = await response.json();
       setUser(data);
     } catch (error) {
       throw error;
@@ -100,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     email: string,
     password: string,
     name: string,
+    quizData?: any,
   ): Promise<void> => {
     setIsLoading(true);
     try {
@@ -109,15 +134,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, quizData }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Signup failed");
+        let errorMessage = "Signup failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          // If JSON parsing fails, use the response status text or default message
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
+      const data = await response.json();
       setUser(data);
     } catch (error) {
       throw error;
@@ -153,12 +185,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         body: JSON.stringify(updates),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Profile update failed");
+        let errorMessage = "Profile update failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          // If JSON parsing fails, use the response status text or default message
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
+      const data = await response.json();
       setUser(data);
     } catch (error) {
       throw error;

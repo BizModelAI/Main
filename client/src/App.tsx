@@ -26,6 +26,7 @@ import PDFReportPage from "./pages/PDFReportPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import AIReportLoading from "./components/AIReportLoading";
+import QuizCompletionLoading from "./components/QuizCompletionLoading";
 
 // Alias for loading page component
 const LoadingPage = AIReportLoading;
@@ -246,11 +247,22 @@ function App() {
               }
             />
 
-            {/* Loading page - separate route */}
+            {/* Quiz completion loading page - NOW uses AIReportLoading */}
+            <Route
+              path="/quiz-loading"
+              element={
+                <AIReportLoadingWrapper
+                  quizData={quizData}
+                  setShowCongratulations={setShowCongratulations}
+                />
+              }
+            />
+
+            {/* Loading page - NOW uses QuizCompletionLoading */}
             <Route
               path="/loading"
               element={
-                <LoadingPageWrapper
+                <QuizCompletionLoadingWrapper
                   quizData={quizData}
                   userEmail={userEmail}
                   showCongratulations={showCongratulations}
@@ -267,11 +279,12 @@ function App() {
               path="/results"
               element={
                 <Layout>
-                  <ResultsWrapper
+                  <ResultsWrapperWithReset
                     quizData={quizData}
                     userEmail={userEmail}
                     onBack={() => window.history.back()}
                     loadedReportData={loadedReportData}
+                    setShowCongratulations={setShowCongratulations}
                   />
                 </Layout>
               }
@@ -315,8 +328,39 @@ function App() {
   );
 }
 
-// Loading page wrapper component to handle navigation properly
-const LoadingPageWrapper: React.FC<{
+// AIReport loading wrapper component for quiz completion
+const AIReportLoadingWrapper: React.FC<{
+  quizData: QuizData | null;
+  setShowCongratulations: (show: boolean) => void;
+}> = ({ quizData, setShowCongratulations }) => {
+  const navigate = useNavigate();
+
+  const handleAILoadingComplete = (data: any) => {
+    console.log("AI loading complete after quiz, showing congratulations");
+    setShowCongratulations(true);
+    // Navigate back to quiz route where congratulations popup will be handled
+    navigate("/quiz");
+  };
+
+  if (!quizData) {
+    // Fallback if no quiz data
+    navigate("/quiz");
+    return null;
+  }
+
+  return (
+    <div className="relative">
+      <AIReportLoading
+        quizData={quizData}
+        onComplete={handleAILoadingComplete}
+        onExit={() => navigate("/quiz")}
+      />
+    </div>
+  );
+};
+
+// Quiz completion loading wrapper component for the /loading route
+const QuizCompletionLoadingWrapper: React.FC<{
   quizData: QuizData | null;
   userEmail: string | null;
   showCongratulations: boolean;
@@ -334,6 +378,11 @@ const LoadingPageWrapper: React.FC<{
   handleAILoadingComplete,
 }) => {
   const navigate = useNavigate();
+
+  const handleLoadingComplete = () => {
+    console.log("Quiz completion loading complete, showing congratulations");
+    setShowCongratulations(true);
+  };
 
   // Handler for congratulations completion with proper navigation
   const handleCongratulationsComplete = (email?: string) => {
@@ -362,11 +411,9 @@ const LoadingPageWrapper: React.FC<{
   return (
     <div className="relative">
       {quizData && (
-        <LoadingPage
+        <QuizCompletionLoading
           quizData={quizData}
-          userEmail={userEmail}
-          onComplete={handleAILoadingComplete}
-          onExit={() => navigate("/quiz")}
+          onComplete={handleLoadingComplete}
         />
       )}
       {showCongratulations && quizData && (
@@ -418,18 +465,31 @@ const QuizWithNavigation: React.FC<{
   const { user } = useAuth();
 
   const handleQuizComplete = (data: QuizData) => {
-    console.log("Quiz completed, showing congratulations");
+    console.log("Quiz completed, navigating to quiz loading page");
     setQuizData(data);
-    setShowCongratulations(true);
+    // Navigate to new loading page instead of showing congratulations immediately
+    navigate("/quiz-loading");
   };
 
   const handleCongratulationsComplete = (email?: string) => {
     console.log("Congratulations complete, navigating to results");
     if (email) {
       setUserEmail(email);
+      localStorage.setItem("userEmail", email);
     }
+
+    // IMPORTANT: Reset congratulations state BEFORE navigation
     setShowCongratulations(false);
-    navigate("/results");
+
+    // Store quiz data before navigation
+    if (quizData) {
+      localStorage.setItem("quizData", JSON.stringify(quizData));
+    }
+
+    // Small delay to ensure state update is processed
+    setTimeout(() => {
+      navigate("/results");
+    }, 100);
   };
 
   const handleReturnToQuiz = () => {
@@ -478,7 +538,9 @@ const QuizWithNavigation: React.FC<{
       <Quiz
         onComplete={handleQuizComplete}
         onBack={() => window.history.back()}
-        userId={user ? parseInt(user.id) : undefined}
+        userId={
+          user && !user.id.startsWith("temp_") ? parseInt(user.id) : undefined
+        }
       />
       {showCongratulations && quizData && (
         <EmailCapture
@@ -493,15 +555,27 @@ const QuizWithNavigation: React.FC<{
   );
 };
 
-// Wrapper component to handle results display
-const ResultsWrapper: React.FC<{
+// Wrapper component to handle results display with congratulations reset
+const ResultsWrapperWithReset: React.FC<{
   quizData: QuizData | null;
   userEmail: string | null;
   onBack: () => void;
   loadedReportData?: any;
-}> = ({ quizData, userEmail, onBack, loadedReportData }) => {
+  setShowCongratulations: (show: boolean) => void;
+}> = ({
+  quizData,
+  userEmail,
+  onBack,
+  loadedReportData,
+  setShowCongratulations,
+}) => {
   console.log("ResultsWrapper received quizData:", quizData);
   console.log("ResultsWrapper received userEmail:", userEmail);
+
+  // Clear congratulations state when component mounts (user navigated to results)
+  React.useEffect(() => {
+    setShowCongratulations(false);
+  }, [setShowCongratulations]);
 
   if (quizData) {
     return (

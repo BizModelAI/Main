@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import { QuizData } from "../../shared/types.js";
 import * as fs from "fs";
 
@@ -82,7 +82,7 @@ export class PDFService {
       });
 
       // Wait for the page to fully render
-      await page.waitForTimeout(2000);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Generate PDF with optimized settings
       const pdfBuffer = await page.pdf({
@@ -101,7 +101,7 @@ export class PDFService {
       await page.close();
       console.log("PDF generated successfully");
 
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
     } catch (error) {
       console.error("PDF generation failed, falling back to HTML:", error);
       return this.generateHTMLFallback(options);

@@ -36,6 +36,7 @@ export interface IStorage {
   createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment>;
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
+  getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
 
   // Unpaid user email tracking
   storeUnpaidUserEmail(
@@ -238,6 +239,14 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
+  async getPaymentsByStripeId(
+    stripePaymentIntentId: string,
+  ): Promise<Payment[]> {
+    return Array.from(this.payments.values()).filter(
+      (payment) => payment.stripePaymentIntentId === stripePaymentIntentId,
+    );
+  }
+
   async storeUnpaidUserEmail(
     sessionId: string,
     email: string,
@@ -419,13 +428,21 @@ export class DatabaseStorage implements IStorage {
         throw new Error("Payment not found");
       }
 
-      // Update user's retakes
+      // Update user's retakes and access pass
+      const userUpdates: any = {
+        quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
+        updatedAt: new Date(),
+      };
+
+      // Set hasAccessPass to true for access_pass payments
+      if (payment.type === "access_pass") {
+        userUpdates.hasAccessPass = true;
+        userUpdates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
+      }
+
       await tx
         .update(users)
-        .set({
-          quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
-          updatedAt: new Date(),
-        })
+        .set(userUpdates)
         .where(eq(users.id, payment.userId));
     });
   }
@@ -436,6 +453,15 @@ export class DatabaseStorage implements IStorage {
       .from(payments)
       .where(eq(payments.userId, userId))
       .orderBy(desc(payments.createdAt));
+  }
+
+  async getPaymentsByStripeId(
+    stripePaymentIntentId: string,
+  ): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
   }
 
   async storeUnpaidUserEmail(
@@ -485,19 +511,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async cleanupExpiredUnpaidEmails(): Promise<void> {
-    await db
-      .delete(unpaidUserEmails)
-      .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
+    try {
+      await db
+        .delete(unpaidUserEmails)
+        .where(sql`${unpaidUserEmails.expiresAt} < ${new Date()}`);
+    } catch (error) {
+      console.error("Error cleaning up expired unpaid emails:", error);
+      // Don't throw - just log the error
+    }
   }
 
   async isPaidUser(userId: number): Promise<boolean> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    return user ? user.hasAccessPass : false;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      return user ? user.hasAccessPass : false;
+    } catch (error) {
+      console.error("Error checking if user is paid:", error);
+      return false; // Default to unpaid if there's an error
+    }
   }
 
   async cleanupExpiredData(): Promise<void> {
-    // Clean up expired unpaid email data
-    await this.cleanupExpiredUnpaidEmails();
+    try {
+      // Clean up expired unpaid email data
+      await this.cleanupExpiredUnpaidEmails();
+      console.log("Successfully cleaned up expired data");
+    } catch (error) {
+      console.error("Error during data cleanup:", error);
+      // Don't throw - just log the error to prevent server crashes
+    }
 
     // Note: For paid users, we never delete their data
     // For unpaid users, data is only stored in unpaidUserEmails table with 24h expiry

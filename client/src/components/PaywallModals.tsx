@@ -325,22 +325,23 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               )}
             </motion.div>
 
-            {/* Dev Bypass Button */}
-            {import.meta.env.MODE === "development" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-                className="mt-4"
-              >
-                <button
-                  onClick={onUnlock}
-                  className="w-full bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+            {/* Dev Bypass Button - Only show for non-quiz-required types in dev mode */}
+            {import.meta.env.MODE === "development" &&
+              type !== "quiz-required" && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.7 }}
+                  className="mt-4"
                 >
-                  🔧 DEV: Bypass Payment (Remove in Prod)
-                </button>
-              </motion.div>
-            )}
+                  <button
+                    onClick={onUnlock}
+                    className="w-full bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+                  >
+                    🔧 DEV: Bypass Payment (Remove in Prod)
+                  </button>
+                </motion.div>
+              )}
 
             {/* Additional Info */}
             <motion.div

@@ -91,20 +91,13 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
       estimatedTime: 4,
     },
     {
-      id: "generating-personalized-insights",
-      title: "Generating Personalized Insights",
-      description: "Creating detailed three-paragraph analysis just for you",
-      icon: Lightbulb,
-      status: "pending",
-      estimatedTime: 3,
-    },
-    {
       id: "finalizing-report",
       title: "Finalizing Your Report",
-      description: "Putting together your comprehensive business analysis",
+      description:
+        "Putting together your comprehensive business analysis with personalized insights",
       icon: Award,
       status: "pending",
-      estimatedTime: 2,
+      estimatedTime: 5,
     },
   ];
 
@@ -507,31 +500,53 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step5Result };
 
-        // Step 6: Generate personalized insights
+        // Step 6: Generate personalized insights with OpenAI or use cached content
         const step6Result = await executeStep(5, async () => {
-          // Get the cached AI analysis that was already generated
-          const { aiCacheManager } = await import("../utils/aiCacheManager");
-          const cachedData = aiCacheManager.getCachedAIContent(activeQuizData);
+          try {
+            const { AIService } = await import("../utils/aiService");
+            const aiService = AIService.getInstance();
+            const pathsForInsights =
+              (currentResults as any).personalizedPaths?.slice(0, 3) || [];
+            const insights = await aiService.generatePersonalizedInsights(
+              activeQuizData,
+              pathsForInsights,
+            );
+            return { aiInsights: insights };
+          } catch (error) {
+            console.log("OpenAI API failed, trying cached content:", error);
+            // Get the cached AI analysis that was already generated
+            const { aiCacheManager } = await import("../utils/aiCacheManager");
+            const cachedData =
+              aiCacheManager.getCachedAIContent(activeQuizData);
 
-          // Use the fullAnalysis from the cached data, or generate fallback content
-          const insights =
-            cachedData.analysis?.fullAnalysis ||
-            `Your assessment reveals strong alignment with ${(currentResults as any).personalizedPaths?.[0]?.name || "your top business match"}. Your ${activeQuizData.selfMotivationLevel >= 4 ? "high" : "moderate"} self-motivation level and ${activeQuizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
+            // Use the fullAnalysis from the cached data, or generate personalized fallback content
+            const topPath = (currentResults as any).personalizedPaths?.[0];
+            const insights =
+              cachedData.analysis?.fullAnalysis ||
+              `Your assessment reveals strong alignment with ${topPath?.name || "your top business match"}. Your ${activeQuizData.selfMotivationLevel >= 4 ? "high" : "moderate"} self-motivation level and ${activeQuizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
 
 Based on your ${activeQuizData.riskComfortLevel}/5 risk tolerance and ${activeQuizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of this business path. Your ${activeQuizData.learningPreference} learning style will help you adapt to the requirements of this field.
 
 With your income goal of ${activeQuizData.successIncomeGoal} per month and ${activeQuizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
 
-          return {};
+            return {
+              aiInsights: {
+                personalizedSummary: insights,
+                customRecommendations: [],
+                potentialChallenges: [],
+                successStrategies: [],
+                personalizedActionPlan: {
+                  week1: [],
+                  month1: [],
+                  month3: [],
+                  month6: [],
+                },
+                motivationalMessage: `Your unique combination of skills and drive positions you perfectly for ${topPath?.name || "entrepreneurial"} success. Trust in your abilities and take that first step.`,
+              },
+            };
+          }
         });
         currentResults = { ...currentResults, ...step6Result };
-
-        // Step 7: Finalize report
-        const step7Result = await executeStep(6, async () => {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          return { reportFinalized: true };
-        });
-        currentResults = { ...currentResults, ...step7Result };
 
         // Ensure minimum 10 seconds duration
         const elapsedTime = Date.now() - startTime;
@@ -602,25 +617,32 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
       })),
     );
 
-    // Start progress for this step
-    const startProgress = (stepIndex / loadingSteps.length) * 100;
-    const endProgress = ((stepIndex + 1) / loadingSteps.length) * 100;
+    // Calculate progress range for this step (each step gets equal portion)
+    const startProgress = (stepIndex / steps.length) * 100;
+    const endProgress = ((stepIndex + 1) / steps.length) * 100;
+    const progressRange = endProgress - startProgress;
 
-    // Gradually increase progress during step execution
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        const increment = (endProgress - startProgress) / 50; // Divide into 50 smaller increments
-        const newProgress = Math.min(prev + increment, endProgress - 2);
-        return newProgress;
-      });
-    }, 50); // Update every 50ms for smoother animation
+    // Start the async function
+    const resultPromise = asyncFunction();
+
+    // Animate progress smoothly during step execution
+    let currentProgress = startProgress;
+    const progressInterval = setInterval(
+      () => {
+        if (currentProgress < endProgress - 1) {
+          currentProgress += 1; // Increment by exactly 1%
+          setProgress(Math.round(currentProgress));
+        }
+      },
+      ((steps[stepIndex]?.estimatedTime || 3) * 1000) / progressRange,
+    ); // Distribute time evenly across the progress range
 
     try {
-      const result = await asyncFunction();
+      const result = await resultPromise;
 
-      // Clear the interval and set final progress
+      // Clear the interval and ensure final progress for this step
       clearInterval(progressInterval);
-      setProgress(endProgress);
+      setProgress(Math.round(endProgress));
 
       // Store result
       setLoadingResults((prev: any) => ({ ...prev, ...result }));
@@ -639,7 +661,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
       console.error(`Error in step ${stepIndex}:`, error);
       // Clear the interval and set final progress
       clearInterval(progressInterval);
-      setProgress(endProgress);
+      setProgress(Math.round(endProgress));
 
       // Continue with fallback
       setCompletedSteps((prev) => new Set([...prev, stepIndex]));
@@ -676,7 +698,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
 
   return (
     <div className="min-h-screen bg-white py-4">
-      <div className="max-w-4xl mx-auto px-4 relative">
+      <div className="max-w-4xl mx-auto px-4 relative pt-12">
         {/* Exit Button */}
         {onExit && (
           <motion.button
@@ -720,7 +742,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Our advanced AI is analyzing your responses and generating custom
-            insights just for you. This will take about 10-15 seconds.
+            insights just for you. This will take about 15-30 seconds.
           </p>
         </motion.div>
 
@@ -746,11 +768,9 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
                 initial={{ width: "0%" }}
                 animate={{ width: `${progress}%` }}
                 transition={{
-                  duration: 0.8,
-                  ease: "easeOut",
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15,
+                  duration: 0.3,
+                  ease: "linear",
+                  type: "tween",
                 }}
               />
             </div>

@@ -35,15 +35,19 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
 
   // Check user's quiz completion and payment status when user changes
   useEffect(() => {
+    let isMounted = true;
+
     const checkUserStatus = async () => {
-      if (isLoading) return;
+      if (!isMounted || isLoading) return;
 
       if (!user) {
         // For non-authenticated users, check localStorage for temporary state
         const unlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";
         const completed = localStorage.getItem("hasCompletedQuiz") === "true";
-        setHasUnlockedAnalysis(unlocked);
-        setHasCompletedQuiz(completed);
+        if (isMounted) {
+          setHasUnlockedAnalysis(unlocked);
+          setHasCompletedQuiz(completed);
+        }
         return;
       }
 
@@ -51,6 +55,9 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
       try {
         // Check if user has completed quiz
         const quizData = await getLatestQuizData();
+
+        if (!isMounted) return; // Component unmounted, don't update state
+
         const hasQuiz = !!quizData;
         setHasCompletedQuiz(hasQuiz);
 
@@ -62,11 +69,17 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
         localStorage.setItem("hasCompletedQuiz", hasQuiz.toString());
         localStorage.setItem("hasUnlockedAnalysis", hasAccess.toString());
       } catch (error) {
-        console.error("Error checking user status:", error);
+        if (isMounted) {
+          console.error("Error checking user status:", error);
+        }
       }
     };
 
     checkUserStatus();
+
+    return () => {
+      isMounted = false; // Cleanup function to prevent state updates after unmount
+    };
   }, [user, isLoading, getLatestQuizData]);
 
   // Save state to localStorage when it changes (for non-authenticated users)
@@ -85,7 +98,12 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
     }
   }, [hasCompletedQuiz, user]);
 
-  const isUnlocked = () => hasUnlockedAnalysis;
+  const isUnlocked = () => {
+    // For logged-in users with access pass, consider them unlocked even if local state is stale
+    if (user && user.hasAccessPass) return true;
+
+    return hasUnlockedAnalysis;
+  };
 
   const canAccessBusinessModel = (modelId?: string) => {
     // Must have completed quiz to access any business model details
@@ -94,11 +112,17 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
     // If unlocked, can access all models
     if (hasUnlockedAnalysis) return true;
 
+    // For logged-in users with access pass, grant access even if local state is stale
+    if (user && user.hasAccessPass) return true;
+
     // If not unlocked, no access to detailed pages
     return false;
   };
 
   const canAccessFullReport = () => {
+    // For logged-in users with access pass, grant access even if local state is stale
+    if (user && user.hasAccessPass && hasCompletedQuiz) return true;
+
     return hasCompletedQuiz && hasUnlockedAnalysis;
   };
 
