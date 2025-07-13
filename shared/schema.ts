@@ -100,6 +100,7 @@ export const insertPaymentSchema = createInsertSchema(payments);
 export const insertUnpaidUserEmailSchema = createInsertSchema(unpaidUserEmails);
 export const insertPasswordResetTokenSchema =
   createInsertSchema(passwordResetTokens);
+export const insertRefundSchema = createInsertSchema(refunds);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -107,6 +108,8 @@ export type QuizAttempt = typeof quizAttempts.$inferSelect;
 export type InsertQuizAttempt = z.infer<typeof insertQuizAttemptSchema>;
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Refund = typeof refunds.$inferSelect;
+export type InsertRefund = z.infer<typeof insertRefundSchema>;
 export type UnpaidUserEmail = typeof unpaidUserEmails.$inferSelect;
 export type InsertUnpaidUserEmail = z.infer<typeof insertUnpaidUserEmailSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
