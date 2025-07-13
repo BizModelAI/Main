@@ -581,7 +581,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                       Logging In...
                     </>
                   ) : (
-                    "Log In & Continue"
+                    "Log In & Access Features"
                   )}
                 </button>
 
