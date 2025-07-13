@@ -872,9 +872,26 @@ export class EmailService {
               </div>
             </div>
 
-            <div class="footer" style="background: #FFFFFF !important; padding: 40px; text-align: center; border-top: 1px solid #F3F4F6;">
+                        <div class="footer" style="background: #FFFFFF !important; padding: 40px; text-align: center; border-top: 1px solid #F3F4F6;">
               <div class="footer-logo" style="font-size: 20px; font-weight: 700; color: #000000 !important; margin-bottom: 10px;">BizModelAI</div>
               <div class="footer-tagline" style="color: #6B7280 !important; font-size: 16px; margin-bottom: 20px;">Your AI-Powered Business Discovery Platform</div>
+
+              <!-- Social Media Links -->
+              <div class="social-media" style="margin-bottom: 20px;">
+                <a href="https://www.instagram.com/bizmodelai/" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/112-instagram-512.png" alt="Instagram" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://www.tiktok.com/@bizmodelai" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/113-tiktok-512.png" alt="TikTok" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://x.com/bizmodelai" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/121-twitter-512.png" alt="X (Twitter)" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://www.pinterest.com/bizmodelai/" style="display: inline-block; margin: 0 8px; text-decoration: none;" target="_blank">
+                  <img src="https://cdn4.iconfinder.com/data/icons/social-media-logos-6/512/114-pinterest-512.png" alt="Pinterest" style="width: 24px; height: 24px;">
+                </a>
+              </div>
+
               <div class="footer-disclaimer" style="font-size: 14px; color: #9CA3AF !important; line-height: 1.5; margin-bottom: 16px;">
                 This comprehensive report is personalized just for you based on your quiz responses.<br>
                 Start building your business with confidence using these tailored insights.
