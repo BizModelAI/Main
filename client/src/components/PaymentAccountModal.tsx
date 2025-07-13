@@ -48,6 +48,41 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const { signup, login, user, deleteAccount } = useAuth();
   const { setHasUnlockedAnalysis, setHasCompletedQuiz } = usePaywall();
 
+  // Handle cleanup when user closes modal on payment step
+  const handleClose = async () => {
+    if (step === "payment" && user) {
+      try {
+        await deleteAccount();
+      } catch (error) {
+        console.error("Error deleting account on close:", error);
+      }
+    }
+    onClose();
+  };
+
+  // Handle browser close/refresh during payment step
+  useEffect(() => {
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+      if (step === "payment" && user) {
+        e.preventDefault();
+        e.returnValue = "";
+        try {
+          await deleteAccount();
+        } catch (error) {
+          console.error("Error deleting account on page close:", error);
+        }
+      }
+    };
+
+    if (step === "payment" && user) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [step, user, deleteAccount]);
+
   if (!isOpen) return null;
 
   const getContent = () => {
