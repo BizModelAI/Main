@@ -28,6 +28,12 @@ export function setupAuthRoutes(app: Express) {
       res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error in /api/auth/me:", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+        sessionId: req.sessionID,
+        userId: req.session.userId,
+      });
       res.status(500).json({ error: "Internal server error" });
     }
   });
