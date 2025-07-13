@@ -128,7 +128,7 @@ export const quizSteps: QuizStep[] = [
     id: "passion-identity-alignment",
     title:
       "How important is it that your business reflects your personal identity or passion?",
-    subtitle: "The connection between your business and who you are",
+    subtitle: "Connection between business and personal values",
     icon: "Heart",
     field: "passionIdentityAlignment",
     type: "scale",
@@ -137,29 +137,28 @@ export const quizSteps: QuizStep[] = [
     options: [
       {
         value: 1,
-        label: "Just a job",
-        description: "I just want to make money; passion isn't a priority.",
+        label: "Not important – Business is just business",
+        description: "Not important – Business is just business",
       },
       {
         value: 2,
-        label: "Minor influence",
-        description:
-          "I care a little, but it's not a big deal if it doesn't reflect me.",
+        label: "Slightly important – Some alignment would be nice",
+        description: "Slightly important – Some alignment would be nice",
       },
       {
         value: 3,
-        label: "Somewhat aligned",
-        description: "I'd like some connection to my interests.",
+        label: "Moderately important – Personal fit adds value",
+        description: "Moderately important – Personal fit adds value",
       },
       {
         value: 4,
-        label: "Very important",
-        description: "It's important that my business aligns with who I am.",
+        label: "Very important – Must reflect who I am",
+        description: "Very important – Must reflect who I am",
       },
       {
         value: 5,
-        label: "Core to identity",
-        description: "If it's not aligned with my passion, I'm not doing it.",
+        label: "Extremely important – Deep personal alignment required",
+        description: "Extremely important – Deep personal alignment required",
       },
     ],
   },
