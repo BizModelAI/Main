@@ -95,30 +95,40 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
       );
       const topPaths = await generateAIPersonalizedPaths(quizData);
 
-      // Generate ONLY the personalized insights needed for Results page
+      // Generate ALL AI content needed for Results page during loading
       const { AIService } = await import("../utils/aiService");
       const aiService = AIService.getInstance();
 
-      const insights = await aiService.generatePersonalizedInsights(
-        quizData,
-        topPaths.slice(0, 3), // Use top 3 paths
-      );
+      console.log("Generating complete AI content for Results page...");
 
-      // Store insights for Results page to consume
+      // Generate both insights and detailed analysis
+      const [insights, analysis] = await Promise.all([
+        aiService.generatePersonalizedInsights(quizData, topPaths.slice(0, 3)),
+        aiService.generateDetailedAnalysis(quizData, topPaths[0]),
+      ]);
+
+      // Store COMPLETE AI content for Results page to consume
       localStorage.setItem(
         "quiz-completion-ai-insights",
         JSON.stringify({
           insights,
+          analysis,
           topPaths: topPaths.slice(0, 3),
           timestamp: Date.now(),
+          complete: true,
         }),
       );
 
-      console.log("AI insights generated successfully for Results page");
+      console.log(
+        "Complete AI content generated successfully for Results page",
+      );
       setIsGeneratingInsights(false);
-      return insights;
+      return { insights, analysis };
     } catch (error) {
-      console.error("Error generating AI insights for Results page:", error);
+      console.error(
+        "Error generating complete AI content for Results page:",
+        error,
+      );
       setIsGeneratingInsights(false);
 
       // Store a fallback indicator
@@ -126,9 +136,11 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
         "quiz-completion-ai-insights",
         JSON.stringify({
           insights: null,
+          analysis: null,
           topPaths: [],
           timestamp: Date.now(),
           error: true,
+          complete: false,
         }),
       );
 
