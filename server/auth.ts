@@ -75,8 +75,18 @@ export function setupAuthRoutes(app: Express) {
 
   // Signup - Store temporary account data until payment
   app.post("/api/auth/signup", async (req, res) => {
+    // Ensure we always return JSON
+    res.header("Content-Type", "application/json");
+
     try {
-      console.log("Signup attempt started for:", req.body.email);
+      console.log("Signup attempt started for:", req.body?.email || "unknown");
+
+      // Validate request body exists
+      if (!req.body || typeof req.body !== "object") {
+        console.log("Signup validation failed: invalid request body");
+        return res.status(400).json({ error: "Invalid request body" });
+      }
+
       const { email, password, name } = req.body;
 
       if (!email || !password || !name) {
