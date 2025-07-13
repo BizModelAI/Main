@@ -385,7 +385,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db
+    const [user] = await this.ensureDb()
       .select()
       .from(users)
       .where(eq(users.username, username));
@@ -393,12 +393,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const [user] = await this.ensureDb()
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
-    const [user] = await db
+    const [user] = await this.ensureDb()
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(users.id, id))
@@ -460,7 +463,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async canUserRetakeQuiz(userId: number): Promise<boolean> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    const [user] = await this.ensureDb()
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
     return user ? user.quizRetakesRemaining > 0 : false;
   }
 
@@ -620,7 +626,10 @@ export class DatabaseStorage implements IStorage {
 
   async isPaidUser(userId: number): Promise<boolean> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      const [user] = await this.ensureDb()
+        .select()
+        .from(users)
+        .where(eq(users.id, userId));
       return user ? user.hasAccessPass : false;
     } catch (error) {
       console.error("Error checking if user is paid:", error);
