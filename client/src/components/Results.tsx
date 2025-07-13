@@ -424,11 +424,42 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     }
   };
 
-  // Immediately set fallback content when personalized paths are loaded (no API calls)
+  // Use cached AI data from loading page or set fallback content
   useEffect(() => {
     if (personalizedPaths.length > 0) {
+      // Check for cached AI data from the loading page first
+      const cachedAIData = localStorage.getItem("quiz-completion-ai-insights");
+
+      if (cachedAIData) {
+        try {
+          const { insights, analysis, complete, error, timestamp } =
+            JSON.parse(cachedAIData);
+          const isRecent = Date.now() - timestamp < 5 * 60 * 1000; // 5 minutes
+
+          if (isRecent && insights && complete) {
+            console.log(
+              "✅ Using cached AI insights from loading page - no API calls needed",
+            );
+            setAiInsights(insights);
+
+            // If analysis is also cached, use it
+            if (analysis) {
+              setAiAnalysis(analysis);
+            } else {
+              setAiAnalysis(generateFallbackAnalysis());
+            }
+
+            setIsGeneratingAI(false);
+            return;
+          }
+        } catch (error) {
+          console.error("Error parsing cached AI data:", error);
+        }
+      }
+
+      // Fallback if no valid cached data
       console.log(
-        "🚀 Setting fallback AI content immediately (no API calls in production)",
+        "🚀 Setting fallback AI content (no API calls in production)",
       );
       setAiInsights(generateFallbackInsights());
       setAiAnalysis(generateFallbackAnalysis());
