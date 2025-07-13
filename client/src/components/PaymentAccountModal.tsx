@@ -216,7 +216,15 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         return;
       }
 
-      // If user doesn't have access, proceed to payment
+      // If user has access but no retakes, they need to pay for additional retakes
+      if (userData.hasAccessPass && userData.quizRetakesRemaining <= 0) {
+        // Set a flag to indicate this is a retake payment, not initial access
+        // Don't save quiz data yet - only after payment
+        setStep("payment");
+        return;
+      }
+
+      // If user doesn't have access at all, proceed to payment
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
