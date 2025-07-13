@@ -408,16 +408,11 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
         );
 
         if (attempt === retries) {
-          // Final attempt failed, check if it's a network error
-          if (
-            error instanceof Error &&
-            error.message.includes("Failed to fetch")
-          ) {
-            throw new Error(
-              "Network error: Unable to connect to API. Please check your internet connection and try again.",
-            );
-          }
-          throw error;
+          // Final attempt failed, return fallback content instead of throwing
+          console.warn(
+            "⚠️ All OpenAI API attempts failed, using fallback content",
+          );
+          return this.getFallbackContent(prompt);
         }
 
         // Wait before retrying (exponential backoff)
