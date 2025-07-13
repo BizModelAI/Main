@@ -137,28 +137,30 @@ export const quizSteps: QuizStep[] = [
     options: [
       {
         value: 1,
-        label: "Not important – Business is just business",
-        description: "Not important – Business is just business",
+        label: "Not important",
+        description: "I don't need my business to reflect who I am.",
       },
       {
         value: 2,
-        label: "Slightly important – Some alignment would be nice",
-        description: "Slightly important – Some alignment would be nice",
+        label: "Slightly important",
+        description:
+          "I'd like some connection between my business and identity, but it's not a priority.",
       },
       {
         value: 3,
-        label: "Moderately important – Personal fit adds value",
-        description: "Moderately important – Personal fit adds value",
+        label: "Moderately important",
+        description:
+          "I prefer a business that aligns with my identity but it's not essential.",
       },
       {
         value: 4,
-        label: "Very important – Must reflect who I am",
-        description: "Very important – Must reflect who I am",
+        label: "Very important",
+        description: "My business should express my values and identity.",
       },
       {
         value: 5,
-        label: "Extremely important – Deep personal alignment required",
-        description: "Extremely important – Deep personal alignment required",
+        label: "Extremely important",
+        description: "I want my brand to strongly reflect who I am",
       },
     ],
   },
