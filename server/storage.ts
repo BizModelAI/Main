@@ -369,6 +369,13 @@ export class MemStorage implements IStorage {
 
 // Database storage implementation
 export class DatabaseStorage implements IStorage {
+  private ensureDb() {
+    if (!db) {
+      throw new Error("Database not available");
+    }
+    return db;
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
