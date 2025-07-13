@@ -604,9 +604,12 @@ const QuizWithNavigation: React.FC<{
   };
 
   const handleReturnToQuiz = () => {
-    console.log("Returning to quiz");
+    console.log("Returning to quiz - explicitly clearing quiz data");
     setShowCongratulations(false);
     setQuizData(null);
+    // Clear localStorage quiz data when user explicitly returns to quiz
+    localStorage.removeItem("quizData");
+    localStorage.removeItem("loadedReportData");
     // Reset congratulations tracking for next quiz completion
     setCongratulationsShown(false);
     localStorage.setItem("congratulationsShown", "false");
