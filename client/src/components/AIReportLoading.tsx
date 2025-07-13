@@ -669,7 +669,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
 
   return (
     <div className="min-h-screen bg-white py-4">
-      <div className="max-w-4xl mx-auto px-4 relative">
+      <div className="max-w-4xl mx-auto px-4 relative pt-12">
         {/* Exit Button */}
         {onExit && (
           <motion.button
