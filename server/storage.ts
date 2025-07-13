@@ -676,7 +676,7 @@ export class DatabaseStorage implements IStorage {
     userId: number,
     hashedPassword: string,
   ): Promise<void> {
-    await db
+    await this.ensureDb()
       .update(users)
       .set({
         password: hashedPassword,
