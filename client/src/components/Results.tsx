@@ -301,11 +301,26 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
       if (preGeneratedData) {
         try {
+          const parsedData = JSON.parse(preGeneratedData);
+          console.log(
+            "✅ Data parsed successfully, keys:",
+            Object.keys(parsedData),
+          );
+
           const { insights, analysis, topPaths, timestamp, error, complete } =
-            JSON.parse(preGeneratedData);
+            parsedData;
 
           // Use pre-generated content if it's recent, valid, and complete
           const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
+          const age = Math.round((Date.now() - timestamp) / 1000);
+
+          console.log("📊 Data validation:");
+          console.log("- Age:", age, "seconds");
+          console.log("- Has insights:", !!insights);
+          console.log("- Has analysis:", !!analysis);
+          console.log("- Complete flag:", complete);
+          console.log("- Error flag:", error);
+          console.log("- Is recent:", isRecent);
 
           if (isRecent && insights && analysis && complete && !error) {
             console.log(
