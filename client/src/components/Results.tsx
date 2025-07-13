@@ -1766,7 +1766,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   transition={{ duration: 0.6, delay: 1 }}
                 >
                   <div className="text-gray-400 line-through text-lg md:text-xl mb-2">
-                    $197 Value
+                    $49.99 Value
                   </div>
                   <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
                     $9.99
