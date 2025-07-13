@@ -134,7 +134,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         setLoginEmail(formData.email);
         setStep("login");
         setError(
-          "An account with this email already exists. Please log in to continue with your purchase.",
+          "Welcome back! We found your existing account. Please log in to access your features.",
         );
       } else {
         setError(err.message || "Failed to create account");
