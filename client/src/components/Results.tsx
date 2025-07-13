@@ -793,6 +793,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   };
 
   const handleBusinessCardPayment = async () => {
+    // DEV: Only allow simulation in development mode
+    if (import.meta.env.MODE !== "development") {
+      console.warn("Payment simulation disabled in production");
+      return;
+    }
+
     setIsProcessingPayment(true);
 
     // Simulate payment processing
