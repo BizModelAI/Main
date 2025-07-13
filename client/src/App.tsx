@@ -14,6 +14,8 @@ import BusinessExplorer from "./pages/BusinessExplorer";
 
 import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Quiz from "./components/Quiz";
