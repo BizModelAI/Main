@@ -359,8 +359,20 @@ const AIReportLoadingWrapper: React.FC<{
   const navigate = useNavigate();
 
   const handleAILoadingComplete = (data: any) => {
-    console.log("AI loading complete after quiz, showing congratulations");
-    setShowCongratulations(true);
+    console.log(
+      "AI loading complete after quiz, checking congratulations tracking",
+    );
+
+    // Check if congratulations was already shown
+    const congratulationsShown = localStorage.getItem("congratulationsShown");
+    if (!congratulationsShown || congratulationsShown === "false") {
+      console.log("Showing congratulations for the first time");
+      setShowCongratulations(true);
+      localStorage.setItem("congratulationsShown", "true");
+    } else {
+      console.log("Congratulations already shown, skipping");
+    }
+
     // Navigate back to quiz route where congratulations popup will be handled
     navigate("/quiz");
   };
