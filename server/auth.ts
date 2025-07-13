@@ -147,11 +147,14 @@ export function setupAuthRoutes(app: Express) {
       });
     } catch (error) {
       console.error("Error in /api/auth/signup:", error);
-      console.error("Error stack:", error.stack);
+      console.error(
+        "Error stack:",
+        error instanceof Error ? error.stack : "No stack trace",
+      );
       console.error("Error details:", {
-        message: error.message,
-        name: error.name,
-        code: error.code,
+        message: error instanceof Error ? error.message : String(error),
+        name: error instanceof Error ? error.name : "Unknown",
+        code: (error as any)?.code || "Unknown",
       });
       res.status(500).json({ error: "Internal server error" });
     }
