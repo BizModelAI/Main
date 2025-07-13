@@ -34,27 +34,38 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running!" });
 });
 
-// Catch-all for SPA
-app.get("*", (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>BizModelAI</title>
-      </head>
-      <body>
-        <div id="root">
-          <h1>Server is running!</h1>
-          <p>The application is starting up...</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
 const port = 5000;
 const server = createServer(app);
 
-server.listen(port, () => {
+// Setup Vite development server
+async function setupApp() {
+  try {
+    const { setupVite } = await import("./vite.js");
+    await setupVite(app, server);
+    console.log("✅ Vite development server started successfully!");
+  } catch (error) {
+    console.error("❌ Failed to start Vite:", error);
+    // Fallback to basic HTML
+    app.get("*", (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>BizModelAI</title>
+          </head>
+          <body>
+            <div id="root">
+              <h1>Server is running!</h1>
+              <p>Vite development server failed to start. Check console for errors.</p>
+            </div>
+          </body>
+        </html>
+      `);
+    });
+  }
+}
+
+server.listen(port, async () => {
   console.log(`Server running on port ${port}`);
+  await setupApp();
 });
