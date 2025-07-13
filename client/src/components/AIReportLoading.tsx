@@ -600,6 +600,9 @@ Return JSON format:
           setProgress(100);
         }
 
+        // Clear the generation flag
+        localStorage.removeItem("ai-generation-in-progress");
+
         // Complete and pass data to parent
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
