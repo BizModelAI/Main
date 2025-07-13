@@ -51,16 +51,23 @@ const stripe = process.env.STRIPE_SECRET_KEY
   : null;
 
 // PayPal SDK configuration
-const paypal =
+const paypalClient =
   process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET
-    ? new PayPalApi({
-        clientId: process.env.PAYPAL_CLIENT_ID,
-        clientSecret: process.env.PAYPAL_CLIENT_SECRET,
-        environment: process.env.NODE_ENV === "production" ? "live" : "sandbox",
+    ? new Client({
+        clientCredentialsAuthCredentials: {
+          oAuthClientId: process.env.PAYPAL_CLIENT_ID,
+          oAuthClientSecret: process.env.PAYPAL_CLIENT_SECRET,
+        },
+        environment:
+          process.env.NODE_ENV === "production"
+            ? Environment.Live
+            : Environment.Sandbox,
       })
     : null;
 
-const ordersController = paypal ? new OrdersController(paypal) : null;
+const ordersController = paypalClient
+  ? new OrdersController(paypalClient)
+  : null;
 
 function getRatingDescription(rating: number): string {
   if (rating >= 4.5) return "Very High";
