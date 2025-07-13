@@ -79,10 +79,21 @@ function App() {
 
   // Handler for AI loading completion
   const handleAILoadingComplete = (data: any) => {
-    console.log("AI loading complete, showing congratulations");
+    console.log(
+      "AI loading complete, checking if congratulations should be shown",
+    );
     setLoadedReportData(data);
     setShowAILoading(false);
-    setShowCongratulations(true);
+
+    // Only show congratulations if it hasn't been shown yet
+    if (!congratulationsShown) {
+      console.log("Showing congratulations for the first time");
+      setShowCongratulations(true);
+      setCongratulationsShown(true);
+      localStorage.setItem("congratulationsShown", "true");
+    } else {
+      console.log("Congratulations already shown, skipping");
+    }
   };
 
   // TEMPORARY: Mock quiz data for testing with COMPLETE data structure
