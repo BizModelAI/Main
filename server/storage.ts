@@ -428,13 +428,21 @@ export class DatabaseStorage implements IStorage {
         throw new Error("Payment not found");
       }
 
-      // Update user's retakes
+      // Update user's retakes and access pass
+      const userUpdates: any = {
+        quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
+        updatedAt: new Date(),
+      };
+
+      // Set hasAccessPass to true for access_pass payments
+      if (payment.type === "access_pass") {
+        userUpdates.hasAccessPass = true;
+        userUpdates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
+      }
+
       await tx
         .update(users)
-        .set({
-          quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
-          updatedAt: new Date(),
-        })
+        .set(userUpdates)
         .where(eq(users.id, payment.userId));
     });
   }
