@@ -45,6 +45,9 @@ function App() {
 
   // Restore data from localStorage on app start
   React.useEffect(() => {
+    console.log(
+      "App component initializing - restoring data from localStorage",
+    );
     const savedQuizData = localStorage.getItem("quizData");
     const savedUserEmail = localStorage.getItem("userEmail");
     const savedLoadedReportData = localStorage.getItem("loadedReportData");
@@ -52,9 +55,15 @@ function App() {
       "congratulationsShown",
     );
 
+    console.log("Saved quiz data found:", !!savedQuizData);
+    console.log("Saved user email found:", !!savedUserEmail);
+    console.log("Saved loaded report data found:", !!savedLoadedReportData);
+
     if (savedQuizData) {
       try {
-        setQuizData(JSON.parse(savedQuizData));
+        const parsed = JSON.parse(savedQuizData);
+        console.log("Restoring quiz data from localStorage");
+        setQuizData(parsed);
       } catch (error) {
         console.error("Error parsing saved quiz data:", error);
       }
@@ -66,7 +75,9 @@ function App() {
 
     if (savedLoadedReportData) {
       try {
-        setLoadedReportData(JSON.parse(savedLoadedReportData));
+        const parsed = JSON.parse(savedLoadedReportData);
+        console.log("Restoring loaded report data from localStorage");
+        setLoadedReportData(parsed);
       } catch (error) {
         console.error("Error parsing saved loaded report data:", error);
       }
@@ -82,6 +93,25 @@ function App() {
       localStorage.setItem("congratulationsShown", "false");
     }
   }, []);
+
+  // Ensure quiz data persists even if React state gets reset
+  React.useEffect(() => {
+    if (!quizData) {
+      // Check if localStorage has quiz data but React state doesn't
+      const savedQuizData = localStorage.getItem("quizData");
+      if (savedQuizData) {
+        try {
+          const parsed = JSON.parse(savedQuizData);
+          console.log(
+            "React state lost quiz data - restoring from localStorage",
+          );
+          setQuizData(parsed);
+        } catch (error) {
+          console.error("Error restoring quiz data from localStorage:", error);
+        }
+      }
+    }
+  });
 
   // Handler for AI loading completion
   const handleAILoadingComplete = (data: any) => {
