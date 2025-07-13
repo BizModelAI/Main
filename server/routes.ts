@@ -1004,11 +1004,11 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Extract custom data from the purchase unit
       const purchaseUnit = capture.result.purchaseUnits?.[0];
-      if (!purchaseUnit?.custom_id) {
+      if (!purchaseUnit?.customId) {
         throw new Error("Missing payment metadata");
       }
 
-      const metadata = JSON.parse(purchaseUnit.custom_id);
+      const metadata = JSON.parse(purchaseUnit.customId);
       const {
         userIdentifier,
         type: paymentType,
@@ -1758,6 +1758,9 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.log("Fetching all collected emails...");
 
       // Get emails from paid users (permanent storage)
+      if (!db) {
+        return res.status(500).json({ error: "Database not available" });
+      }
       const paidUsers = await db
         .select({
           email: users.email,
@@ -1816,6 +1819,9 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
   app.get("/api/admin/emails-csv", async (req, res) => {
     try {
       // Get emails from paid users
+      if (!db) {
+        return res.status(500).json({ error: "Database not available" });
+      }
       const paidUsers = await db
         .select({
           email: users.email,

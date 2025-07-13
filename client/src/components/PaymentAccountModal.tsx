@@ -58,7 +58,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         // Ignore errors during cleanup - temporary accounts expire automatically
         console.debug(
           "Account cleanup skipped (will expire automatically):",
-          error.message,
+          error instanceof Error ? error.message : String(error),
         );
       }
     }

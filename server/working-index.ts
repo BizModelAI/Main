@@ -138,6 +138,9 @@ app.get("/api/health/detailed", async (req, res) => {
   // Check database connection
   try {
     const { pool } = await import("./db.js");
+    if (!pool) {
+      throw new Error("Database pool not available");
+    }
     const client = await pool.connect();
     await client.query("SELECT 1");
     client.release();
@@ -201,6 +204,9 @@ app.get("/api/test/database", async (req, res) => {
   try {
     // Test 1: Basic connection
     const { pool } = await import("./db.js");
+    if (!pool) {
+      throw new Error("Database pool not available");
+    }
     const client = await pool.connect();
     await client.query("SELECT 1 as test");
     client.release();
@@ -333,7 +339,7 @@ Promise.race([
     ),
   ),
 ])
-  .then((server) => {
+  .then((server: any) => {
     server.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
