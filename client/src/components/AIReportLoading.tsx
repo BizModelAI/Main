@@ -465,10 +465,22 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step2Result };
 
-        // Step 3: Prepare for AI insights generation (no API calls yet)
+        // Step 3: Generate AI insights (SINGLE API CALL)
         const step3Result = await executeStep(2, async () => {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          return { aiInsightsReady: true };
+          console.log("🔄 Starting AI insights generation (single call)");
+          const { AIService } = await import("../utils/aiService");
+          const aiService = AIService.getInstance();
+          const pathsForInsights =
+            (currentResults as any).personalizedPaths?.slice(0, 3) || [];
+
+          // Make SINGLE comprehensive API call
+          const insights = await aiService.generatePersonalizedInsights(
+            activeQuizData,
+            pathsForInsights,
+          );
+
+          console.log("✅ AI insights generation completed successfully");
+          return { aiInsights: insights };
         });
         currentResults = { ...currentResults, ...step3Result };
 
@@ -493,28 +505,20 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step5Result };
 
-        // Step 6: Generate personalized insights with OpenAI (SINGLE CALL)
+        // Step 6: Finalize and store AI data for Results component
         const step6Result = await executeStep(5, async () => {
-          try {
-            console.log("🔄 Starting AI insights generation (single call)");
-            const { AIService } = await import("../utils/aiService");
-            const aiService = AIService.getInstance();
-            const pathsForInsights =
-              (currentResults as any).personalizedPaths?.slice(0, 3) || [];
+          // Use the AI insights that were already generated in step 3
+          const existingInsights = (currentResults as any).aiInsights;
 
-            // Make SINGLE comprehensive API call
-            const insights = await aiService.generatePersonalizedInsights(
-              activeQuizData,
-              pathsForInsights,
-            );
-
-            console.log("✅ AI insights generation completed successfully");
+          if (existingInsights) {
+            console.log("📦 Storing AI insights for Results component");
 
             // Store in localStorage for Results component to use
             const aiData = {
-              insights,
-              analysis: null, // Will be generated separately if needed
-              topPaths: pathsForInsights,
+              insights: existingInsights,
+              analysis: null, // Will be generated on-demand if needed
+              topPaths:
+                (currentResults as any).personalizedPaths?.slice(0, 3) || [],
               timestamp: Date.now(),
               complete: true,
               error: false,
@@ -524,72 +528,19 @@ Return JSON format:
               JSON.stringify(aiData),
             );
 
-            return { aiInsights: insights };
-          } catch (error) {
-            console.error("❌ OpenAI API failed:", error);
+            console.log("✅ AI data stored successfully for Results component");
+            return { finalizedData: true };
+          } else {
+            console.log("⚠️ No AI insights found, storing fallback data");
 
-            // Generate high-quality fallback content
-            const topPath = (currentResults as any).personalizedPaths?.[0];
-            const fallbackInsights = {
-              personalizedSummary: `Your assessment reveals strong alignment with ${topPath?.name || "your top business match"}. Your ${activeQuizData.selfMotivationLevel >= 4 ? "high" : "moderate"} self-motivation level and ${activeQuizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model. Based on your ${activeQuizData.riskComfortLevel}/5 risk tolerance and ${activeQuizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of this business path.`,
-              customRecommendations: [
-                "Start with proven tools and systems to minimize learning curve",
-                "Focus on systematic execution rather than trying to reinvent approaches",
-                "Leverage your natural strengths while gradually building new skills",
-                "Join online communities for support and networking",
-                "Set realistic 90-day milestones to maintain motivation",
-                "Track your time and energy to optimize productive hours",
-              ],
-              potentialChallenges: [
-                "Managing time effectively while building momentum",
-                "Overcoming perfectionism that might delay progress",
-                "Building confidence in your expertise",
-                "Staying motivated during slow initial results",
-              ],
-              successStrategies: [
-                "Leverage your analytical nature for data-driven decisions",
-                "Use communication skills for strong customer relationships",
-                "Focus on solving real problems for people",
-                "Build systems early for scalability",
-                "Invest in continuous learning",
-                "Network strategically for partnerships",
-              ],
-              personalizedActionPlan: {
-                week1: [
-                  "Research your chosen business model thoroughly",
-                  "Set up your workspace and basic tools",
-                  "Define your target market and ideal customer",
-                ],
-                month1: [
-                  "Launch your minimum viable offering",
-                  "Create basic marketing materials",
-                  "Reach out to potential customers",
-                  "Establish tracking systems",
-                ],
-                month3: [
-                  "Optimize based on feedback",
-                  "Scale marketing efforts",
-                  "Build strategic partnerships",
-                  "Develop delivery systems",
-                ],
-                month6: [
-                  "Analyze performance and growth opportunities",
-                  "Consider expanding offerings",
-                  "Build team or outsource tasks",
-                  "Plan next growth phase",
-                ],
-              },
-              motivationalMessage: `Your unique combination of skills and drive positions you perfectly for ${topPath?.name || "entrepreneurial"} success. Trust in your abilities and take that first step.`,
-            };
-
-            // Store fallback data for Results component
+            // Store fallback indicator
             const aiData = {
-              insights: fallbackInsights,
+              insights: null,
               analysis: null,
               topPaths:
                 (currentResults as any).personalizedPaths?.slice(0, 3) || [],
               timestamp: Date.now(),
-              complete: true,
+              complete: false,
               error: true,
             };
             localStorage.setItem(
@@ -597,7 +548,7 @@ Return JSON format:
               JSON.stringify(aiData),
             );
 
-            return { aiInsights: fallbackInsights };
+            return { finalizedData: false };
           }
         });
         currentResults = { ...currentResults, ...step6Result };
