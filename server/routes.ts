@@ -652,6 +652,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create Stripe Payment Intent
+      if (!stripe) {
+        return res
+          .status(500)
+          .json({ error: "Payment processing not configured" });
+      }
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: "usd",
