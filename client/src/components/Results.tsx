@@ -493,9 +493,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // Helper function to execute share action
   const executeShareAction = async () => {
     try {
+      const topPath = personalizedPaths[0];
+      if (!topPath) {
+        alert("No business paths available to share. Please retake the quiz.");
+        return;
+      }
+
       const shareData = {
-        title: `My Business Path Results - ${personalizedPaths[0]?.name}`,
-        text: `I just discovered my perfect business match! ${personalizedPaths[0]?.name} is a ${personalizedPaths[0]?.fitScore}% fit for my goals and personality.`,
+        title: `My Business Path Results - ${topPath.name}`,
+        text: `I just discovered my perfect business match! ${topPath.name} is a ${topPath.fitScore}% fit for my goals and personality.`,
         url: window.location.href,
       };
 
