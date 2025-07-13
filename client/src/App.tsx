@@ -492,6 +492,8 @@ const QuizWithNavigation: React.FC<{
   setLoadedReportData: (data: any) => void;
   showCongratulations: boolean;
   setShowCongratulations: (show: boolean) => void;
+  congratulationsShown: boolean;
+  setCongratulationsShown: (shown: boolean) => void;
   handleAILoadingComplete: (data: any) => void;
 }> = ({
   quizData,
@@ -507,6 +509,8 @@ const QuizWithNavigation: React.FC<{
   setLoadedReportData,
   showCongratulations,
   setShowCongratulations,
+  congratulationsShown,
+  setCongratulationsShown,
   handleAILoadingComplete,
 }) => {
   const navigate = useNavigate();
