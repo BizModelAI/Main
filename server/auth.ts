@@ -28,6 +28,12 @@ export function setupAuthRoutes(app: Express) {
       res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error in /api/auth/me:", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+        sessionId: req.sessionID,
+        userId: req.session.userId,
+      });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -69,8 +75,18 @@ export function setupAuthRoutes(app: Express) {
 
   // Signup - Store temporary account data until payment
   app.post("/api/auth/signup", async (req, res) => {
+    // Ensure we always return JSON
+    res.header("Content-Type", "application/json");
+
     try {
-      console.log("Signup attempt started for:", req.body.email);
+      console.log("Signup attempt started for:", req.body?.email || "unknown");
+
+      // Validate request body exists
+      if (!req.body || typeof req.body !== "object") {
+        console.log("Signup validation failed: invalid request body");
+        return res.status(400).json({ error: "Invalid request body" });
+      }
+
       const { email, password, name } = req.body;
 
       if (!email || !password || !name) {
@@ -104,8 +120,24 @@ export function setupAuthRoutes(app: Express) {
       }
 
       console.log("Checking if user already exists...");
+
       // Check if user already exists as a paid user
-      const existingUser = await storage.getUserByUsername(email);
+      let existingUser;
+      try {
+        existingUser = await storage.getUserByUsername(email);
+      } catch (dbError) {
+        console.error("Database error checking existing user:", dbError);
+        return res.status(500).json({
+          error: "Database connection error. Please try again.",
+          details:
+            process.env.NODE_ENV === "development"
+              ? dbError instanceof Error
+                ? dbError.message
+                : String(dbError)
+              : undefined,
+        });
+      }
+
       if (existingUser) {
         console.log("User already exists, returning 409");
         return res.status(409).json({ error: "User already exists" });
@@ -125,15 +157,36 @@ export function setupAuthRoutes(app: Express) {
       const quizData = req.body.quizData || {};
 
       console.log("Hashing password...");
-      const hashedPassword = await bcrypt.hash(password, 10);
+      let hashedPassword;
+      try {
+        hashedPassword = await bcrypt.hash(password, 10);
+      } catch (hashError) {
+        console.error("Password hashing error:", hashError);
+        return res.status(500).json({
+          error: "Password processing error. Please try again.",
+        });
+      }
 
       console.log("Storing unpaid user email...");
-      await storage.storeUnpaidUserEmail(sessionId, email, {
-        email,
-        password: hashedPassword,
-        name,
-        quizData,
-      });
+      try {
+        await storage.storeUnpaidUserEmail(sessionId, email, {
+          email,
+          password: hashedPassword,
+          name,
+          quizData,
+        });
+      } catch (storageError) {
+        console.error("Storage error:", storageError);
+        return res.status(500).json({
+          error: "Failed to create account. Please try again.",
+          details:
+            process.env.NODE_ENV === "development"
+              ? storageError instanceof Error
+                ? storageError.message
+                : String(storageError)
+              : undefined,
+        });
+      }
 
       console.log("Signup successful, returning temporary user data");
       // Return a temporary user object for frontend
@@ -146,7 +199,7 @@ export function setupAuthRoutes(app: Express) {
         isTemporary: true,
       });
     } catch (error) {
-      console.error("Error in /api/auth/signup:", error);
+      console.error("Unexpected error in /api/auth/signup:", error);
       console.error(
         "Error stack:",
         error instanceof Error ? error.stack : "No stack trace",
@@ -155,8 +208,22 @@ export function setupAuthRoutes(app: Express) {
         message: error instanceof Error ? error.message : String(error),
         name: error instanceof Error ? error.name : "Unknown",
         code: (error as any)?.code || "Unknown",
+        body: req.body,
+        sessionID: req.sessionID,
       });
-      res.status(500).json({ error: "Internal server error" });
+
+      // Ensure we return JSON even in unexpected errors
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: "An unexpected error occurred. Please try again.",
+          details:
+            process.env.NODE_ENV === "development"
+              ? error instanceof Error
+                ? error.message
+                : String(error)
+              : undefined,
+        });
+      }
     }
   });
 

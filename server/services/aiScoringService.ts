@@ -3,8 +3,37 @@ import { QuizData, BusinessPath } from "../../shared/types.js";
 import { businessPaths } from "../../shared/businessPaths.js";
 
 const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      maxRetries: 3, // Retry failed requests
+      timeout: 30000, // 30 second timeout
+    })
   : null;
+
+// Simple rate limiting for concurrent requests
+class RateLimiter {
+  private requests: number[] = [];
+  private readonly maxRequests = 10; // Max requests per minute
+  private readonly windowMs = 60000; // 1 minute window
+
+  async waitForSlot(): Promise<void> {
+    const now = Date.now();
+    // Remove old requests outside the window
+    this.requests = this.requests.filter((time) => now - time < this.windowMs);
+
+    if (this.requests.length >= this.maxRequests) {
+      // Wait until we can make another request
+      const oldestRequest = Math.min(...this.requests);
+      const waitTime = this.windowMs - (now - oldestRequest) + 100; // Small buffer
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+      return this.waitForSlot(); // Recursive check
+    }
+
+    this.requests.push(now);
+  }
+}
+
+const rateLimiter = new RateLimiter();
 
 export interface BusinessFitAnalysis {
   fitScore: number;
@@ -45,8 +74,12 @@ export class AIScoringService {
   ): Promise<ComprehensiveFitAnalysis> {
     try {
       if (!openai) {
-        throw new Error("OpenAI API key not configured");
+        console.error("OpenAI API key not configured, using fallback analysis");
+        return this.fallbackAnalysis(quizData);
       }
+
+      // Wait for rate limiter slot
+      await rateLimiter.waitForSlot();
 
       const prompt = this.buildAnalysisPrompt(quizData);
 
@@ -69,11 +102,20 @@ export class AIScoringService {
       });
 
       const content = response.choices[0].message.content;
-      if (!content) throw new Error("No content in AI response");
+      if (!content) {
+        console.error("No content in AI response, using fallback");
+        return this.fallbackAnalysis(quizData);
+      }
+
       const analysis = JSON.parse(content);
       return this.processAnalysis(analysis);
     } catch (error) {
-      console.error("AI Scoring Service Error:", error);
+      console.error("AI Scoring Service Error:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+        hasOpenAI: !!openai,
+        hasApiKey: !!process.env.OPENAI_API_KEY,
+      });
       // Fallback to enhanced algorithmic scoring
       return this.fallbackAnalysis(quizData);
     }

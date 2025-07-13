@@ -72,7 +72,8 @@ app.use((req, res, next) => {
     // Setup authentication routes
     setupAuthRoutes(app);
 
-    const server = await registerRoutes(app);
+    const server = createServer(app);
+    await registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;

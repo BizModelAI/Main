@@ -11,6 +11,34 @@ import { users, unpaidUserEmails } from "../shared/schema.js";
 import { sql } from "drizzle-orm";
 import Stripe from "stripe";
 
+// Simple rate limiter for OpenAI requests
+class OpenAIRateLimiter {
+  private requests = new Map<string, number[]>();
+  private readonly maxRequestsPerIP = 20; // Max requests per IP per minute
+  private readonly windowMs = 60000; // 1 minute window
+
+  canMakeRequest(ip: string): boolean {
+    const now = Date.now();
+    const userRequests = this.requests.get(ip) || [];
+
+    // Remove old requests outside the window
+    const recentRequests = userRequests.filter(
+      (time) => now - time < this.windowMs,
+    );
+    this.requests.set(ip, recentRequests);
+
+    if (recentRequests.length >= this.maxRequestsPerIP) {
+      return false;
+    }
+
+    recentRequests.push(now);
+    this.requests.set(ip, recentRequests);
+    return true;
+  }
+}
+
+const openaiRateLimiter = new OpenAIRateLimiter();
+
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2025-06-30.basil",
@@ -46,7 +74,7 @@ function getInvestmentRange(value: number): string {
   return "$1,000+";
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   // put application routes here
   // prefix all routes with /api
 
@@ -69,6 +97,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header("Access-Control-Allow-Headers", "Content-Type");
 
     try {
+      // Rate limiting for concurrent users
+      const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+      if (!openaiRateLimiter.canMakeRequest(clientIP)) {
+        return res.status(429).json({
+          error: "Too many requests. Please wait a moment before trying again.",
+        });
+      }
+
+      // Check if OpenAI API key is configured
+      if (!process.env.OPENAI_API_KEY) {
+        console.error("OpenAI API key not configured");
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+
       const {
         prompt,
         maxTokens = 200,
@@ -110,6 +152,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (!openaiResponse.ok) {
+        const errorText = await openaiResponse.text();
+        console.error(`OpenAI API error: ${openaiResponse.status}`, errorText);
         throw new Error(`OpenAI API error: ${openaiResponse.status}`);
       }
 
@@ -119,7 +163,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ content });
     } catch (error) {
       console.error("Error in OpenAI chat:", error);
-      res.status(500).json({ error: "OpenAI API request failed" });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({
+        error: "OpenAI API request failed",
+        details: errorMessage,
+      });
     }
   });
 
@@ -239,6 +288,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI-powered business fit scoring endpoint
   app.post("/api/ai-business-fit-analysis", async (req, res) => {
     try {
+      // Rate limiting for concurrent quiz takers
+      const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+      if (!openaiRateLimiter.canMakeRequest(clientIP)) {
+        return res.status(429).json({
+          error: "Too many requests. Please wait a moment before trying again.",
+        });
+      }
+
       const { quizData } = req.body;
 
       if (!quizData) {
@@ -249,7 +306,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analysis);
     } catch (error) {
       console.error("Error in AI business fit analysis:", error);
-      res.status(500).json({ error: "Failed to analyze business fit" });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({
+        error: "Failed to analyze business fit",
+        details: errorMessage,
+      });
     }
   });
 
@@ -1597,7 +1659,5 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
     }
   });
 
-  const httpServer = createServer(app);
-
-  return httpServer;
+  // Routes registered successfully
 }
