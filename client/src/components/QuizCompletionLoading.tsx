@@ -108,19 +108,27 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
       ]);
 
       // Store COMPLETE AI content for Results page to consume
+      const completeData = {
+        insights,
+        analysis,
+        topPaths: topPaths.slice(0, 3),
+        timestamp: Date.now(),
+        complete: true,
+      };
+
       localStorage.setItem(
         "quiz-completion-ai-insights",
-        JSON.stringify({
-          insights,
-          analysis,
-          topPaths: topPaths.slice(0, 3),
-          timestamp: Date.now(),
-          complete: true,
-        }),
+        JSON.stringify(completeData),
       );
 
       console.log(
-        "Complete AI content generated successfully for Results page",
+        "Complete AI content generated and stored successfully for Results page",
+      );
+      console.log("Stored data keys:", Object.keys(completeData));
+      console.log(
+        "Data size:",
+        JSON.stringify(completeData).length,
+        "characters",
       );
       setIsGeneratingInsights(false);
       return { insights, analysis };
