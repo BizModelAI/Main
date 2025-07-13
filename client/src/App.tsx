@@ -658,6 +658,26 @@ const ResultsWrapperWithReset: React.FC<{
 }) => {
   console.log("ResultsWrapper received quizData:", quizData);
   console.log("ResultsWrapper received userEmail:", userEmail);
+  console.log("ResultsWrapper received loadedReportData:", loadedReportData);
+
+  // Check localStorage if no quiz data is provided via props
+  const savedQuizData = React.useMemo(() => {
+    if (quizData) return quizData;
+
+    const saved = localStorage.getItem("quizData");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        console.log("Retrieved quizData from localStorage:", parsed);
+        return parsed;
+      } catch (error) {
+        console.error("Error parsing quizData from localStorage:", error);
+        return null;
+      }
+    }
+    console.log("No quizData found in localStorage");
+    return null;
+  }, [quizData]);
 
   // Clear congratulations state when component mounts (user navigated to results)
   React.useEffect(() => {
