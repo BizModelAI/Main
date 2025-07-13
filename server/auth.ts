@@ -318,6 +318,34 @@ export function setupAuthRoutes(app: Express) {
     }
   });
 
+  // Unsubscribe from emails
+  app.post("/api/auth/unsubscribe", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByUsername(email);
+      if (user) {
+        // Update user to mark as unsubscribed
+        await storage.updateUser(user.id, { isUnsubscribed: true });
+        console.log(`User ${email} has been unsubscribed from emails`);
+      }
+
+      // Always return success to prevent email enumeration
+      res.json({
+        success: true,
+        message: "Successfully unsubscribed from all emails",
+      });
+    } catch (error) {
+      console.error("Error in /api/auth/unsubscribe:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Reset password
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
