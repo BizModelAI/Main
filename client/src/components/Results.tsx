@@ -663,14 +663,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Route based on which button was clicked
       if (paywallType === "learn-more" && selectedPath) {
         // Navigate to "How business model X works for you" page
-        navigate(`/business/${selectedPath.id}`);
+        navigate(`/business/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "business-model" && selectedPath) {
         // Navigate to business model guide page
-        navigate(`/guide/${selectedPath.id}`);
+        navigate(`/guide/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
@@ -719,14 +719,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Route based on which button was clicked
       if (paywallType === "learn-more" && selectedPath) {
         // Navigate to "How business model X works for you" page
-        navigate(`/business/${selectedPath.id}`);
+        navigate(`/business/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "business-model" && selectedPath) {
         // Navigate to business model guide page
-        navigate(`/guide/${selectedPath.id}`);
+        navigate(`/guide/${selectedPath!.id}`);
         // Scroll to top after navigation
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: "instant" });
@@ -772,7 +772,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
     // If this was triggered from "Start Business Model X" button, navigate to guide page
     if (paywallType === "business-model" && selectedPath) {
-      navigate(`/guide/${selectedPath.id}`);
+      navigate(`/guide/${selectedPath!.id}`);
       // Scroll to top after navigation
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
