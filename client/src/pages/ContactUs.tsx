@@ -1,56 +1,60 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'wouter';
-import { 
-  Send, 
-  CheckCircle,
-  PlayCircle,
-  Grid3X3
-} from 'lucide-react';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Send, CheckCircle, PlayCircle, Grid3X3 } from "lucide-react";
 
 const ContactUs: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-    category: 'general'
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+    category: "general",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setSubmitStatus('success');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setSubmitStatus("success");
     setIsSubmitting(false);
-    
+
     // Reset form after success
     setTimeout(() => {
       setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-        category: 'general'
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+        category: "general",
       });
-      setSubmitStatus('idle');
+      setSubmitStatus("idle");
     }, 3000);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Hero Section */}
-      <section id="top" className="relative py-20 lg:py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <section
+        id="top"
+        className="relative py-20 lg:py-32 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <motion.div
@@ -65,7 +69,8 @@ const ContactUs: React.FC = () => {
                 </span>
               </h1>
               <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-                Have questions about your business path? Need help with the quiz? Our team is ready to support your journey to success.
+                Have questions about your business path? Need help with the
+                quiz? Our team is ready to support your journey to success.
               </p>
             </motion.div>
           </div>
@@ -81,17 +86,20 @@ const ContactUs: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="bg-white rounded-3xl shadow-xl p-8 md:p-12"
           >
-            {submitStatus === 'success' ? (
+            {submitStatus === "success" ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Message Sent Successfully!</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Message Sent Successfully!
+                </h3>
                 <p className="text-gray-600 mb-6">
-                  Thank you for reaching out. We'll get back to you within 24 hours.
+                  Thank you for reaching out. We'll get back to you within 24
+                  hours.
                 </p>
                 <button
-                  onClick={() => setSubmitStatus('idle')}
+                  onClick={() => setSubmitStatus("idle")}
                   className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
                 >
                   Send Another Message
@@ -102,7 +110,10 @@ const ContactUs: React.FC = () => {
                 {/* Name and Email Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Full Name *
                     </label>
                     <input
@@ -117,7 +128,10 @@ const ContactUs: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Email Address *
                     </label>
                     <input
@@ -136,7 +150,10 @@ const ContactUs: React.FC = () => {
                 {/* Category and Subject Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="category"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Category
                     </label>
                     <select
@@ -155,7 +172,10 @@ const ContactUs: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="subject"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Subject *
                     </label>
                     <input
@@ -173,7 +193,10 @@ const ContactUs: React.FC = () => {
 
                 {/* Message */}
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Message *
                   </label>
                   <textarea
@@ -226,14 +249,21 @@ const ContactUs: React.FC = () => {
               Ready to Discover Your Perfect Business Path?
             </h2>
             <p className="text-xl text-blue-100 mb-8">
-              Don't wait any longer. Take our AI-powered quiz and get personalized business recommendations in just 15 minutes.
+              Don't wait any longer. Take our AI-powered quiz and get
+              personalized business recommendations in just 15 minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/quiz" className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-colors flex items-center justify-center">
+              <Link
+                to="/quiz"
+                className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-colors flex items-center justify-center"
+              >
                 <PlayCircle className="h-5 w-5 mr-2" />
                 Take the Quiz Now
               </Link>
-              <Link to="/explore" className="bg-blue-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
+              <Link
+                to="/explore"
+                className="bg-blue-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-600 transition-colors flex items-center justify-center"
+              >
                 <Grid3X3 className="h-5 w-5 mr-2" />
                 Browse Business Models
               </Link>
