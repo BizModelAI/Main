@@ -43,6 +43,7 @@ export interface IStorage {
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
   getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
+  getPaymentById(paymentId: number): Promise<Payment | undefined>;
   getAllPayments(): Promise<Payment[]>;
 
   // Refund operations
