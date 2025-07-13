@@ -662,13 +662,22 @@ const ResultsWrapperWithReset: React.FC<{
 
   // Check localStorage if no quiz data is provided via props
   const savedQuizData = React.useMemo(() => {
-    if (quizData) return quizData;
+    console.log("ResultsWrapper - checking quiz data...");
+    console.log("Props quizData:", quizData);
 
+    if (quizData) {
+      console.log("Using quizData from props");
+      return quizData;
+    }
+
+    console.log("No quizData in props, checking localStorage");
     const saved = localStorage.getItem("quizData");
+    console.log("localStorage quizData:", saved);
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log("Retrieved quizData from localStorage:", parsed);
+        console.log("Successfully parsed quizData from localStorage:", parsed);
         return parsed;
       } catch (error) {
         console.error("Error parsing quizData from localStorage:", error);
@@ -678,6 +687,27 @@ const ResultsWrapperWithReset: React.FC<{
     console.log("No quizData found in localStorage");
     return null;
   }, [quizData]);
+
+  // Also check localStorage for loadedReportData
+  const savedLoadedReportData = React.useMemo(() => {
+    if (loadedReportData) return loadedReportData;
+
+    const saved = localStorage.getItem("loadedReportData");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        console.log("Retrieved loadedReportData from localStorage:", parsed);
+        return parsed;
+      } catch (error) {
+        console.error(
+          "Error parsing loadedReportData from localStorage:",
+          error,
+        );
+        return null;
+      }
+    }
+    return null;
+  }, [loadedReportData]);
 
   // Clear congratulations state when component mounts (user navigated to results)
   React.useEffect(() => {
