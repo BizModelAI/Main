@@ -90,3 +90,7 @@ export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type UnpaidUserEmail = typeof unpaidUserEmails.$inferSelect;
 export type InsertUnpaidUserEmail = z.infer<typeof insertUnpaidUserEmailSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<
+  typeof insertPasswordResetTokenSchema
+>;
