@@ -48,6 +48,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // use storage to perform CRUD operations on the storage interface
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
+  // CORS preflight handler for OpenAI chat endpoint
+  app.options("/api/openai-chat", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.sendStatus(200);
+  });
+
   // General OpenAI chat endpoint
   app.post("/api/openai-chat", async (req, res) => {
     // Add CORS headers
