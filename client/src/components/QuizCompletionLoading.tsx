@@ -139,13 +139,16 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
       );
       setIsGeneratingInsights(false);
 
-      // Store a fallback indicator
+      // Store fallback content instead of null to ensure Results page has something to work with
+      const { generateFallbackInsights, generateFallbackAnalysis } =
+        await import("../components/Results");
+
       localStorage.setItem(
         "quiz-completion-ai-insights",
         JSON.stringify({
-          insights: null,
-          analysis: null,
-          topPaths: [],
+          insights: null, // Will trigger fallback in Results
+          analysis: null, // Will trigger fallback in Results
+          topPaths: topPaths.slice(0, 3),
           timestamp: Date.now(),
           error: true,
           complete: false,
