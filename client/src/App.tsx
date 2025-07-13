@@ -229,6 +229,8 @@ function App() {
     <AuthProvider>
       <PaywallProvider>
         <Router>
+          <Analytics />
+          <SpeedInsights />
           <Routes>
             {/* Public routes with layout */}
             <Route
