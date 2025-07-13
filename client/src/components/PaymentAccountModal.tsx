@@ -155,11 +155,38 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
     setIsProcessing(true);
     try {
+      // Perform login and get user data
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: loginEmail,
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Login failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const userData = await response.json();
+
+      // Update auth context
       await login(loginEmail, formData.password);
 
       // Check if user already has access - if so, unlock immediately
       // This is intentional: existing paid users shouldn't pay again
-      if (user?.hasAccessPass) {
+      if (userData.hasAccessPass) {
         setHasUnlockedAnalysis(true);
         localStorage.setItem("hasAnyPayment", "true");
 
