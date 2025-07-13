@@ -247,22 +247,22 @@ function App() {
               }
             />
 
-            {/* Quiz completion loading page - NEW */}
+            {/* Quiz completion loading page - NOW uses AIReportLoading */}
             <Route
               path="/quiz-loading"
               element={
-                <QuizCompletionLoadingWrapper
+                <AIReportLoadingWrapper
                   quizData={quizData}
                   setShowCongratulations={setShowCongratulations}
                 />
               }
             />
 
-            {/* Loading page - separate route */}
+            {/* Loading page - NOW uses QuizCompletionLoading */}
             <Route
               path="/loading"
               element={
-                <LoadingPageWrapper
+                <QuizCompletionLoadingWrapper
                   quizData={quizData}
                   userEmail={userEmail}
                   showCongratulations={showCongratulations}
