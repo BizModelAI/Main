@@ -6,7 +6,9 @@ import {
   getPersonalityDescription,
 } from "../../shared/personalityScoring.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 // Helper functions to convert stored numbers back to original quiz ranges
 const getIncomeRangeLabel = (value: number): string => {
