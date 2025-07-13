@@ -247,8 +247,11 @@ process.on("uncaughtException", (error) => {
 // Setup server with routes
 async function setupApp() {
   try {
+    // Setup auth routes first
+    await setupRoutes();
+
     // Register all API routes FIRST, before Vite middleware
-    await registerRoutes(app);
+    await setupApiRoutes();
 
     // Create HTTP server after registering routes
     const server = createServer(app);
