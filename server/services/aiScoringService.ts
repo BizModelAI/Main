@@ -3,8 +3,37 @@ import { QuizData, BusinessPath } from "../../shared/types.js";
 import { businessPaths } from "../../shared/businessPaths.js";
 
 const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      maxRetries: 3, // Retry failed requests
+      timeout: 30000, // 30 second timeout
+    })
   : null;
+
+// Simple rate limiting for concurrent requests
+class RateLimiter {
+  private requests: number[] = [];
+  private readonly maxRequests = 10; // Max requests per minute
+  private readonly windowMs = 60000; // 1 minute window
+
+  async waitForSlot(): Promise<void> {
+    const now = Date.now();
+    // Remove old requests outside the window
+    this.requests = this.requests.filter((time) => now - time < this.windowMs);
+
+    if (this.requests.length >= this.maxRequests) {
+      // Wait until we can make another request
+      const oldestRequest = Math.min(...this.requests);
+      const waitTime = this.windowMs - (now - oldestRequest) + 100; // Small buffer
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+      return this.waitForSlot(); // Recursive check
+    }
+
+    this.requests.push(now);
+  }
+}
+
+const rateLimiter = new RateLimiter();
 
 export interface BusinessFitAnalysis {
   fitScore: number;
