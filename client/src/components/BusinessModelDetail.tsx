@@ -497,7 +497,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         fitCategory,
         business?.name || business?.title || "This Business",
       ),
-      icon: Target,
+      icon:
+        fitCategory === "Possible Fit" || fitCategory === "Poor Fit"
+          ? AlertTriangle
+          : Target,
     },
     { id: "psychological-fit", label: "Psychological Fit", icon: Brain },
     { id: "income-potential", label: "Income Potential", icon: TrendingUp },
