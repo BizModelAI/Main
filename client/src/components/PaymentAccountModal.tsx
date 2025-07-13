@@ -144,36 +144,29 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         parsedQuizData,
       );
 
-      console.log("PaymentAccountModal: Signup successful, moving to payment"); // Debug log
+      console.log("PaymentAccountModal: Signup successful, moving to payment");
       setStep("payment");
     } catch (err: any) {
-      console.log("PaymentAccountModal: Signup error caught:", {
-        error: err,
-        message: err.message,
-        type: typeof err.message,
-        includes_user_exists: err.message
-          ?.toLowerCase()
-          .includes("user already exists"),
-        includes_already_exists: err.message
-          ?.toLowerCase()
-          .includes("already exists"),
-      }); // Debug log
+      console.log("PaymentAccountModal: Signup error caught:", err.message);
 
-      const errorMessage = err.message?.toLowerCase() || "";
-      if (
+      // Check for user already exists error - try multiple approaches
+      const errorMessage = (err.message || "").toLowerCase();
+      const isUserExistsError =
         errorMessage.includes("user already exists") ||
-        errorMessage.includes("already exists")
-      ) {
+        errorMessage.includes("already exists") ||
+        errorMessage === "user already exists";
+
+      if (isUserExistsError) {
         console.log(
           "PaymentAccountModal: User exists, switching to login step",
-        ); // Debug log
+        );
         setLoginEmail(formData.email);
         setStep("login");
         setError(
           "Welcome back! We found your existing account. Please log in to access your features.",
         );
       } else {
-        console.log("PaymentAccountModal: Other error, showing error message"); // Debug log
+        console.log("PaymentAccountModal: Other error:", err.message);
         setError(err.message || "Failed to create account");
       }
     } finally {
