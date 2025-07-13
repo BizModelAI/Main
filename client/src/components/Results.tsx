@@ -126,8 +126,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   const [personalizedPaths, setPersonalizedPaths] = useState<BusinessPath[]>(
     [],
   );
-  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  // Initialize with fallback content immediately to prevent loading states
+  const [aiInsights, setAiInsights] = useState<AIInsights | null>(() =>
+    generateFallbackInsights(),
+  );
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(() =>
+    generateFallbackAnalysis(),
+  );
   // Check if we have complete pre-generated AI content to set initial loading state
   const hasCompleteAIContent = (() => {
     try {
