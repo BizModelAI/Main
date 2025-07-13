@@ -396,6 +396,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
       <motion.div
