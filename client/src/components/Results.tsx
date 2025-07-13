@@ -1720,7 +1720,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.p>
 
                 <motion.div
-                  className="grid md:grid-cols-3 gap-6 mb-10"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8 lg:mb-10"
                   variants={staggerChildren}
                   initial="initial"
                   animate="animate"
@@ -1747,17 +1747,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   ].map((feature, index) => (
                     <motion.div
                       key={index}
-                      className="flex items-start text-left bg-white/10 backdrop-blur-sm rounded-2xl p-6"
+                      className="flex items-start text-left bg-white/10 backdrop-blur-sm rounded-2xl p-4 md:p-6"
                       variants={fadeInUp}
                     >
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
-                        <feature.icon className="h-6 w-6 text-white" />
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center mr-3 md:mr-4 flex-shrink-0">
+                        <feature.icon className="h-5 w-5 md:h-6 md:w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-white mb-2">
+                        <h3 className="font-bold text-white mb-1 md:mb-2 text-sm md:text-base">
                           {feature.title}
                         </h3>
-                        <p className="text-gray-300 text-sm">
+                        <p className="text-gray-300 text-xs md:text-sm">
                           {feature.description}
                         </p>
                       </div>
@@ -1766,25 +1766,25 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </motion.div>
 
                 <motion.div
-                  className="mb-8"
+                  className="mb-6 md:mb-8"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 1 }}
                 >
-                  <div className="text-gray-400 line-through text-xl mb-2">
+                  <div className="text-gray-400 line-through text-lg md:text-xl mb-2">
                     $197 Value
                   </div>
-                  <div className="text-6xl font-bold text-white mb-2">
+                  <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
                     $9.99
                   </div>
-                  <div className="text-gray-300 text-lg">
+                  <div className="text-gray-300 text-sm md:text-base lg:text-lg px-2 md:px-0">
                     One-time payment • Instant access • 30-day guarantee
                   </div>
                 </motion.div>
 
                 <motion.button
                   onClick={handleUnlockAnalysis}
-                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-12 py-5 rounded-full text-xl font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
+                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-full text-base md:text-lg lg:text-xl font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-2xl"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
