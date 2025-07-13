@@ -353,6 +353,7 @@ const AIReportLoadingWrapper: React.FC<{
       <AIReportLoading
         quizData={quizData}
         onComplete={handleAILoadingComplete}
+        onExit={() => navigate("/quiz")}
       />
     </div>
   );
