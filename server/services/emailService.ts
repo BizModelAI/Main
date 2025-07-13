@@ -130,6 +130,20 @@ export class EmailService {
     });
   }
 
+  async sendPasswordResetEmail(
+    email: string,
+    resetUrl: string,
+  ): Promise<boolean> {
+    const subject = "Reset Your BizModelAI Password";
+    const html = this.generatePasswordResetHTML(resetUrl);
+
+    return await this.sendEmail({
+      to: email,
+      subject,
+      html,
+    });
+  }
+
   private generateQuizResultsHTML(quizData: QuizData): string {
     const topBusinessModel = this.getTopBusinessModel(quizData);
 
