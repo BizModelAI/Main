@@ -293,6 +293,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         "quiz-completion-ai-insights",
       );
 
+      console.log("🔍 DEBUG: Checking for pre-generated AI content");
+      console.log("Pre-generated data exists:", !!preGeneratedData);
+      if (preGeneratedData) {
+        console.log("Data length:", preGeneratedData.length, "characters");
+      }
+
       if (preGeneratedData) {
         try {
           const { insights, analysis, topPaths, timestamp, error, complete } =
