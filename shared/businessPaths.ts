@@ -403,7 +403,7 @@ export const businessPaths: BusinessPath[] = [
       "Analytics",
       "Design",
     ],
-    icon: "ShoppingBag",
+    icon: "Star",
     marketSize: "Global e-commerce worth $6.2T+ annually",
     averageIncome: {
       beginner: "$0-2K/month",
@@ -583,7 +583,7 @@ export const businessPaths: BusinessPath[] = [
       "Operations",
       "Reliability",
     ],
-    icon: "MapPin",
+    icon: "Target",
     marketSize: "Local services market worth $500B+ in US",
     averageIncome: {
       beginner: "$1K-3K/month",
@@ -1237,7 +1237,7 @@ export const businessPaths: BusinessPath[] = [
       "A/B testing",
       "Client communication",
     ],
-    icon: "Edit",
+    icon: "FileText",
     marketSize: "Content marketing industry worth $400B+ globally",
     averageIncome: {
       beginner: "$1K-3K/month",
@@ -1423,7 +1423,7 @@ export const businessPaths: BusinessPath[] = [
       "Customer service",
       "Inventory management",
     ],
-    icon: "Package",
+    icon: "Star",
     marketSize: "Online resale market worth $200B+ globally",
     averageIncome: {
       beginner: "$500-2K/month",
@@ -1516,7 +1516,7 @@ export const businessPaths: BusinessPath[] = [
       "Customer service",
       "Social media marketing",
     ],
-    icon: "Paintbrush",
+    icon: "Star",
     marketSize: "Handmade goods market worth $44B+ globally",
     averageIncome: {
       beginner: "$200-1K/month",
