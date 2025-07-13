@@ -80,6 +80,14 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
       duration: 3,
       completed: false,
     },
+    {
+      id: "optimizing",
+      title: "Optimizing Recommendations",
+      subtitle: "Fine-tuning your personalized business strategy",
+      icon: BarChart3,
+      duration: 2,
+      completed: false,
+    },
   ];
 
   const [steps, setSteps] = useState<ProcessingStep[]>(processingSteps);
@@ -446,7 +454,7 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
 
         {/* Desktop View - All Steps */}
         <motion.div
-          className="hidden md:grid grid-cols-5 gap-2"
+          className="hidden md:grid grid-cols-6 gap-2"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
