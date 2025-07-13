@@ -562,7 +562,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
     return (
       <div
-        className={`min-h-screen flex items-center justify-center p-4 bg-gradient-to-br ${currentRoundInfo.bgColor} relative`}
+        className={`min-h-screen flex items-center justify-center px-2 py-4 md:p-4 bg-gradient-to-br ${currentRoundInfo.bgColor} relative`}
       >
         {/* Back Arrow Button - Shows Exit Modal */}
         <motion.button
@@ -608,7 +608,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100 text-center relative"
+            className="bg-white rounded-3xl shadow-2xl px-4 py-8 md:p-12 border border-gray-100 text-center relative"
           >
             {/* Round Icon */}
             <motion.div
@@ -719,7 +719,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
   // Regular Quiz Question
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-blue-50 relative">
+    <div className="min-h-screen flex items-center justify-center px-2 py-4 md:p-4 bg-gradient-to-br from-slate-50 to-blue-50 relative">
       {/* Back Arrow Button - Shows Exit Modal */}
       <motion.button
         onClick={handleBackButtonClick}
@@ -763,7 +763,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
-            className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-gray-100"
+            className="bg-white rounded-3xl shadow-2xl px-4 py-6 md:p-8 border border-gray-100"
             initial={{ opacity: 0, x: 50, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -50, scale: 0.95 }}
