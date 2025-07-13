@@ -1498,35 +1498,35 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       </div>
 
                       {/* Action Elements */}
-                      <div className="space-y-3 mt-auto">
+                      <div className="space-y-2 md:space-y-3 mt-4 md:mt-auto">
                         {/* Primary CTA - Only show if card is not locked */}
                         {!(index > 0 && !hasUnlockedAnalysis) && (
                           <button
                             onClick={() => handleViewFullReport(path)}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform group-hover:scale-[1.02] flex items-center justify-center"
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 md:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform group-hover:scale-[1.02] flex items-center justify-center text-sm md:text-base"
                           >
-                            <FileText className="h-4 w-4 mr-2" />
+                            <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                             View Full Report
                           </button>
                         )}
 
                         {/* Secondary CTA - Only show if card is not locked */}
                         {!(index > 0 && !hasUnlockedAnalysis) && (
-                          <div className="text-center space-y-3">
+                          <div className="text-center space-y-2 md:space-y-3">
                             <button
                               onClick={() => handleLearnMore(path)}
-                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-sm font-bold flex items-center justify-center group"
+                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-xs md:text-sm font-bold flex items-center justify-center group"
                             >
                               Learn more about {path.name} for you
-                              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                              <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                             </button>
 
                             <button
                               onClick={() => handleStartBusinessModel(path)}
-                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-sm font-bold flex items-center justify-center group"
+                              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 text-xs md:text-sm font-bold flex items-center justify-center group"
                             >
                               Complete Guide to {path.name}
-                              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                              <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                             </button>
                           </div>
                         )}
