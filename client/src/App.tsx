@@ -415,8 +415,19 @@ const QuizCompletionLoadingWrapper: React.FC<{
   const navigate = useNavigate();
 
   const handleLoadingComplete = () => {
-    console.log("Quiz completion loading complete, showing congratulations");
-    setShowCongratulations(true);
+    console.log(
+      "Quiz completion loading complete, checking congratulations tracking",
+    );
+
+    // Check if congratulations was already shown
+    const congratulationsShown = localStorage.getItem("congratulationsShown");
+    if (!congratulationsShown || congratulationsShown === "false") {
+      console.log("Showing congratulations for the first time");
+      setShowCongratulations(true);
+      localStorage.setItem("congratulationsShown", "true");
+    } else {
+      console.log("Congratulations already shown, skipping");
+    }
   };
 
   // Handler for congratulations completion with proper navigation
