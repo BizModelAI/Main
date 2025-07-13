@@ -572,6 +572,9 @@ const QuizWithNavigation: React.FC<{
     setShowAILoading(false);
     setShowCongratulations(false);
     setShowEmailCapture(false);
+    // Reset congratulations tracking
+    setCongratulationsShown(false);
+    localStorage.setItem("congratulationsShown", "false");
 
     console.log("Navigating to /results");
     // Navigate immediately for dev purposes
