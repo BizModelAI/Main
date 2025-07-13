@@ -519,6 +519,7 @@ const QuizWithNavigation: React.FC<{
           onClick={handleSkipToResults}
           className="bg-red-500 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl hover:bg-red-600 transition-all duration-300 transform hover:scale-105 border-2 border-white"
           style={{ zIndex: 9999 }}
+          hidden
         >
           🚀 SKIP TO RESULTS (DEV)
         </button>
