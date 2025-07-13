@@ -1410,6 +1410,118 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
     }
   });
 
+  // Get all collected emails endpoint for marketing/advertising
+  app.get("/api/admin/all-emails", async (req, res) => {
+    try {
+      console.log("Fetching all collected emails...");
+
+      // Get emails from paid users (permanent storage)
+      const paidUsers = await db
+        .select({
+          email: users.email,
+          source: sql<string>`'paid_user'`,
+          createdAt: users.createdAt,
+          hasAccessPass: users.hasAccessPass,
+        })
+        .from(users)
+        .where(sql`${users.email} IS NOT NULL`);
+
+      // Get emails from unpaid users (including expired ones for marketing)
+      const unpaidUsers = await db
+        .select({
+          email: unpaidUserEmails.email,
+          source: sql<string>`'unpaid_user'`,
+          createdAt: unpaidUserEmails.createdAt,
+          expiresAt: unpaidUserEmails.expiresAt,
+        })
+        .from(unpaidUserEmails);
+
+      // Combine and deduplicate emails
+      const allEmails = [...paidUsers, ...unpaidUsers];
+      const uniqueEmails = new Map();
+
+      allEmails.forEach((emailRecord) => {
+        const email = emailRecord.email.toLowerCase();
+        if (!uniqueEmails.has(email) || emailRecord.source === "paid_user") {
+          // Prefer paid user records over unpaid user records
+          uniqueEmails.set(email, emailRecord);
+        }
+      });
+
+      const emailList = Array.from(uniqueEmails.values()).sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+
+      res.json({
+        success: true,
+        totalEmails: emailList.length,
+        emails: emailList,
+        summary: {
+          paidUsers: paidUsers.length,
+          unpaidUsers: unpaidUsers.length,
+          uniqueEmails: emailList.length,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching all emails:", error);
+      res.status(500).json({ error: "Failed to fetch emails" });
+    }
+  });
+
+  // Export email list as CSV for marketing tools
+  app.get("/api/admin/emails-csv", async (req, res) => {
+    try {
+      // Get emails from paid users
+      const paidUsers = await db
+        .select({
+          email: users.email,
+          source: sql<string>`'paid_user'`,
+          createdAt: users.createdAt,
+        })
+        .from(users)
+        .where(sql`${users.email} IS NOT NULL`);
+
+      // Get emails from unpaid users
+      const unpaidUsers = await db
+        .select({
+          email: unpaidUserEmails.email,
+          source: sql<string>`'unpaid_user'`,
+          createdAt: unpaidUserEmails.createdAt,
+        })
+        .from(unpaidUserEmails);
+
+      // Combine and deduplicate
+      const allEmails = [...paidUsers, ...unpaidUsers];
+      const uniqueEmails = new Map();
+
+      allEmails.forEach((emailRecord) => {
+        const email = emailRecord.email.toLowerCase();
+        if (!uniqueEmails.has(email) || emailRecord.source === "paid_user") {
+          uniqueEmails.set(email, emailRecord);
+        }
+      });
+
+      // Create CSV content
+      const csvHeader = "email,source,created_at\n";
+      const csvRows = Array.from(uniqueEmails.values())
+        .map((record) => `${record.email},${record.source},${record.createdAt}`)
+        .join("\n");
+
+      const csvContent = csvHeader + csvRows;
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=bizmodelai-emails.csv",
+      );
+      res.send(csvContent);
+    } catch (error) {
+      console.error("Error exporting emails to CSV:", error);
+      res.status(500).json({ error: "Failed to export emails" });
+    }
+  });
+
   // Test email endpoint for debugging
   app.post("/api/test-email", async (req, res) => {
     try {
