@@ -444,8 +444,8 @@ const rounds = [
     icon: Clock,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [8, 20], // Q9-Q21 (0-indexed)
-    totalQuestions: 13,
+    questionRange: [8, 14], // Q9-Q15 (0-indexed)
+    totalQuestions: 7,
     timeEstimate: "2.5–3 minutes",
   },
   {
