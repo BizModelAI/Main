@@ -115,6 +115,9 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
   };
 
   const canAccessFullReport = () => {
+    // For logged-in users with access pass, grant access even if local state is stale
+    if (user && user.hasAccessPass && hasCompletedQuiz) return true;
+
     return hasCompletedQuiz && hasUnlockedAnalysis;
   };
 
