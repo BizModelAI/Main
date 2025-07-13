@@ -115,7 +115,12 @@ async function setupApiRoutes() {
 
 // Basic health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({ status: "Server is running!" });
+  res.json({
+    status: "Server is running!",
+    environment: "local-development",
+    timestamp: new Date().toISOString(),
+    host: req.get("host"),
+  });
 });
 
 // Comprehensive health check endpoint
