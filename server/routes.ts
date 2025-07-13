@@ -1351,8 +1351,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       // Get the payment record
-      const payments = await storage.getPaymentsByUser(0); // This is a hack - we need getPaymentById
-      const payment = payments.find((p) => p.id === paymentId);
+      const payment = await storage.getPaymentById(paymentId);
 
       if (!payment) {
         return res.status(404).json({ error: "Payment not found" });
