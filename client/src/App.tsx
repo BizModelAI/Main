@@ -41,12 +41,16 @@ function App() {
   const [showAILoading, setShowAILoading] = React.useState(false);
   const [loadedReportData, setLoadedReportData] = React.useState<any>(null);
   const [showCongratulations, setShowCongratulations] = React.useState(false);
+  const [congratulationsShown, setCongratulationsShown] = React.useState(false);
 
   // Restore data from localStorage on app start
   React.useEffect(() => {
     const savedQuizData = localStorage.getItem("quizData");
     const savedUserEmail = localStorage.getItem("userEmail");
     const savedLoadedReportData = localStorage.getItem("loadedReportData");
+    const savedCongratulationsShown = localStorage.getItem(
+      "congratulationsShown",
+    );
 
     if (savedQuizData) {
       try {
@@ -66,6 +70,10 @@ function App() {
       } catch (error) {
         console.error("Error parsing saved loaded report data:", error);
       }
+    }
+
+    if (savedCongratulationsShown) {
+      setCongratulationsShown(JSON.parse(savedCongratulationsShown));
     }
   }, []);
 
