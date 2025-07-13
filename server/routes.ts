@@ -855,9 +855,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Create payment record
               const payment = await storage.createPayment({
                 userId: user.id,
-                amount: "9.99",
+                amount: (paymentIntent.amount / 100).toFixed(2), // Convert cents to dollars
                 currency: "usd",
-                type: "access_pass",
+                type: type || "access_pass",
                 status: "pending",
                 retakesGranted: parseInt(retakesGranted) || 5,
                 stripePaymentIntentId: paymentIntent.id,
