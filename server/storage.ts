@@ -589,6 +589,51 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async createPasswordResetToken(
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<PasswordResetToken> {
+    const [resetToken] = await db
+      .insert(passwordResetTokens)
+      .values({
+        userId,
+        token,
+        expiresAt,
+      })
+      .returning();
+    return resetToken;
+  }
+
+  async getPasswordResetToken(
+    token: string,
+  ): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+    return resetToken || undefined;
+  }
+
+  async deletePasswordResetToken(token: string): Promise<void> {
+    await db
+      .delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  async updateUserPassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
   async cleanupExpiredData(): Promise<void> {
     try {
       // Clean up expired unpaid email data
