@@ -1001,4 +1001,30 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     if (value <= 625) return "$250–$1,000";
     return "$1,000+";
   }
+
+  private getFallbackContent(prompt: string): string {
+    // Provide meaningful fallback content based on the prompt type
+    if (prompt.includes("action plan") || prompt.includes("actionable steps")) {
+      return `Week 1:\n• Research your target market and competition\n• Set up basic business infrastructure\n• Define your value proposition\n\nMonth 1:\n• Launch your minimum viable product/service\n• Start building your customer base\n• Establish your online presence\n\nMonth 3:\n• Optimize based on customer feedback\n• Scale your marketing efforts\n• Build strategic partnerships\n\nMonth 6:\n• Expand your offerings\n• Consider hiring or outsourcing\n• Plan for next growth phase`;
+    }
+
+    if (prompt.includes("avoid") || prompt.includes("poor fit")) {
+      return "Models that require high upfront investment, complex technical skills you don't have, or time commitments that don't match your availability may not be ideal fits for your current situation.";
+    }
+
+    if (prompt.includes("challenge") || prompt.includes("obstacle")) {
+      return "Common challenges include time management, maintaining motivation during slow initial growth, building consistent systems, and balancing learning new skills with executing your business plan.";
+    }
+
+    if (prompt.includes("strength") || prompt.includes("advantage")) {
+      return "Your analytical approach to decision-making, willingness to learn, and realistic expectations about business growth create a strong foundation for entrepreneurial success.";
+    }
+
+    if (prompt.includes("recommendation") || prompt.includes("advice")) {
+      return "Focus on building one core skill deeply rather than spreading yourself thin. Start with proven systems and gradually customize them to fit your unique situation. Prioritize consistency over perfection in your daily actions.";
+    }
+
+    // Generic fallback
+    return "Based on your profile, focus on systematic execution of proven business strategies while leveraging your natural strengths and addressing potential challenges through continuous learning and adaptation.";
+  }
 }
