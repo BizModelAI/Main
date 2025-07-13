@@ -42,6 +42,19 @@ app.use(
   }),
 );
 
+// API error handling middleware - must be before routes
+app.use("/api/*", (err: any, req: any, res: any, next: any) => {
+  console.error("API Error:", err);
+
+  // Ensure we always return JSON for API routes
+  if (!res.headersSent) {
+    res.status(500).json({
+      error: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
+  }
+});
+
 // Setup authentication routes
 setupAuthRoutes(app);
 
