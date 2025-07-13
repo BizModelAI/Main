@@ -1233,7 +1233,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
                         ];
                       const displayOption = mobileOption || option;
                       const value =
-                        currentStepData.options?.[index]?.value || option.value;
+                        currentStepData.options?.[index]?.value || index + 1;
 
                       return (
                         <button
