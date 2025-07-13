@@ -491,8 +491,8 @@ const rounds = [
     icon: Target,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [36, 44], // Q37-Q45 (0-indexed)
-    totalQuestions: 9,
+    questionRange: [35, 44], // Q36-Q45 (0-indexed)
+    totalQuestions: 10,
     timeEstimate: "3–4 minutes",
   },
 ];
