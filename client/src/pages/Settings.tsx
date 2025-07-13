@@ -57,6 +57,34 @@ const Settings: React.FC = () => {
     }, 1000);
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/auth/account", {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        // Account deleted successfully, redirect to home
+        window.location.href = "/";
+      } else {
+        const data = await response.json();
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    } catch (error) {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
