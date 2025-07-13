@@ -213,6 +213,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear user state after successful deletion
       setUser(null);
     } catch (error) {
+      // Handle network errors gracefully (common during page unload)
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.debug("Account deletion skipped due to network unavailability");
+        // Still clear local state since temporary accounts expire automatically
+        setUser(null);
+        return;
+      }
       throw error;
     }
   };
