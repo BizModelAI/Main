@@ -396,58 +396,148 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
             </div>
           </div>
 
-          {/* Current Step Display */}
-          <AnimatePresence mode="wait">
-            {steps.map((step, index) => {
-              if (index !== currentStepIndex) return null;
+          {/* Desktop Current Step Display */}
+          <div className="hidden md:block">
+            <AnimatePresence mode="wait">
+              {steps.map((step, index) => {
+                if (index !== currentStepIndex) return null;
 
-              return (
-                <motion.div
-                  key={step.id}
-                  className="text-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <div className="flex items-center justify-center mb-4">
-                    <motion.div
-                      className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center mr-4"
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <step.icon className="w-6 h-6 text-white" />
-                    </motion.div>
-                    <div className="text-left">
-                      <h3 className="text-xl font-bold text-gray-900">
-                        {step.title}
-                      </h3>
-                      <p className="text-gray-600">{step.subtitle}</p>
+                return (
+                  <motion.div
+                    key={step.id}
+                    className="text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <div className="flex items-center justify-center mb-4">
+                      <motion.div
+                        className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center mr-4"
+                        animate={{ rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <step.icon className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <div className="text-left">
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {step.title}
+                        </h3>
+                        <p className="text-gray-600">{step.subtitle}</p>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Animated dots for current step - enhanced for mobile */}
-                  <div className="flex justify-center space-x-3 md:space-x-2">
+                    {/* Animated dots for current step - desktop only */}
+                    <div className="flex justify-center space-x-2">
+                      {[0, 1, 2].map((dot) => (
+                        <motion.div
+                          key={dot}
+                          className="w-2 h-2 bg-purple-500 rounded-full"
+                          animate={{
+                            scale: [1, 1.5, 1],
+                            opacity: [0.5, 1, 0.5],
+                          }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            delay: dot * 0.2,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+
+          {/* Mobile Enhanced Step Cards with Switching */}
+          <div className="md:hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStepIndex}
+                className="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-xl p-6 border-2 border-purple-200"
+                initial={{ opacity: 0, scale: 0.8, x: 100 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.8, x: -100 }}
+                transition={{
+                  duration: 0.5,
+                  ease: "easeInOut",
+                }}
+              >
+                <div className="text-center">
+                  {/* Large Mobile Step Icon */}
+                  <motion.div
+                    className="w-20 h-20 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                      scale: [1, 1.1, 1],
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    {React.createElement(steps[currentStepIndex].icon, {
+                      className: "w-10 h-10 text-white",
+                    })}
+                  </motion.div>
+
+                  {/* Mobile Step Info */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                  >
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      {steps[currentStepIndex].title}
+                    </h3>
+                    <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                      {steps[currentStepIndex].subtitle}
+                    </p>
+                  </motion.div>
+
+                  {/* Large Mobile Loading Dots - VERY Prominent */}
+                  <motion.div
+                    className="flex justify-center space-x-4 mb-6"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
                     {[0, 1, 2].map((dot) => (
                       <motion.div
                         key={dot}
-                        className="w-3 h-3 md:w-2 md:h-2 bg-purple-500 rounded-full"
+                        className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full shadow-2xl"
                         animate={{
-                          scale: [1, 1.5, 1],
-                          opacity: [0.5, 1, 0.5],
+                          scale: [1, 1.8, 1],
+                          opacity: [0.4, 1, 0.4],
+                          y: [0, -12, 0],
                         }}
                         transition={{
-                          duration: 1.5,
+                          duration: 1.2,
                           repeat: Infinity,
-                          delay: dot * 0.2,
+                          delay: dot * 0.25,
+                          ease: "easeInOut",
                         }}
                       />
                     ))}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                  </motion.div>
+
+                  {/* Mobile Step Counter */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4, duration: 0.4 }}
+                  >
+                    <p className="text-lg font-semibold text-purple-600">
+                      Step {currentStepIndex + 1} of {steps.length}
+                    </p>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </motion.div>
 
         {/* Steps Overview - Desktop: All steps, Mobile: Current step only */}
