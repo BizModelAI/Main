@@ -53,6 +53,16 @@ export interface IStorage {
   // User status checks
   isPaidUser(userId: number): Promise<boolean>;
 
+  // Password reset operations
+  createPasswordResetToken(
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  deletePasswordResetToken(token: string): Promise<void>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<void>;
+
   // Data cleanup utilities
   cleanupExpiredData(): Promise<void>;
 }
