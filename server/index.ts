@@ -1,5 +1,5 @@
-console.log("Server starting...");
 import "dotenv/config";
+console.log("Server starting...");
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
