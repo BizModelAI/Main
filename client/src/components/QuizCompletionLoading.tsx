@@ -418,7 +418,7 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
                     </div>
                   </div>
 
-                                    {/* Animated dots for current step - enhanced for mobile */}
+                  {/* Animated dots for current step - enhanced for mobile */}
                   <div className="flex justify-center space-x-3 md:space-x-2">
                     {[0, 1, 2].map((dot) => (
                       <motion.div
@@ -442,7 +442,7 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           </AnimatePresence>
         </motion.div>
 
-                {/* Steps Overview - Desktop: All steps, Mobile: Current step only */}
+        {/* Steps Overview - Desktop: All steps, Mobile: Current step only */}
 
         {/* Desktop View - All Steps */}
         <motion.div
@@ -508,7 +508,9 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
                   animate={{ rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <steps[currentStepIndex].icon className="w-8 h-8 text-white" />
+                  {React.createElement(steps[currentStepIndex].icon, {
+                    className: "w-8 h-8 text-white",
+                  })}
                 </motion.div>
 
                 {/* Step Info */}
