@@ -6,21 +6,23 @@ if (!process.env.DATABASE_URL) {
   console.warn("⚠️ DATABASE_URL not set. Database features will be disabled.");
 }
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  // Optimized configuration for concurrent users
-  max: 20, // Increased pool size for concurrent requests
-  min: 2, // Minimum connections to keep alive
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  // acquireTimeoutMillis: 15000, // Time to wait for connection from pool (not a valid Pool option)
-  // Enable statement timeout for long-running queries
-  statement_timeout: 30000, // 30 second query timeout
-  query_timeout: 30000, // 30 second query timeout
-});
+export const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      // Optimized configuration for concurrent users
+      max: 20, // Increased pool size for concurrent requests
+      min: 2, // Minimum connections to keep alive
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+      // acquireTimeoutMillis: 15000, // Time to wait for connection from pool (not a valid Pool option)
+      // Enable statement timeout for long-running queries
+      statement_timeout: 30000, // 30 second query timeout
+      query_timeout: 30000, // 30 second query timeout
+    })
+  : null;
 
 // Add connection error handling
 pool.on("error", (err) => {
