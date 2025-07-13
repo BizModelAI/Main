@@ -679,7 +679,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
             {/* Navigation Hint */}
             <motion.p
-              className="text-sm text-gray-400 mb-6"
+              className="text-sm text-gray-400 mb-6 hidden md:block"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.8 }}
@@ -967,7 +967,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
 
                 {/* Enter key hint */}
                 {canProceed && (
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-400 mt-2 hidden md:block">
                     Or press enter to continue
                   </p>
                 )}
