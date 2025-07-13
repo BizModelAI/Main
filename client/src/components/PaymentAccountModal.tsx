@@ -51,10 +51,15 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   // Handle cleanup when user closes modal on payment step
   const handleClose = async () => {
     if (step === "payment" && user) {
+      // For temporary accounts, attempt cleanup but don't block modal closing
       try {
         await deleteAccount();
       } catch (error) {
-        console.error("Error deleting account on close:", error);
+        // Ignore errors during cleanup - temporary accounts expire automatically
+        console.debug(
+          "Account cleanup skipped (will expire automatically):",
+          error.message,
+        );
       }
     }
     onClose();
