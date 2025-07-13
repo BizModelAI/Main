@@ -1,4 +1,5 @@
 import "dotenv/config";
+console.log("✓ Environment loaded");
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
