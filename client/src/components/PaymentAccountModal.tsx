@@ -299,47 +299,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setError(errorMessage);
   };
 
-  const handleDevBypass = async () => {
-    setIsProcessing(true);
-    try {
-      // If user isn't logged in, create a dev account
-      if (!user) {
-        const devEmail = `dev_${Date.now()}@test.com`;
-        await signup(devEmail, "devpass123", "Dev User");
-      }
-
-      // Mark as unlocked
-      setHasUnlockedAnalysis(true);
-      localStorage.setItem("hasAnyPayment", "true");
-      localStorage.setItem("devBypass", "true");
-
-      // Save quiz data from localStorage to user's account
-      const savedQuizData = localStorage.getItem("quizData");
-      if (savedQuizData) {
-        try {
-          const quizData = JSON.parse(savedQuizData);
-          await fetch("/api/auth/save-quiz-data", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ quizData }),
-          });
-          console.log("Quiz data saved to dev user account");
-        } catch (error) {
-          console.error("Error saving quiz data:", error);
-        }
-      }
-
-      setIsProcessing(false);
-      onSuccess();
-    } catch (err: any) {
-      setError(err.message || "Dev bypass failed");
-      setIsProcessing(false);
-    }
-  };
-
   return (
     <AnimatePresence>
       <motion.div
@@ -546,18 +505,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     "Create Account & Continue"
                   )}
                 </button>
-
-                {/* Dev Bypass Button */}
-                {import.meta.env.MODE === "development" && (
-                  <button
-                    type="button"
-                    onClick={handleDevBypass}
-                    disabled={isProcessing}
-                    className="w-full bg-gray-600 text-white py-2 rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                  >
-                    🔧 DEV: Bypass Payment (Remove in Prod)
-                  </button>
-                )}
               </form>
             )}
 
@@ -668,18 +615,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     Back
                   </button>
                 </div>
-
-                {/* Dev Bypass Button for payment step too */}
-                {import.meta.env.MODE === "development" && (
-                  <button
-                    type="button"
-                    onClick={handleDevBypass}
-                    disabled={isProcessing}
-                    className="w-full bg-gray-600 text-white py-2 rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                  >
-                    🔧 DEV: Bypass Payment (Remove in Prod)
-                  </button>
-                )}
               </div>
             )}
 
