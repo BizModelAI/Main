@@ -91,20 +91,13 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
       estimatedTime: 4,
     },
     {
-      id: "generating-personalized-insights",
-      title: "Generating Personalized Insights",
-      description: "Creating detailed three-paragraph analysis just for you",
-      icon: Lightbulb,
-      status: "pending",
-      estimatedTime: 3,
-    },
-    {
       id: "finalizing-report",
       title: "Finalizing Your Report",
-      description: "Putting together your comprehensive business analysis",
+      description:
+        "Putting together your comprehensive business analysis with personalized insights",
       icon: Award,
       status: "pending",
-      estimatedTime: 2,
+      estimatedTime: 5,
     },
   ];
 
