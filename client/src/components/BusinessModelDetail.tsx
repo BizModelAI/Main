@@ -737,10 +737,29 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                 className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300"
               >
                 <div className="flex items-center mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center mr-4">
-                    <Target className="h-8 w-8 text-white" />
+                  <div
+                    className={`w-16 h-16 rounded-2xl flex items-center justify-center mr-4 ${
+                      fitCategory === "Possible Fit" ||
+                      fitCategory === "Poor Fit"
+                        ? "bg-gradient-to-r from-red-600 to-pink-600"
+                        : "bg-gradient-to-r from-green-600 to-emerald-600"
+                    }`}
+                  >
+                    {fitCategory === "Possible Fit" ||
+                    fitCategory === "Poor Fit" ? (
+                      <AlertTriangle className="h-8 w-8 text-white" />
+                    ) : (
+                      <Target className="h-8 w-8 text-white" />
+                    )}
                   </div>
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <h2
+                    className={`text-3xl font-bold bg-clip-text text-transparent ${
+                      fitCategory === "Possible Fit" ||
+                      fitCategory === "Poor Fit"
+                        ? "bg-gradient-to-r from-red-600 to-pink-600"
+                        : "bg-gradient-to-r from-green-600 to-emerald-600"
+                    }`}
+                  >
                     {getFitTitle(
                       fitCategory,
                       business?.name || business?.title || "This Business",
@@ -825,9 +844,16 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                         className={`rounded-2xl p-6 border ${
                           fitCategory === "Possible Fit" ||
                           fitCategory === "Poor Fit"
-                            ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200"
+                            ? "bg-gradient-to-br from-red-50/70 to-red-100/70 border-red-300 backdrop-blur-sm"
                             : "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
                         }`}
+                        style={{
+                          backgroundColor:
+                            fitCategory === "Possible Fit" ||
+                            fitCategory === "Poor Fit"
+                              ? "rgba(254, 226, 226, 0.8)" // red-50 with transparency
+                              : undefined,
+                        }}
                       >
                         <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                           {fitCategory === "Possible Fit" ||
@@ -838,7 +864,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           )}
                           {fitCategory === "Possible Fit" ||
                           fitCategory === "Poor Fit"
-                            ? "Why You Might Struggle"
+                            ? "Why You Would Struggle"
                             : "Success Predictors"}
                         </h3>
                         <ul className="space-y-3">
