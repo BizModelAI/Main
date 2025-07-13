@@ -479,7 +479,7 @@ const rounds = [
     icon: Brain,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [31, 35], // Q32-Q36 (0-indexed)
+    questionRange: [30, 34], // Q31-Q35 (0-indexed)
     totalQuestions: 5,
     timeEstimate: "2–3 minutes",
   },
