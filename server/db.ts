@@ -34,24 +34,31 @@ pool.on("connect", () => {
 });
 
 // Test database connection asynchronously (non-blocking)
-setImmediate(() => {
-  Promise.race([
-    pool.connect(),
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Database connection timeout")), 5000),
-    ),
-  ])
-    .then((client) => {
-      console.log("✅ Database connection test successful");
-      if (client && typeof client.release === "function") {
-        client.release();
-      }
-    })
-    .catch((err) => {
-      console.error("❌ Database connection test failed:", err.message);
-      console.log("Continuing server startup without database...");
-    });
-});
+if (pool) {
+  setImmediate(() => {
+    Promise.race([
+      pool.connect(),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Database connection timeout")),
+          5000,
+        ),
+      ),
+    ])
+      .then((client) => {
+        console.log("✅ Database connection test successful");
+        if (client && typeof client.release === "function") {
+          client.release();
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Database connection test failed:", err.message);
+        console.log("Continuing server startup without database...");
+      });
+  });
+} else {
+  console.log("⚠️ Database pool not created - DATABASE_URL not available");
+}
 
 export const db = pool ? drizzle({ client: pool, schema }) : null;
 
