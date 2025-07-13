@@ -10,6 +10,11 @@ import { db } from "./db.js";
 import { users, unpaidUserEmails } from "../shared/schema.js";
 import { sql } from "drizzle-orm";
 import Stripe from "stripe";
+import {
+  PayPalApi,
+  OrdersController,
+  paymentsApi,
+} from "@paypal/paypal-server-sdk";
 
 // Simple rate limiter for OpenAI requests
 class OpenAIRateLimiter {
@@ -44,6 +49,18 @@ const stripe = process.env.STRIPE_SECRET_KEY
       apiVersion: "2025-06-30.basil",
     })
   : null;
+
+// PayPal SDK configuration
+const paypal =
+  process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET
+    ? new PayPalApi({
+        clientId: process.env.PAYPAL_CLIENT_ID,
+        clientSecret: process.env.PAYPAL_CLIENT_SECRET,
+        environment: process.env.NODE_ENV === "production" ? "live" : "sandbox",
+      })
+    : null;
+
+const ordersController = paypal ? new OrdersController(paypal) : null;
 
 function getRatingDescription(rating: number): string {
   if (rating >= 4.5) return "Very High";
