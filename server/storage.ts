@@ -538,31 +538,34 @@ export class DatabaseStorage implements IStorage {
     });
 
     try {
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-      console.log("Calculated expiresAt:", expiresAt);
+      // Use transaction for concurrent safety
+      return await db.transaction(async (tx) => {
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+        console.log("Calculated expiresAt:", expiresAt);
 
-      console.log("Deleting existing record for session:", sessionId);
-      // Delete any existing record for this session
-      await db
-        .delete(unpaidUserEmails)
-        .where(eq(unpaidUserEmails.sessionId, sessionId));
+        console.log("Deleting existing record for session:", sessionId);
+        // Delete any existing record for this session
+        await tx
+          .delete(unpaidUserEmails)
+          .where(eq(unpaidUserEmails.sessionId, sessionId));
 
-      console.log("Inserting new unpaid user email record...");
-      const [newUnpaidUserEmail] = await db
-        .insert(unpaidUserEmails)
-        .values({
-          sessionId,
-          email,
-          quizData,
-          expiresAt,
-        })
-        .returning();
+        console.log("Inserting new unpaid user email record...");
+        const [newUnpaidUserEmail] = await tx
+          .insert(unpaidUserEmails)
+          .values({
+            sessionId,
+            email,
+            quizData,
+            expiresAt,
+          })
+          .returning();
 
-      console.log(
-        "Successfully stored unpaid user email:",
-        newUnpaidUserEmail?.id,
-      );
-      return newUnpaidUserEmail;
+        console.log(
+          "Successfully stored unpaid user email:",
+          newUnpaidUserEmail?.id,
+        );
+        return newUnpaidUserEmail;
+      });
     } catch (error) {
       console.error("Error in storeUnpaidUserEmail:", error);
       console.error(
