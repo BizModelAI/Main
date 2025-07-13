@@ -598,7 +598,7 @@ export class DatabaseStorage implements IStorage {
   async getUnpaidUserEmail(
     sessionId: string,
   ): Promise<UnpaidUserEmail | undefined> {
-    const [email] = await db
+    const [email] = await this.ensureDb()
       .select()
       .from(unpaidUserEmails)
       .where(eq(unpaidUserEmails.sessionId, sessionId));
