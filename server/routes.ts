@@ -11,9 +11,9 @@ import { users, unpaidUserEmails } from "../shared/schema.js";
 import { sql } from "drizzle-orm";
 import Stripe from "stripe";
 import {
-  PayPalApi,
+  Client,
+  Environment,
   OrdersController,
-  paymentsApi,
 } from "@paypal/paypal-server-sdk";
 
 // Simple rate limiter for OpenAI requests
