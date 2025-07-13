@@ -6,6 +6,9 @@ import { pdfService } from "./services/pdfService.js";
 import { emailService } from "./services/emailService.js";
 import { aiScoringService } from "./services/aiScoringService.js";
 import { personalityAnalysisService } from "./services/personalityAnalysisService.js";
+import { db } from "./db.js";
+import { users, unpaidUserEmails } from "../shared/schema.js";
+import { sql } from "drizzle-orm";
 import Stripe from "stripe";
 
 const stripe = process.env.STRIPE_SECRET_KEY
