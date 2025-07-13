@@ -542,6 +542,9 @@ const QuizWithNavigation: React.FC<{
     console.log("Returning to quiz");
     setShowCongratulations(false);
     setQuizData(null);
+    // Reset congratulations tracking for next quiz completion
+    setCongratulationsShown(false);
+    localStorage.setItem("congratulationsShown", "false");
     // Stay on current page (quiz)
   };
 
