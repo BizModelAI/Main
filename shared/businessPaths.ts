@@ -583,7 +583,7 @@ export const businessPaths: BusinessPath[] = [
       "Operations",
       "Reliability",
     ],
-    icon: "Home",
+    icon: "MapPin",
     marketSize: "Local services market worth $500B+ in US",
     averageIncome: {
       beginner: "$1K-3K/month",
