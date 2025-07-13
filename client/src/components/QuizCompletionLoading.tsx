@@ -145,21 +145,40 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
       let aiInsightsPromise: Promise<any> | null = null;
 
       // Start AI insights generation immediately
-      aiInsightsPromise = generateAIInsights();
+      let aiCompleted = false;
+      aiInsightsPromise = generateAIInsights()
+        .then((result) => {
+          aiCompleted = true;
+          console.log("AI insights generated:", result ? "Success" : "Failed");
+          return result;
+        })
+        .catch((error) => {
+          aiCompleted = true;
+          console.error("Error in AI generation:", error);
+          return null;
+        });
 
       // Smooth progress animation using requestAnimationFrame
       let animationFrame: number;
-      const progressStartTime = Date.now();
 
       const animateProgress = () => {
-        const elapsed = Date.now() - progressStartTime;
-        const baseProgress = Math.min((elapsed / minimumDuration) * 100, 100);
+        const elapsed = Date.now() - startTime;
+
+        // Calculate progress: 80% for time passage, 20% for AI completion
+        const timeProgress = Math.min((elapsed / minimumDuration) * 80, 80);
+        const aiProgress = aiCompleted ? 20 : 0;
+        const totalProgress = timeProgress + aiProgress;
+
+        // Only allow 100% when both conditions are met
+        const maxProgress =
+          elapsed >= minimumDuration && aiCompleted ? 100 : 95;
+        const currentProgress = Math.min(totalProgress, maxProgress);
 
         // Smooth easing function for natural progression
         const easedProgress =
-          baseProgress < 100
-            ? baseProgress -
-              ((Math.cos((baseProgress * Math.PI) / 100) - 1) / 2) * 3
+          currentProgress < 100
+            ? currentProgress -
+              ((Math.cos((currentProgress * Math.PI) / 100) - 1) / 2) * 2
             : 100;
 
         setProgress(easedProgress);
@@ -178,7 +197,8 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           );
         }
 
-        if (baseProgress < 100) {
+        // Continue animation until we reach the final state
+        if (currentProgress < maxProgress) {
           animationFrame = requestAnimationFrame(animateProgress);
         }
       };
