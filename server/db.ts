@@ -52,3 +52,5 @@ Promise.race([
   });
 
 export const db = drizzle({ client: pool, schema });
+
+console.log("Database module loaded successfully");
