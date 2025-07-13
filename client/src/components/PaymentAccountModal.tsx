@@ -62,15 +62,13 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
   // Handle browser close/refresh during payment step
   useEffect(() => {
-    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (step === "payment" && user) {
+        // Show warning to user but don't attempt async operations
+        // Temporary accounts will expire automatically on the server
         e.preventDefault();
-        e.returnValue = "";
-        try {
-          await deleteAccount();
-        } catch (error) {
-          console.error("Error deleting account on page close:", error);
-        }
+        e.returnValue =
+          "Are you sure you want to leave? Your payment process will be cancelled.";
       }
     };
 
@@ -81,7 +79,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [step, user, deleteAccount]);
+  }, [step, user]);
 
   if (!isOpen) return null;
 
