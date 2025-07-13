@@ -4,6 +4,8 @@ import "dotenv/config";
 import express from "express";
 import { storage } from "./storage.js";
 import { registerRoutes } from "./routes.js";
+import { setupAuthRoutes } from "./auth.js";
+import { setupVite, serveStatic, log } from "./vite.js";
 
 const app = express();
 const port = 5000;
