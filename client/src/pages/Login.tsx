@@ -168,12 +168,12 @@ const Login: React.FC = () => {
 
         {/* Forgot Password Link */}
         <div className="mt-6 text-center">
-          <a
-            href="/forgot-password"
+          <button
+            onClick={() => navigate("/forgot-password")}
             className="text-sm text-gray-600 hover:text-gray-800 underline"
           >
             Forgot your password or username?
-          </a>
+          </button>
         </div>
 
         {/* Footer */}
