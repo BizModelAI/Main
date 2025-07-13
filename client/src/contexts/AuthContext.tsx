@@ -226,9 +226,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return null;
 
     try {
-      const response = await fetch("/api/auth/latest-quiz-data", {
+      const url = "/api/auth/latest-quiz-data";
+      console.log("Making request to:", url);
+      console.log("Current window.location:", window.location.href);
+
+      const response = await fetch(url, {
         credentials: "include",
       });
+
+      console.log("Response URL:", response.url);
+      console.log("Response status:", response.status);
 
       if (response.ok) {
         const quizData = await response.json();
