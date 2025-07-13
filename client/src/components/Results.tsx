@@ -537,9 +537,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     const topPath = personalizedPaths[0];
     if (!topPath) {
       return {
-        overallScore: 75,
+        fullAnalysis:
+          "Complete your business assessment to get personalized insights and recommendations.",
         keyInsights: [
           "Complete your business assessment to get personalized insights",
+        ],
+        personalizedRecommendations: [
+          "Take the quiz to discover your personalized recommendations",
         ],
         successPredictors: ["Take the quiz to discover your success factors"],
         riskFactors: ["Assessment required for risk analysis"],
