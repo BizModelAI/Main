@@ -345,19 +345,27 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             // No loading needed!
             setIsGeneratingAI(false);
             return;
+          } else {
+            console.log(
+              "❌ Pre-generated data validation failed - falling back to fresh generation",
+            );
           }
         } catch (parseError) {
-          console.error("Error parsing pre-generated AI content:", parseError);
+          console.error(
+            "❌ Error parsing pre-generated AI content:",
+            parseError,
+          );
         }
 
         // Clean up invalid or incomplete data
+        console.log("🧹 Cleaning up invalid pre-generated data");
         localStorage.removeItem("quiz-completion-ai-insights");
+      } else {
+        console.log("❌ No pre-generated data found in localStorage");
       }
 
       // Fallback: Generate fresh AI content if no valid pre-generated data
-      console.log(
-        "No valid pre-generated insights found, generating fresh AI content...",
-      );
+      console.log("🔄 Starting fresh AI content generation...");
       console.log(
         "Top business model being passed to AI:",
         paths[0]?.name,
