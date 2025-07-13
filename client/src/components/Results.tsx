@@ -1252,9 +1252,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
                               <div className="text-center">
                                 <button
-                                  onClick={() =>
-                                    handleLearnMore(personalizedPaths[0])
-                                  }
+                                  onClick={() => {
+                                    const topPath = personalizedPaths[0];
+                                    if (topPath) {
+                                      handleLearnMore(topPath);
+                                    }
+                                  }}
                                   className="text-white hover:text-gray-300 font-medium text-lg transition-all duration-300 inline-flex items-center group"
                                 >
                                   <span>
