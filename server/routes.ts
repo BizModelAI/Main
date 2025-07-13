@@ -1056,8 +1056,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           parseInt(retakesGranted) || 5,
         );
 
-        // Clean up temporary data
-        await storage.deleteUnpaidUserEmail(sessionId);
+        // Temporary data cleanup happens automatically via expiration
 
         console.log(
           `PayPal payment completed: ${paymentType} for temporary user converted to user ${user.id}`,
