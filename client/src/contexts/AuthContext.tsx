@@ -158,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         // Ensure the exact error message is preserved for frontend handling
-        const error = new Error(errorMessage);
+        const error = new Error(errorMessage) as any;
         error.status = response.status;
         throw error;
       }
