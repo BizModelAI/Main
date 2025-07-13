@@ -645,7 +645,7 @@ export class DatabaseStorage implements IStorage {
     token: string,
     expiresAt: Date,
   ): Promise<PasswordResetToken> {
-    const [resetToken] = await db
+    const [resetToken] = await this.ensureDb()
       .insert(passwordResetTokens)
       .values({
         userId,
