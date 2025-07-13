@@ -156,7 +156,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             parseError,
           }); // Debug log
         }
-        throw new Error(errorMessage);
+
+        // Ensure the exact error message is preserved for frontend handling
+        const error = new Error(errorMessage);
+        error.status = response.status;
+        throw error;
       }
 
       const data = await response.json();
