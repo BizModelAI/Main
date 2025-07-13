@@ -154,7 +154,13 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       const isUserExistsError =
         errorMessage.includes("user already exists") ||
         errorMessage.includes("already exists") ||
-        errorMessage === "user already exists";
+        errorMessage === "user already exists" ||
+        // Handle exact server error message
+        errorMessage === "user already exists" ||
+        // Handle more variations
+        errorMessage.includes("email already") ||
+        errorMessage.includes("account already") ||
+        errorMessage.includes("email is already");
 
       if (isUserExistsError) {
         console.log(
