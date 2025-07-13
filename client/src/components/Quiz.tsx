@@ -861,15 +861,20 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
                       <button
                         key={index}
                         onClick={() => handleOptionSelect(option.value)}
-                        className={`w-full p-4 rounded-xl border-2 text-center transition-all duration-300 ${
+                        className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-300 ${
                           formData[currentStepData.field] === option.value
                             ? "border-blue-500 bg-blue-50 shadow-lg"
                             : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
                         }`}
                       >
-                        <div className="font-bold text-gray-900 text-lg">
+                        <div className="font-bold text-gray-900 text-base mb-1">
                           {option.label}
                         </div>
+                        {option.description && (
+                          <div className="text-gray-600 text-sm">
+                            {option.description}
+                          </div>
+                        )}
                       </button>
                     ))}
                   </div>
