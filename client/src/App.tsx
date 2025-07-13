@@ -469,8 +469,15 @@ const QuizWithNavigation: React.FC<{
     console.log("Congratulations complete, navigating to results");
     if (email) {
       setUserEmail(email);
+      localStorage.setItem("userEmail", email);
     }
     setShowCongratulations(false);
+
+    // Store quiz data before navigation
+    if (quizData) {
+      localStorage.setItem("quizData", JSON.stringify(quizData));
+    }
+
     navigate("/results");
   };
 
