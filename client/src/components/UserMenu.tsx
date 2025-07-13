@@ -92,11 +92,6 @@ const UserMenu: React.FC = () => {
         aria-haspopup="true"
       >
         <User className="h-5 w-5" />
-        {user && (
-          <span className="hidden sm:inline">
-            {user.name?.split(" ")[0] || user.username}
-          </span>
-        )}
       </button>
 
       {/* Dropdown Menu */}
