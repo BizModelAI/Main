@@ -51,6 +51,15 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   if (!isOpen) return null;
 
   const getContent = () => {
+    // If this is a retake payment, show different messaging
+    if (isRetakePayment) {
+      return {
+        title: "Get 4 More Quiz Attempts",
+        subtitle:
+          "Continue exploring your personality with 4 additional attempts for $4.99",
+      };
+    }
+
     switch (type) {
       case "business-model":
         return {
