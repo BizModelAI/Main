@@ -414,7 +414,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<void> {
-    await db.transaction(async (tx) => {
+    await this.ensureDb().transaction(async (tx) => {
       // Delete quiz attempts first (due to foreign key constraints)
       await tx.delete(quizAttempts).where(eq(quizAttempts.userId, id));
 
