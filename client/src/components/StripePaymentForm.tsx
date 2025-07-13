@@ -135,7 +135,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between">
           <span className="font-medium text-blue-900">Total:</span>
           <span className="text-2xl font-bold text-blue-900">$9.99</span>
@@ -149,7 +149,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Card Information
         </label>
-        <div className="border border-gray-300 rounded-lg p-4 bg-white">
+        <div className="border border-gray-300 rounded-xl p-4 bg-white">
           <CardElement options={cardElementOptions} />
         </div>
       </div>
@@ -157,7 +157,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
       <button
         type="submit"
         disabled={!stripe || isProcessing || !clientSecret}
-        className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center shadow-lg"
       >
         {isProcessing ? (
           <>
