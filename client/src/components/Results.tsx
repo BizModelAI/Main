@@ -1470,28 +1470,28 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       {/* Key Metrics in compact grid */}
                       <div className="grid grid-cols-2 gap-2 md:gap-3 mb-4 md:mb-6">
                         <div
-                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-3`}
+                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-2 md:p-3`}
                         >
                           <div className="flex items-center mb-1">
-                            <Clock className="h-4 w-4 text-gray-500 mr-1" />
+                            <Clock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 mr-1" />
                             <span className="text-xs font-medium text-gray-700">
                               Time to Profit
                             </span>
                           </div>
-                          <div className="font-bold text-gray-900 text-sm">
+                          <div className="font-bold text-gray-900 text-xs md:text-sm">
                             {path.timeToProfit}
                           </div>
                         </div>
                         <div
-                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-3`}
+                          className={`${index === 0 ? "bg-white" : "bg-gray-50"} rounded-xl p-2 md:p-3`}
                         >
                           <div className="flex items-center mb-1">
-                            <DollarSign className="h-4 w-4 text-gray-500 mr-1" />
+                            <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-gray-500 mr-1" />
                             <span className="text-xs font-medium text-gray-700">
                               Startup Cost
                             </span>
                           </div>
-                          <div className="font-bold text-gray-900 text-sm">
+                          <div className="font-bold text-gray-900 text-xs md:text-sm">
                             {path.startupCost}
                           </div>
                         </div>
@@ -1534,11 +1534,11 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                     </div>
 
                     {/* Right Column - Score & Highlights */}
-                    <div className="w-48 flex flex-col">
+                    <div className="md:w-48 flex flex-col md:flex-col w-full">
                       {/* Fit Score */}
-                      <div className="text-center mb-6">
+                      <div className="text-center mb-4 md:mb-6">
                         <div
-                          className={`text-5xl font-bold mb-1 ${
+                          className={`text-3xl md:text-5xl font-bold mb-1 ${
                             index === 0 ? "text-yellow-600" : "text-blue-600"
                           }`}
                         >
@@ -1550,14 +1550,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       </div>
 
                       {/* Potential Income */}
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 md:p-4 mb-4 md:mb-6">
                         <div className="flex items-center mb-2">
-                          <TrendingUp className="h-4 w-4 text-green-600 mr-2" />
-                          <span className="text-sm font-medium text-green-800">
+                          <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-green-600 mr-2" />
+                          <span className="text-xs md:text-sm font-medium text-green-800">
                             Potential Income
                           </span>
                         </div>
-                        <div className="text-xl font-bold text-green-700">
+                        <div className="text-lg md:text-xl font-bold text-green-700">
                           {path.potentialIncome}
                         </div>
                       </div>
