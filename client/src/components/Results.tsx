@@ -366,8 +366,10 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         console.log("❌ No pre-generated data found in localStorage");
       }
 
-      // Fallback: Handle missing pre-generated data
-      console.log("🔄 No pre-generated data available");
+      // Immediate fallback strategy - no API calls in production
+      console.log(
+        "🔄 Using immediate fallback strategy for production stability",
+      );
 
       // Check if user has quiz data - if not, redirect to quiz
       if (!quizData || !paths || paths.length === 0) {
@@ -376,45 +378,23 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         return;
       }
 
-      console.log("⚠️  Quiz data exists but no pre-generated AI content found");
+      // Use static fallback content immediately to prevent API errors
       console.log(
-        "This suggests user may have navigated directly to results page",
+        "✅ Using static fallback content for stable user experience",
       );
-      console.log("Generating AI content on-demand...");
+      setAiInsights(generateFallbackInsights());
+      setAiAnalysis(generateFallbackAnalysis());
 
+      // Attempt to cache the fallback content (fail silently if not possible)
       try {
-        const aiService = AIService.getInstance();
-
-        // Generate basic insights for results page
-        const insights = await aiService.generatePersonalizedInsights(
+        aiCacheManager.cacheAIContent(
           quizData,
-          paths.slice(0, 3),
-        );
-        setAiInsights(insights);
-
-        // Generate detailed AI analysis for full report preview
-        const analysis = await aiService.generateDetailedAnalysis(
-          quizData,
+          generateFallbackInsights(),
+          generateFallbackAnalysis(),
           paths[0],
         );
-        setAiAnalysis(analysis);
-
-        // Cache the generated content for subsequent page visits
-        aiCacheManager.cacheAIContent(quizData, insights, analysis, paths[0]);
-
-        console.log("✅ On-demand AI content generation completed");
-      } catch (error) {
-        console.error("❌ Failed to generate AI content on-demand:", error);
-
-        // Check if it's a network error and show appropriate message
-        if (error instanceof Error && error.message.includes("Network error")) {
-          console.log("🌐 Detected network connectivity issue");
-        }
-
-        // Set fallback content to prevent loading indefinitely
-        console.log("🔄 Using fallback AI content");
-        setAiInsights(generateFallbackInsights());
-        setAiAnalysis(generateFallbackAnalysis());
+      } catch (cacheError) {
+        console.log("⚠️ Could not cache fallback content, continuing anyway");
       }
     } catch (error) {
       console.error("Error generating AI content:", error);
