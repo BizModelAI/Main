@@ -141,9 +141,10 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       setStep("payment");
     } catch (err: any) {
       console.log("Signup error:", err.message); // Debug log
+      const errorMessage = err.message?.toLowerCase() || "";
       if (
-        err.message === "User already exists" ||
-        err.message?.includes("User already exists")
+        errorMessage.includes("user already exists") ||
+        errorMessage.includes("already exists")
       ) {
         setLoginEmail(formData.email);
         setStep("login");
