@@ -487,6 +487,8 @@ export const EnhancedPaymentWrapper: React.FC<EnhancedPaymentWrapperProps> = (
     clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
     currency: "USD",
     intent: "capture",
+    "enable-funding": "venmo,paylater",
+    "disable-funding": "credit,card",
   };
 
   return (
