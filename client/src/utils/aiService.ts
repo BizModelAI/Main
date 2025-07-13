@@ -375,30 +375,56 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     prompt: string,
     maxTokens: number = 200,
     temperature: number = 0.7,
+    retries: number = 3,
   ): Promise<string> {
-    try {
-      const response = await fetch("/api/openai-chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt,
-          maxTokens,
-          temperature,
-        }),
-      });
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        console.log(`🔄 Making OpenAI request (attempt ${attempt}/${retries})`);
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        const response = await fetch("/api/openai-chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt,
+            maxTokens,
+            temperature,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => "Unknown error");
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log(`✅ OpenAI request successful on attempt ${attempt}`);
+        return data.content || "";
+      } catch (error) {
+        console.error(
+          `❌ OpenAI API request failed (attempt ${attempt}/${retries}):`,
+          error,
+        );
+
+        if (attempt === retries) {
+          // Final attempt failed, check if it's a network error
+          if (error.message.includes("Failed to fetch")) {
+            throw new Error(
+              "Network error: Unable to connect to API. Please check your internet connection and try again.",
+            );
+          }
+          throw error;
+        }
+
+        // Wait before retrying (exponential backoff)
+        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+        console.log(`⏳ Waiting ${delay}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
-
-      const data = await response.json();
-      return data.content || "";
-    } catch (error) {
-      console.error("OpenAI API request failed:", error);
-      throw error;
     }
+
+    throw new Error("All retry attempts failed");
   }
 
   private async generateAISuccessPredictors(
