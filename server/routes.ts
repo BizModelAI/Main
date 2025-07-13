@@ -623,18 +623,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing userId or sessionId" });
       }
 
-      // Create Stripe Payment Intent for $9.99 access pass
+      // Determine payment amount and type
+      let amount, retakesGranted, paymentType, description;
+
+      if (!isTemporaryUser && userId) {
+        const user = await storage.getUser(parseInt(userId));
+        if (user && user.hasAccessPass) {
+          // User has access but needs more retakes - $4.99
+          amount = 499; // $4.99 in cents
+          retakesGranted = "4";
+          paymentType = "retakes";
+          description = "BizModelAI Quiz Retakes - 4 additional attempts";
+        } else {
+          // New user needs full access - $9.99
+          amount = 999; // $9.99 in cents
+          retakesGranted = "5";
+          paymentType = "access_pass";
+          description = "BizModelAI Access Pass - Unlock all features";
+        }
+      } else {
+        // Temporary user always gets full access - $9.99
+        amount = 999; // $9.99 in cents
+        retakesGranted = "5";
+        paymentType = "access_pass";
+        description = "BizModelAI Access Pass - Unlock all features";
+      }
+
+      // Create Stripe Payment Intent
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 999, // $9.99 in cents
+        amount,
         currency: "usd",
         metadata: {
           userIdentifier,
-          type: "access_pass",
-          retakesGranted: "5",
+          type: paymentType,
+          retakesGranted,
           isTemporaryUser: isTemporaryUser.toString(),
           sessionId: sessionId || "",
         },
-        description: "BizModelAI Access Pass - Unlock all features",
+        description,
       });
 
       // For temporary users, we don't create a payment record yet
