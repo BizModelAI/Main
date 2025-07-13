@@ -1042,7 +1042,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             {/* Back Button - Bottom Left Corner */}
             {currentStep > 0 && (
               <motion.div
-                className="absolute bottom-8 left-8"
+                className="absolute bottom-4 left-4 md:bottom-8 md:left-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.9 }}
