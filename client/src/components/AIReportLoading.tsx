@@ -500,31 +500,12 @@ Return JSON format:
         });
         currentResults = { ...currentResults, ...step5Result };
 
-        // Step 6: Generate personalized insights
+        // Step 6: Finalize report
         const step6Result = await executeStep(5, async () => {
-          // Get the cached AI analysis that was already generated
-          const { aiCacheManager } = await import("../utils/aiCacheManager");
-          const cachedData = aiCacheManager.getCachedAIContent(activeQuizData);
-
-          // Use the fullAnalysis from the cached data, or generate fallback content
-          const insights =
-            cachedData.analysis?.fullAnalysis ||
-            `Your assessment reveals strong alignment with ${(currentResults as any).personalizedPaths?.[0]?.name || "your top business match"}. Your ${activeQuizData.selfMotivationLevel >= 4 ? "high" : "moderate"} self-motivation level and ${activeQuizData.weeklyTimeCommitment} hours per week commitment create a solid foundation for this business model.
-
-Based on your ${activeQuizData.riskComfortLevel}/5 risk tolerance and ${activeQuizData.techSkillsRating}/5 tech skills, you're well-positioned to navigate the challenges of this business path. Your ${activeQuizData.learningPreference} learning style will help you adapt to the requirements of this field.
-
-With your income goal of ${activeQuizData.successIncomeGoal} per month and ${activeQuizData.firstIncomeTimeline} timeline, this path offers realistic potential for achieving your financial objectives while aligning with your personal strengths and preferences.`;
-
-          return {};
-        });
-        currentResults = { ...currentResults, ...step6Result };
-
-        // Step 7: Finalize report
-        const step7Result = await executeStep(6, async () => {
           await new Promise((resolve) => setTimeout(resolve, 1500));
           return { reportFinalized: true };
         });
-        currentResults = { ...currentResults, ...step7Result };
+        currentResults = { ...currentResults, ...step6Result };
 
         // Ensure minimum 10 seconds duration
         const elapsedTime = Date.now() - startTime;
@@ -612,7 +593,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
           setProgress(Math.round(currentProgress));
         }
       },
-      (loadingSteps[stepIndex].estimatedTime * 1000) / progressRange,
+      ((steps[stepIndex]?.estimatedTime || 3) * 1000) / progressRange,
     ); // Distribute time evenly across the progress range
 
     try {
