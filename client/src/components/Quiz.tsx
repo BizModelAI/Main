@@ -468,7 +468,7 @@ const ExitWarningModal: React.FC<ExitWarningModalProps> = ({
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50"></div>
 
-        <div className="relative p-8 py-12">
+        <div className="relative p-4 py-8 md:p-8 md:py-12">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -497,12 +497,12 @@ const ExitWarningModal: React.FC<ExitWarningModalProps> = ({
             transition={{ duration: 0.5, delay: 0.4 }}
             className="text-center mb-10"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+            <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
               Are you sure you want to exit?
             </h2>
 
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
-              <p className="text-lg font-semibold text-red-800 mb-2">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 md:p-6 mb-6 md:mb-8">
+              <p className="text-base md:text-lg font-semibold text-red-800 mb-2">
                 ⚠️ You will lose all progress!
               </p>
               <p className="text-red-700">
