@@ -533,7 +533,7 @@ export const EnhancedPaymentWrapper: React.FC<EnhancedPaymentWrapperProps> = (
   props,
 ) => {
   const paypalOptions = {
-    "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
+    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
     currency: "USD",
     intent: "capture",
   };
