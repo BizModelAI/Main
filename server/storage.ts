@@ -471,7 +471,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
-    await db
+    await this.ensureDb()
       .update(users)
       .set({
         quizRetakesRemaining: sql`${users.quizRetakesRemaining} - 1`,
