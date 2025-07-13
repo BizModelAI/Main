@@ -424,10 +424,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     }
   };
 
-  // Generate AI content when personalized paths are loaded
+  // Immediately set fallback content when personalized paths are loaded (no API calls)
   useEffect(() => {
     if (personalizedPaths.length > 0) {
-      generateAIContent(personalizedPaths);
+      console.log(
+        "🚀 Setting fallback AI content immediately (no API calls in production)",
+      );
+      setAiInsights(generateFallbackInsights());
+      setAiAnalysis(generateFallbackAnalysis());
+      setIsGeneratingAI(false);
     }
   }, [personalizedPaths]);
 
