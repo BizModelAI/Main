@@ -404,7 +404,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       } catch (error) {
         console.error("❌ Failed to generate AI content on-demand:", error);
 
+        // Check if it's a network error and show appropriate message
+        if (error.message && error.message.includes("Network error")) {
+          console.log("🌐 Detected network connectivity issue");
+        }
+
         // Set fallback content to prevent loading indefinitely
+        console.log("🔄 Using fallback AI content");
         setAiInsights(generateFallbackInsights());
         setAiAnalysis(generateFallbackAnalysis());
       }
