@@ -111,6 +111,7 @@ export class MemStorage implements IStorage {
       hasAccessPass: false,
       quizRetakesRemaining: 0,
       totalQuizRetakesUsed: 0,
+      isUnsubscribed: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
