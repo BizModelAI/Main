@@ -26,10 +26,14 @@ const Settings: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
   >("idle");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "account", label: "Account", icon: Trash2 },
   ];
 
   const handleProfileSave = async () => {
