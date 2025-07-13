@@ -854,7 +854,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           backgroundColor:
                             fitCategory === "Possible Fit" ||
                             fitCategory === "Poor Fit"
-                              ? "rgba(254, 226, 226, 0.8)" // red-50 with transparency
+                              ? "rgba(239, 68, 68, 0.1)" // red with low opacity for transparency
                               : undefined,
                         }}
                       >
