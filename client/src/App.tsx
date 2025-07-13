@@ -337,6 +337,8 @@ const QuizCompletionLoadingWrapper: React.FC<{
   const handleLoadingComplete = () => {
     console.log("Quiz completion loading complete, showing congratulations");
     setShowCongratulations(true);
+    // Navigate back to quiz route where congratulations popup will be handled
+    navigate("/quiz");
   };
 
   if (!quizData) {
@@ -351,7 +353,6 @@ const QuizCompletionLoadingWrapper: React.FC<{
         quizData={quizData}
         onComplete={handleLoadingComplete}
       />
-      {/* Note: Congratulations popup will be handled by the main QuizWithNavigation component */}
     </div>
   );
 };
