@@ -1238,9 +1238,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                             {/* CTAs - Only show when unlocked */}
                             <div className="mt-8 space-y-4">
                               <button
-                                onClick={() =>
-                                  handleViewFullReport(personalizedPaths[0])
-                                }
+                                onClick={() => {
+                                  const topPath = personalizedPaths[0];
+                                  if (topPath) {
+                                    handleViewFullReport(topPath);
+                                  }
+                                }}
                                 className="w-full bg-white text-purple-600 border-2 border-purple-600 py-4 rounded-xl font-bold text-lg hover:bg-purple-50 hover:border-purple-700 hover:text-purple-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
                               >
                                 <FileText className="h-5 w-5 mr-2 inline" />
