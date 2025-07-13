@@ -547,10 +547,6 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         ],
         successPredictors: ["Take the quiz to discover your success factors"],
         riskFactors: ["Assessment required for risk analysis"],
-        recommendations: ["Please complete the quiz first"],
-        timeline: ["Assessment needed"],
-        personalizedAdvice:
-          "Complete your quiz to receive personalized advice tailored to your goals and preferences.",
       };
     }
     return {
