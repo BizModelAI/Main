@@ -4,10 +4,15 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { createServer } from "http";
+console.log("✓ Express loaded");
 import { registerRoutes } from "./routes.js";
+console.log("✓ Routes loaded");
 import { setupAuthRoutes } from "./auth.js";
+console.log("✓ Auth loaded");
 import { setupVite, serveStatic, log } from "./vite.js";
+console.log("✓ Vite loaded");
 import { storage } from "./storage.js";
+console.log("✓ Storage loaded");
 
 const MemoryStoreSession = MemoryStore(session);
 
