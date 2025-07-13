@@ -188,6 +188,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const deleteAccount = async (): Promise<void> => {
+    if (!user) {
+      throw new Error("No user logged in");
+    }
+
+    try {
+      const response = await fetch("/api/auth/account", {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Account deletion failed";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (parseError) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Clear user state after successful deletion
+      setUser(null);
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
     if (!user) return;
 
