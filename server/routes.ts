@@ -1030,14 +1030,17 @@ export async function registerRoutes(app: Express): Promise<void> {
           throw new Error("Temporary user data not found");
         }
 
+        // Extract signup data from tempData.quizData (which contains signup info)
+        const signupData = tempData.quizData as any;
+
         // Create the actual user account
         const user = await storage.createUser({
-          username: tempData.name,
+          username: signupData.name || "PayPal User",
           email: tempData.email,
-          passwordHash: tempData.passwordHash,
+          password: signupData.passwordHash || "",
           quizRetakesRemaining: parseInt(retakesGranted) || 5,
           hasAccessPass: true,
-          signupData: tempData.quizData,
+          signupData: signupData.quizData || tempData.quizData,
         });
 
         // Create payment record
