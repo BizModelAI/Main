@@ -679,16 +679,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                   setIsProcessing={setIsProcessing}
                 />
 
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setStep("account")}
-                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    Back
-                  </button>
-                </div>
-
                 {/* Dev Bypass Button for payment step too */}
                 {import.meta.env.MODE === "development" && (
                   <button
