@@ -45,7 +45,8 @@ export class AIScoringService {
   ): Promise<ComprehensiveFitAnalysis> {
     try {
       if (!openai) {
-        throw new Error("OpenAI API key not configured");
+        console.error("OpenAI API key not configured, using fallback analysis");
+        return this.fallbackAnalysis(quizData);
       }
 
       const prompt = this.buildAnalysisPrompt(quizData);
@@ -69,11 +70,20 @@ export class AIScoringService {
       });
 
       const content = response.choices[0].message.content;
-      if (!content) throw new Error("No content in AI response");
+      if (!content) {
+        console.error("No content in AI response, using fallback");
+        return this.fallbackAnalysis(quizData);
+      }
+
       const analysis = JSON.parse(content);
       return this.processAnalysis(analysis);
     } catch (error) {
-      console.error("AI Scoring Service Error:", error);
+      console.error("AI Scoring Service Error:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+        hasOpenAI: !!openai,
+        hasApiKey: !!process.env.OPENAI_API_KEY,
+      });
       // Fallback to enhanced algorithmic scoring
       return this.fallbackAnalysis(quizData);
     }
