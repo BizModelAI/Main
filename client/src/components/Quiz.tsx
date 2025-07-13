@@ -806,51 +806,73 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
             >
               {currentStepData.type === "scale" ? (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center px-4">
-                    <span className="text-sm font-medium text-gray-500">
-                      Low
-                    </span>
-                    <span className="text-sm font-medium text-gray-500">
-                      High
-                    </span>
+                  {/* Desktop Layout - hidden on mobile */}
+                  <div className="hidden md:block">
+                    <div className="flex justify-between items-center px-4">
+                      <span className="text-sm font-medium text-gray-500">
+                        Low
+                      </span>
+                      <span className="text-sm font-medium text-gray-500">
+                        High
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-3 mt-6">
+                      {currentStepData.options?.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleOptionSelect(option.value)}
+                          className={`p-3 py-4 rounded-2xl border-2 text-center transition-all duration-300 hover:scale-105 min-h-[90px] flex flex-col justify-center ${
+                            formData[currentStepData.field] === option.value
+                              ? "border-blue-500 bg-blue-50 shadow-xl transform scale-110"
+                              : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
+                          }`}
+                        >
+                          <div className="text-2xl font-bold text-gray-900 mb-2">
+                            {option.value}
+                          </div>
+                          <div className="text-xs text-gray-600 font-medium leading-tight">
+                            {option.label}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {formData[currentStepData.field] && (
+                      <motion.div
+                        className="text-center p-4 bg-blue-50 rounded-xl mt-6"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <p className="text-blue-800 font-medium">
+                          {
+                            currentStepData.options?.find(
+                              (opt) =>
+                                opt.value === formData[currentStepData.field],
+                            )?.description
+                          }
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-5 gap-3">
+
+                  {/* Mobile Layout - visible only on mobile */}
+                  <div className="md:hidden space-y-3">
                     {currentStepData.options?.map((option, index) => (
                       <button
                         key={index}
                         onClick={() => handleOptionSelect(option.value)}
-                        className={`p-3 py-4 rounded-2xl border-2 text-center transition-all duration-300 hover:scale-105 min-h-[90px] flex flex-col justify-center ${
+                        className={`w-full p-4 rounded-xl border-2 text-center transition-all duration-300 ${
                           formData[currentStepData.field] === option.value
-                            ? "border-blue-500 bg-blue-50 shadow-xl transform scale-110"
+                            ? "border-blue-500 bg-blue-50 shadow-lg"
                             : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/50"
                         }`}
                       >
-                        <div className="text-2xl font-bold text-gray-900 mb-2">
-                          {option.value}
-                        </div>
-                        <div className="text-xs text-gray-600 font-medium leading-tight">
+                        <div className="font-bold text-gray-900 text-lg">
                           {option.label}
                         </div>
                       </button>
                     ))}
                   </div>
-                  {formData[currentStepData.field] && (
-                    <motion.div
-                      className="text-center p-4 bg-blue-50 rounded-xl"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <p className="text-blue-800 font-medium">
-                        {
-                          currentStepData.options?.find(
-                            (opt) =>
-                              opt.value === formData[currentStepData.field],
-                          )?.description
-                        }
-                      </p>
-                    </motion.div>
-                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto">
