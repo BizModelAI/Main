@@ -324,7 +324,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           if (isRecent && insights && analysis && complete && !error) {
             console.log(
-              "Using COMPLETE pre-generated AI content from loading page - NO additional API calls needed",
+              "🎉 Using COMPLETE pre-generated AI content - NO additional API calls needed",
             );
 
             // Set both insights and analysis immediately
