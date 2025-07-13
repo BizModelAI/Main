@@ -371,6 +371,9 @@ const AIReportLoadingWrapper: React.FC<{
       "AI loading complete after quiz, checking congratulations tracking",
     );
 
+    // Store loaded report data in localStorage
+    localStorage.setItem("loadedReportData", JSON.stringify(data));
+
     // Check if congratulations was already shown
     const congratulationsShown = localStorage.getItem("congratulationsShown");
     if (!congratulationsShown || congratulationsShown === "false") {
