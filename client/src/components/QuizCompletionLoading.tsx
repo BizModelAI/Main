@@ -93,10 +93,16 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
       const { AIService } = await import("../utils/aiService");
       const aiService = AIService.getInstance();
 
+      // Get top business paths first
+      const { generateAIPersonalizedPaths } = await import(
+        "../utils/quizLogic"
+      );
+      const topPaths = await generateAIPersonalizedPaths(quizData);
+
       // Generate personalized insights
       const insights = await aiService.generatePersonalizedInsights(
         quizData,
-        [], // We'll get top paths during the insights generation
+        topPaths.slice(0, 3), // Use top 3 paths
       );
 
       // Store insights in cache for later use
