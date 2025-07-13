@@ -893,18 +893,18 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   return (
     <>
-      <div className="min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen p-4 md:p-4 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-5xl mx-auto">
           {/* Primary Heading - 30% viewport height */}
           <motion.div
-            className="text-center mb-12 pt-16"
-            style={{ minHeight: "30vh" }}
+            className="text-center mb-8 md:mb-12 pt-8 md:pt-16 px-2 md:px-0"
+            style={{ minHeight: window.innerWidth < 768 ? "25vh" : "30vh" }}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <motion.h1
-              className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-2 md:px-0"
               variants={fadeInUp}
               initial="initial"
               animate="animate"
@@ -922,10 +922,10 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="mt-6 inline-flex items-center bg-green-50 border border-green-200 rounded-full px-6 py-3"
+                className="mt-4 md:mt-6 inline-flex items-center bg-green-50 border border-green-200 rounded-full px-4 md:px-6 py-2 md:py-3 mx-2"
               >
                 <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-green-800 font-medium">
+                <span className="text-green-800 font-medium text-sm md:text-base">
                   Results link sent to {userEmail}
                 </span>
               </motion.div>
@@ -934,7 +934,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           {/* Visual Divider */}
           <motion.div
-            className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-12"
+            className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8 md:mb-12 mx-4 md:mx-0"
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
             transition={{ duration: 1, delay: 0.5 }}
@@ -942,15 +942,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
           {/* Secondary Heading */}
           <motion.div
-            className="text-center mb-8"
+            className="text-center mb-6 md:mb-8 px-4 md:px-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
               Your AI-Powered Business Blueprint
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-2 md:px-0">
               Personalized recommendations based on your unique goals, skills,
               and preferences
             </p>
