@@ -71,17 +71,10 @@ const Login: React.FC = () => {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4">
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets%2F8eb83e4a630e4b8d86715228efeb581b%2F2ba216d8797f4dda8547258818f985d3?format=webp&width=800"
-              alt="BizModelAI Logo"
-              className="w-full h-full object-contain"
-            />
-          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Welcome Back
           </h1>
-          <p className="text-gray-600">Sign in to your Business Path account</p>
+          <p className="text-gray-600">Sign in to BizModelAI</p>
         </div>
 
         {/* Error Message */}
