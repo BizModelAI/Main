@@ -763,7 +763,7 @@ export const businessPaths: BusinessPath[] = [
       "Marketing",
       "Customer support",
     ],
-    icon: "Code",
+    icon: "Monitor",
     marketSize: "Global SaaS market worth $300B+ annually",
     averageIncome: {
       beginner: "$0-2K/month",
