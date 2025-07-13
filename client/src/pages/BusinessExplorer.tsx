@@ -365,19 +365,6 @@ const BusinessModelCard = ({
 }) => {
   const [showAllSkills, setShowAllSkills] = useState(false);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-100 text-green-800";
-      case "Intermediate":
-        return "bg-yellow-100 text-yellow-800";
-      case "Advanced":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getScalabilityColor = (scalability: string) => {
     switch (scalability) {
       case "Low":
@@ -437,18 +424,14 @@ const BusinessModelCard = ({
             {model.title}
           </h3>
           <div className="flex flex-col gap-1 items-end">
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getDifficultyColor(model.difficulty)}`}
-            >
-              {model.difficulty}
-            </span>
-            {/* Fit Badge - Only show if user has paid */}
-            {showFitBadge && fitCategory && getFitCategoryColor && (
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getFitCategoryColor(fitCategory)}`}
-              >
-                {fitCategory} Fit
-              </span>
+            {/* Show fit percentage if user has paid and quiz data exists */}
+            {showFitBadge && fitScore !== undefined && (
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">
+                  {Math.round(fitScore)}%
+                </div>
+                <div className="text-xs text-gray-500">Fit</div>
+              </div>
             )}
           </div>
         </div>
