@@ -68,6 +68,12 @@ export default function UnsubscribePage() {
         </div>
 
         <div className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
           {!isUnsubscribed ? (
             <>
               <div className="flex items-center space-x-3 text-sm text-gray-600">
