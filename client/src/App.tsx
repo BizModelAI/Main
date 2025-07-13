@@ -26,6 +26,7 @@ import PDFReportPage from "./pages/PDFReportPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import AIReportLoading from "./components/AIReportLoading";
+import QuizCompletionLoading from "./components/QuizCompletionLoading";
 
 // Alias for loading page component
 const LoadingPage = AIReportLoading;
@@ -246,6 +247,17 @@ function App() {
               }
             />
 
+            {/* Quiz completion loading page - NEW */}
+            <Route
+              path="/quiz-loading"
+              element={
+                <QuizCompletionLoadingWrapper
+                  quizData={quizData}
+                  setShowCongratulations={setShowCongratulations}
+                />
+              }
+            />
+
             {/* Loading page - separate route */}
             <Route
               path="/loading"
@@ -418,9 +430,10 @@ const QuizWithNavigation: React.FC<{
   const { user } = useAuth();
 
   const handleQuizComplete = (data: QuizData) => {
-    console.log("Quiz completed, showing congratulations");
+    console.log("Quiz completed, navigating to quiz loading page");
     setQuizData(data);
-    setShowCongratulations(true);
+    // Navigate to new loading page instead of showing congratulations immediately
+    navigate("/quiz-loading");
   };
 
   const handleCongratulationsComplete = (email?: string) => {
