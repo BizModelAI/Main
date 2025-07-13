@@ -29,7 +29,7 @@ export async function setupVite(app: Express, server: Server) {
     };
 
     const vite = await createViteServer({
-      configFile: false,
+      configFile: path.resolve(import.meta.dirname, "..", "vite.config.ts"),
       customLogger: {
         ...viteLogger,
         error: (msg, options) => {
@@ -39,10 +39,6 @@ export async function setupVite(app: Express, server: Server) {
       },
       server: serverOptions,
       appType: "custom",
-      root: path.resolve(import.meta.dirname, ".."),
-      build: {
-        outDir: path.resolve(import.meta.dirname, "..", "dist"),
-      },
     });
 
     app.use(vite.middlewares);
