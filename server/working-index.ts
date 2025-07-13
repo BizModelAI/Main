@@ -37,6 +37,12 @@ app.use(
 // Setup authentication routes
 setupAuthRoutes(app);
 
+// Setup server with routes BEFORE Vite middleware
+async function setupApiRoutes() {
+  // Register all API routes first
+  await registerRoutes(app);
+}
+
 // Basic health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running!" });
@@ -113,10 +119,11 @@ const port = 5000;
 // Setup server with routes
 async function setupApp() {
   try {
-    // Register all API routes
-    const server = await registerRoutes(app);
+    // Register all API routes FIRST, before Vite middleware
+    const server = createServer(app);
+    await registerRoutes(app);
 
-    // Setup Vite development server
+    // Setup Vite development server AFTER API routes
     const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
     console.log(
