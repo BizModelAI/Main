@@ -169,9 +169,8 @@ const CreditCardForm: React.FC<{
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Card number
         </label>
-        <div className="relative border border-gray-300 rounded-xl p-3 bg-white">
+        <div className="border border-gray-300 rounded-xl p-3 bg-white">
           <CardElement options={cardElementOptions} />
-          <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
       </div>
 
@@ -325,7 +324,13 @@ const PayPalForm: React.FC<{
           color: "black",
           shape: "rect",
           label: "paypal",
+          fundingSource: undefined,
         }}
+        forceReRender={[
+          {
+            fundingSource: "paypal",
+          },
+        ]}
       />
     </div>
   );
