@@ -423,11 +423,14 @@ export class DatabaseStorage implements IStorage {
   async recordQuizAttempt(
     attempt: Omit<InsertQuizAttempt, "id">,
   ): Promise<QuizAttempt> {
-    const [quizAttempt] = await db
-      .insert(quizAttempts)
-      .values(attempt)
-      .returning();
-    return quizAttempt;
+    // Use transaction for concurrent safety
+    return await db.transaction(async (tx) => {
+      const [quizAttempt] = await tx
+        .insert(quizAttempts)
+        .values(attempt)
+        .returning();
+      return quizAttempt;
+    });
   }
 
   async getQuizAttemptsCount(userId: number): Promise<number> {
