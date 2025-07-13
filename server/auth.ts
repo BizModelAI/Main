@@ -199,7 +199,7 @@ export function setupAuthRoutes(app: Express) {
         isTemporary: true,
       });
     } catch (error) {
-      console.error("Error in /api/auth/signup:", error);
+      console.error("Unexpected error in /api/auth/signup:", error);
       console.error(
         "Error stack:",
         error instanceof Error ? error.stack : "No stack trace",
@@ -208,8 +208,22 @@ export function setupAuthRoutes(app: Express) {
         message: error instanceof Error ? error.message : String(error),
         name: error instanceof Error ? error.name : "Unknown",
         code: (error as any)?.code || "Unknown",
+        body: req.body,
+        sessionID: req.sessionID,
       });
-      res.status(500).json({ error: "Internal server error" });
+
+      // Ensure we return JSON even in unexpected errors
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: "An unexpected error occurred. Please try again.",
+          details:
+            process.env.NODE_ENV === "development"
+              ? error instanceof Error
+                ? error.message
+                : String(error)
+              : undefined,
+        });
+      }
     }
   });
 
