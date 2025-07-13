@@ -1003,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       // Extract custom data from the purchase unit
-      const purchaseUnit = capture.result.purchase_units?.[0];
+      const purchaseUnit = capture.result.purchaseUnits?.[0];
       if (!purchaseUnit?.custom_id) {
         throw new Error("Missing payment metadata");
       }
