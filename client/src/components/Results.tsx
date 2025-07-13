@@ -577,6 +577,23 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   const generateFallbackInsights = (): AIInsights => {
     const topPath = personalizedPaths[0];
+    if (!topPath) {
+      return {
+        personalizedSummary:
+          "Complete your quiz to receive a personalized business analysis.",
+        customRecommendations: ["Take the business assessment quiz"],
+        potentialChallenges: ["Assessment required"],
+        successStrategies: ["Complete quiz first"],
+        personalizedActionPlan: {
+          week1: ["Take business assessment"],
+          month1: ["Complete evaluation"],
+          month3: ["Get personalized plan"],
+          month6: ["Receive detailed roadmap"],
+        },
+        motivationalMessage:
+          "Start your entrepreneurial journey by completing our comprehensive business assessment!",
+      };
+    }
     return {
       personalizedSummary: `Based on your comprehensive assessment, ${topPath?.name || "your top business match"} achieves a ${topPath?.fitScore || 85}% compatibility score with your unique profile.`,
       customRecommendations: [
