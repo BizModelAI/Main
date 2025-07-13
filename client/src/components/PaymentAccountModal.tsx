@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -46,39 +46,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
   const { signup, login, user } = useAuth();
   const { setHasUnlockedAnalysis } = usePaywall();
-
-  // Prevent closing modal after login but before payment to avoid paywall bypass
-  const canCloseModal = () => {
-    // If user is logged in and we're showing login or payment step,
-    // they must complete payment - prevent closing
-    if (user && (step === "login" || step === "payment")) {
-      return false;
-    }
-    return true;
-  };
-
-  const handleClose = () => {
-    if (canCloseModal()) {
-      onClose();
-    }
-  };
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, step, user]);
 
   if (!isOpen) return null;
 
@@ -189,10 +156,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setIsProcessing(true);
     try {
       await login(loginEmail, formData.password);
-
-      // Critical security fix: When logging in through payment modal,
-      // users must complete payment regardless of their existing access status.
-      // This prevents bypassing the paywall by entering existing credentials.
+      // After successful login, always proceed to payment
+      // The user accessed this modal because they want to unlock premium features
+      // Even if they have paid before, they need to pay for this specific unlock
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -279,7 +245,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
-        onClick={handleClose}
+        onClick={onClose}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -295,14 +261,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
           <div className="relative p-6">
             {/* Close button */}
             <button
-              onClick={handleClose}
-              className={`absolute top-4 right-4 transition-colors ${
-                canCloseModal()
-                  ? "text-gray-400 hover:text-gray-600 cursor-pointer"
-                  : "text-gray-300 cursor-not-allowed"
-              }`}
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Close modal"
-              disabled={!canCloseModal()}
             >
               <X className="h-6 w-6" />
             </button>
@@ -506,13 +467,6 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                     An account with this email already exists. Please log in to
                     continue with your purchase.
                   </p>
-                  {user && (
-                    <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <p className="text-xs text-orange-800">
-                        🔒 Payment required to access premium features
-                      </p>
-                    </div>
-                  )}
                 </div>
 
                 <div>
