@@ -659,7 +659,7 @@ export class DatabaseStorage implements IStorage {
   async getPasswordResetToken(
     token: string,
   ): Promise<PasswordResetToken | undefined> {
-    const [resetToken] = await db
+    const [resetToken] = await this.ensureDb()
       .select()
       .from(passwordResetTokens)
       .where(eq(passwordResetTokens.token, token));
