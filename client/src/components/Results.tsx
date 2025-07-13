@@ -535,6 +535,20 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   const generateFallbackAnalysis = (): AIAnalysis => {
     const topPath = personalizedPaths[0];
+    if (!topPath) {
+      return {
+        overallScore: 75,
+        keyInsights: [
+          "Complete your business assessment to get personalized insights",
+        ],
+        successPredictors: ["Take the quiz to discover your success factors"],
+        riskFactors: ["Assessment required for risk analysis"],
+        recommendations: ["Please complete the quiz first"],
+        timeline: ["Assessment needed"],
+        personalizedAdvice:
+          "Complete your quiz to receive personalized advice tailored to your goals and preferences.",
+      };
+    }
     return {
       fullAnalysis: `Based on your comprehensive assessment, ${topPath?.name || "your top business match"} represents an exceptional fit for your unique profile. Your combination of goals, personality traits, and available resources creates a powerful foundation for success in this field. The ${topPath?.fitScore || 85}% compatibility score reflects how well this business model aligns with your natural strengths and preferences. Your approach to risk, communication style, and time availability all point toward this being not just a good fit, but potentially your ideal entrepreneurial path. The key to your success will be leveraging your analytical nature while building on your existing skills and gradually expanding your comfort zone. This business model offers the perfect balance of challenge and achievability, allowing you to grow while staying within your comfort zone initially. Your unique combination of traits positions you for both short-term wins and long-term sustainable growth in this field.`,
       keyInsights: [
