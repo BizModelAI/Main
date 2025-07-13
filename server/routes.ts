@@ -1028,48 +1028,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OpenAI chat endpoint for characteristics generation
-  app.post("/api/openai-chat", async (req, res) => {
-    try {
-      const { messages, response_format } = req.body;
-
-      if (!messages || !Array.isArray(messages)) {
-        return res
-          .status(400)
-          .json({ error: "Missing or invalid messages array" });
-      }
-
-      const openaiResponse = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-            messages: messages,
-            response_format: response_format || undefined,
-            temperature: 0.7,
-          }),
-        },
-      );
-
-      if (!openaiResponse.ok) {
-        throw new Error(`OpenAI API error: ${openaiResponse.status}`);
-      }
-
-      const data = await openaiResponse.json();
-      const content = data.choices[0].message.content;
-
-      res.json({ content });
-    } catch (error) {
-      console.error("Error in OpenAI chat:", error);
-      res.status(500).json({ error: "Failed to generate response" });
-    }
-  });
-
   // Generate detailed "Why This Fits You" descriptions for top 3 business matches
   app.post("/api/generate-business-fit-descriptions", async (req, res) => {
     try {
