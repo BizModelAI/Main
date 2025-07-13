@@ -69,6 +69,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header("Access-Control-Allow-Headers", "Content-Type");
 
     try {
+      // Check if OpenAI API key is configured
+      if (!process.env.OPENAI_API_KEY) {
+        console.error("OpenAI API key not configured");
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+
       const {
         prompt,
         maxTokens = 200,
@@ -110,6 +116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (!openaiResponse.ok) {
+        const errorText = await openaiResponse.text();
+        console.error(`OpenAI API error: ${openaiResponse.status}`, errorText);
         throw new Error(`OpenAI API error: ${openaiResponse.status}`);
       }
 
@@ -119,7 +127,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ content });
     } catch (error) {
       console.error("Error in OpenAI chat:", error);
-      res.status(500).json({ error: "OpenAI API request failed" });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({
+        error: "OpenAI API request failed",
+        details: errorMessage,
+      });
     }
   });
 
