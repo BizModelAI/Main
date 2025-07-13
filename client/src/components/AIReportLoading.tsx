@@ -595,25 +595,32 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
       })),
     );
 
-    // Start progress for this step
+    // Calculate progress range for this step (each step gets equal portion)
     const startProgress = (stepIndex / loadingSteps.length) * 100;
     const endProgress = ((stepIndex + 1) / loadingSteps.length) * 100;
+    const progressRange = endProgress - startProgress;
 
-    // Gradually increase progress during step execution with smoother animation
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        const increment = (endProgress - startProgress) / 100; // Divide into 100 smaller increments for smoother animation
-        const newProgress = Math.min(prev + increment, endProgress - 1);
-        return newProgress;
-      });
-    }, 30); // Update every 30ms for even smoother animation
+    // Start the async function
+    const resultPromise = asyncFunction();
+
+    // Animate progress smoothly during step execution
+    let currentProgress = startProgress;
+    const progressInterval = setInterval(
+      () => {
+        if (currentProgress < endProgress - 1) {
+          currentProgress += 1; // Increment by exactly 1%
+          setProgress(Math.round(currentProgress));
+        }
+      },
+      (loadingSteps[stepIndex].estimatedTime * 1000) / progressRange,
+    ); // Distribute time evenly across the progress range
 
     try {
-      const result = await asyncFunction();
+      const result = await resultPromise;
 
-      // Clear the interval and set final progress
+      // Clear the interval and ensure final progress for this step
       clearInterval(progressInterval);
-      setProgress(endProgress);
+      setProgress(Math.round(endProgress));
 
       // Store result
       setLoadingResults((prev: any) => ({ ...prev, ...result }));
@@ -632,7 +639,7 @@ With your income goal of ${activeQuizData.successIncomeGoal} per month and ${act
       console.error(`Error in step ${stepIndex}:`, error);
       // Clear the interval and set final progress
       clearInterval(progressInterval);
-      setProgress(endProgress);
+      setProgress(Math.round(endProgress));
 
       // Continue with fallback
       setCompletedSteps((prev) => new Set([...prev, stepIndex]));
