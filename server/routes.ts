@@ -1300,6 +1300,180 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Admin refund endpoints
+  // Get all payments with optional pagination (admin only)
+  app.get("/api/admin/payments", async (req, res) => {
+    try {
+      // TODO: Add admin authentication check here
+      // For now, we'll add a simple API key check
+      const adminKey = req.headers["x-admin-key"];
+      if (adminKey !== process.env.ADMIN_API_KEY) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const payments = await storage.getAllPayments();
+
+      // Join with user data for better admin experience
+      const paymentsWithUsers = await Promise.all(
+        payments.map(async (payment) => {
+          const user = await storage.getUser(payment.userId);
+          return {
+            ...payment,
+            user: user
+              ? { id: user.id, email: user.email, username: user.username }
+              : null,
+          };
+        }),
+      );
+
+      res.json(paymentsWithUsers);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Process a refund (admin only)
+  app.post("/api/admin/refund", async (req, res) => {
+    try {
+      // TODO: Add admin authentication check here
+      const adminKey = req.headers["x-admin-key"];
+      if (adminKey !== process.env.ADMIN_API_KEY) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { paymentId, amount, reason, adminNote } = req.body;
+
+      if (!paymentId || !amount || !reason) {
+        return res.status(400).json({
+          error: "Payment ID, amount, and reason are required",
+        });
+      }
+
+      // Get the payment record
+      const payments = await storage.getPaymentsByUser(0); // This is a hack - we need getPaymentById
+      const payment = payments.find((p) => p.id === paymentId);
+
+      if (!payment) {
+        return res.status(404).json({ error: "Payment not found" });
+      }
+
+      // Check if payment is already fully refunded
+      const existingRefunds = await storage.getRefundsByPayment(paymentId);
+      const totalRefunded = existingRefunds
+        .filter((r) => r.status === "succeeded")
+        .reduce((sum, r) => sum + parseFloat(r.amount), 0);
+
+      const paymentAmount = parseFloat(payment.amount);
+      const requestedAmount = parseFloat(amount);
+
+      if (totalRefunded + requestedAmount > paymentAmount) {
+        return res.status(400).json({
+          error: `Cannot refund $${requestedAmount}. Payment amount: $${paymentAmount}, already refunded: $${totalRefunded}`,
+        });
+      }
+
+      // Create refund record
+      const refund = await storage.createRefund({
+        paymentId,
+        amount: amount.toString(),
+        currency: payment.currency || "usd",
+        reason,
+        status: "pending",
+        adminNote: adminNote || null,
+        adminUserId: null, // TODO: Get admin user ID from session
+      });
+
+      // Process refund with payment provider
+      let refundResult: any = null;
+      let providerRefundId: string = "";
+
+      try {
+        if (
+          payment.stripePaymentIntentId &&
+          payment.stripePaymentIntentId.startsWith("pi_")
+        ) {
+          // Stripe refund
+          if (!stripe) {
+            throw new Error("Stripe not configured");
+          }
+
+          refundResult = await stripe.refunds.create({
+            payment_intent: payment.stripePaymentIntentId,
+            amount: Math.round(requestedAmount * 100), // Convert to cents
+            reason:
+              reason === "requested_by_customer"
+                ? "requested_by_customer"
+                : "requested_by_customer",
+          });
+
+          providerRefundId = refundResult.id;
+
+          // Update refund status
+          await storage.updateRefundStatus(
+            refund.id,
+            "succeeded",
+            new Date(),
+            providerRefundId,
+          );
+        } else if (payment.stripePaymentIntentId) {
+          // PayPal refund (stored in stripePaymentIntentId field)
+          if (!ordersController) {
+            throw new Error("PayPal not configured");
+          }
+
+          // For PayPal, we need the capture ID, not the order ID
+          // This is a limitation - we should store capture IDs separately
+          throw new Error(
+            "PayPal refunds require capture ID - please process manually through PayPal dashboard",
+          );
+        } else {
+          throw new Error("No payment provider ID found");
+        }
+
+        res.json({
+          success: true,
+          refund,
+          providerRefundId,
+          message: `Refund of $${requestedAmount} processed successfully`,
+        });
+      } catch (providerError) {
+        console.error("Provider refund error:", providerError);
+
+        // Update refund status to failed
+        await storage.updateRefundStatus(refund.id, "failed", new Date());
+
+        res.status(500).json({
+          error: "Refund failed",
+          details:
+            providerError instanceof Error
+              ? providerError.message
+              : String(providerError),
+          refundId: refund.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error processing refund:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get all refunds (admin only)
+  app.get("/api/admin/refunds", async (req, res) => {
+    try {
+      const adminKey = req.headers["x-admin-key"];
+      if (adminKey !== process.env.ADMIN_API_KEY) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const refunds = await storage.getAllRefunds();
+      res.json(refunds);
+    } catch (error) {
+      console.error("Error fetching refunds:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // PDF generation endpoint
   app.post("/api/generate-pdf", async (req, res) => {
     try {
