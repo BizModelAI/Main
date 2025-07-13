@@ -1267,7 +1267,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                   </div>
 
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">🚀</div>
+                                    <div className="text-3xl mt-1">��</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Step-by-Step Launch Guidance
@@ -1631,40 +1631,40 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
               <button
                 onClick={handleEmailResults}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
+                className="bg-white p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
               >
-                <Mail className="h-8 w-8 text-green-600 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                <h4 className="font-bold text-gray-900 mb-2">
+                <Mail className="h-6 w-6 md:h-8 md:w-8 text-green-600 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform" />
+                <h4 className="font-bold text-gray-900 mb-1 md:mb-2 text-sm md:text-base">
                   Email My Results
                 </h4>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs md:text-sm">
                   Send this report to your email for easy access and sharing
                 </p>
               </button>
 
               <button
                 onClick={handleShareResults}
-                className={`p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
+                className={`p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
                   hasUnlockedAnalysis ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
                 {!hasUnlockedAnalysis && (
-                  <Lock className="h-4 w-4 text-gray-500 absolute top-3 right-3" />
+                  <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Share2
-                  className={`h-8 w-8 mx-auto mb-4 group-hover:scale-110 transition-transform ${
+                  className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
                     hasUnlockedAnalysis ? "text-purple-600" : "text-gray-400"
                   }`}
                 />
                 <h4
-                  className={`font-bold mb-2 ${
+                  className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
                     hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Share My Results
                 </h4>
                 <p
-                  className={`text-sm ${
+                  className={`text-xs md:text-sm ${
                     hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
