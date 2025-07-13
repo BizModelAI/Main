@@ -44,14 +44,22 @@ app.get("/api/health", (req, res) => {
 
 const port = 5000;
 
-// Setup Vite development server
+// Setup server with routes
 async function setupApp() {
   try {
+    // Register all API routes
+    const server = await registerRoutes(app);
+
+    // Setup Vite development server
     const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
-    console.log("✅ Vite development server started successfully!");
+    console.log(
+      "✅ Server with all routes and Vite development server started successfully!",
+    );
+
+    return server;
   } catch (error) {
-    console.error("❌ Failed to start Vite:", error);
+    console.error("❌ Failed to start server:", error);
     // Fallback to basic HTML
     app.get("*", (req, res) => {
       res.send(`
@@ -63,16 +71,25 @@ async function setupApp() {
           <body>
             <div id="root">
               <h1>Server is running!</h1>
-              <p>Vite development server failed to start. Check console for errors.</p>
+              <p>Server failed to start properly. Check console for errors.</p>
             </div>
           </body>
         </html>
       `);
     });
+
+    // Create basic server as fallback
+    return createServer(app);
   }
 }
 
-server.listen(port, async () => {
-  console.log(`Server running on port ${port}`);
-  await setupApp();
-});
+setupApp()
+  .then((server) => {
+    server.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to setup app:", error);
+    process.exit(1);
+  });
