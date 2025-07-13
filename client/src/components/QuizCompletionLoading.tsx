@@ -130,7 +130,6 @@ const QuizCompletionLoading: React.FC<QuizCompletionLoadingProps> = ({
           timestamp: Date.now(),
           error: true,
           complete: false,
-          complete: false,
         }),
       );
 
