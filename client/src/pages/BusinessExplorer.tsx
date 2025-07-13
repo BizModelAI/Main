@@ -29,7 +29,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   quizData: propQuizData,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [selectedFitCategory, setSelectedFitCategory] = useState<string>("All");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
@@ -57,7 +56,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     "All",
     ...Array.from(new Set(businessModels.map((model) => model.category))),
   ];
-  const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
   const fitCategories = ["All", "Best", "Strong", "Possible", "Poor"];
 
   // Function to determine fit category based on score
@@ -164,12 +162,10 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   const filteredModels = businessModelsWithFitScores.filter((model) => {
     const categoryMatch =
       selectedCategory === "All" || model.category === selectedCategory;
-    const difficultyMatch =
-      selectedDifficulty === "All" || model.difficulty === selectedDifficulty;
     const fitCategoryMatch =
       selectedFitCategory === "All" ||
       model.fitCategory === selectedFitCategory;
-    return categoryMatch && difficultyMatch && fitCategoryMatch;
+    return categoryMatch && fitCategoryMatch;
   });
 
   const handleCardExpand = (modelId: string) => {
@@ -263,22 +259,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
                 {categories.map((category) => (
                   <option key={category} value={category}>
                     {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">
-                Difficulty:
-              </label>
-              <select
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                {difficulties.map((difficulty) => (
-                  <option key={difficulty} value={difficulty}>
-                    {difficulty}
                   </option>
                 ))}
               </select>
