@@ -18,7 +18,7 @@ export const pool = new Pool({
   min: 2, // Minimum connections to keep alive
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  acquireTimeoutMillis: 15000, // Time to wait for connection from pool
+  // acquireTimeoutMillis: 15000, // Time to wait for connection from pool (not a valid Pool option)
   // Enable statement timeout for long-running queries
   statement_timeout: 30000, // 30 second query timeout
   query_timeout: 30000, // 30 second query timeout
