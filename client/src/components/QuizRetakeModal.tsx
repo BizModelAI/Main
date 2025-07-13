@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, CreditCard, Gift, CheckCircle, Home } from "lucide-react";
+import { X, CreditCard, Gift, CheckCircle, Home, Play } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
