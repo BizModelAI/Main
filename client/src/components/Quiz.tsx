@@ -444,8 +444,8 @@ const rounds = [
     icon: Clock,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [8, 20], // Q9-Q21 (0-indexed)
-    totalQuestions: 13,
+    questionRange: [8, 14], // Q9-Q15 (0-indexed)
+    totalQuestions: 7,
     timeEstimate: "2.5–3 minutes",
   },
   {
@@ -456,8 +456,8 @@ const rounds = [
     icon: Users,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [21, 25], // Q22-Q26 (0-indexed)
-    totalQuestions: 5,
+    questionRange: [15, 24], // Q16-Q25 (0-indexed)
+    totalQuestions: 10,
     timeEstimate: "4–5 minutes",
   },
   {
@@ -467,7 +467,7 @@ const rounds = [
     icon: Monitor,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [26, 30], // Q27-Q31 (0-indexed)
+    questionRange: [25, 29], // Q26-Q30 (0-indexed)
     totalQuestions: 5,
     timeEstimate: "1.5–2 minutes",
   },
@@ -479,7 +479,7 @@ const rounds = [
     icon: Brain,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [31, 35], // Q32-Q36 (0-indexed)
+    questionRange: [30, 34], // Q31-Q35 (0-indexed)
     totalQuestions: 5,
     timeEstimate: "2–3 minutes",
   },
@@ -491,8 +491,8 @@ const rounds = [
     icon: Target,
     color: "from-blue-600 via-purple-600 to-indigo-600",
     bgColor: "from-blue-50 to-purple-50",
-    questionRange: [36, 44], // Q37-Q45 (0-indexed)
-    totalQuestions: 9,
+    questionRange: [35, 44], // Q36-Q45 (0-indexed)
+    totalQuestions: 10,
     timeEstimate: "3–4 minutes",
   },
 ];

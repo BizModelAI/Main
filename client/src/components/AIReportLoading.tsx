@@ -398,6 +398,20 @@ Return JSON format:
 
   useEffect(() => {
     const generateReport = async () => {
+      // Check if AI insights generation is already in progress
+      const aiGenerationInProgress = localStorage.getItem(
+        "ai-generation-in-progress",
+      );
+      if (aiGenerationInProgress === "true") {
+        console.log(
+          "🔄 AI generation already in progress, skipping duplicate call",
+        );
+        return;
+      }
+
+      // Set flag to prevent duplicate calls
+      localStorage.setItem("ai-generation-in-progress", "true");
+
       const startTime = Date.now();
       let currentResults = {};
 
@@ -586,6 +600,9 @@ Return JSON format:
           setProgress(100);
         }
 
+        // Clear the generation flag
+        localStorage.removeItem("ai-generation-in-progress");
+
         // Complete and pass data to parent
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
@@ -608,6 +625,9 @@ Return JSON format:
           await new Promise((resolve) => setTimeout(resolve, remainingTime));
           setProgress(100);
         }
+
+        // Clear the generation flag even on error
+        localStorage.removeItem("ai-generation-in-progress");
 
         // In case of error, still complete with current data
         onComplete({

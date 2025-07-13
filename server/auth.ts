@@ -70,9 +70,11 @@ export function setupAuthRoutes(app: Express) {
   // Signup - Store temporary account data until payment
   app.post("/api/auth/signup", async (req, res) => {
     try {
+      console.log("Signup attempt started for:", req.body.email);
       const { email, password, name } = req.body;
 
       if (!email || !password || !name) {
+        console.log("Signup validation failed: missing required fields");
         return res
           .status(400)
           .json({ error: "Email, password, and name are required" });
@@ -80,6 +82,7 @@ export function setupAuthRoutes(app: Express) {
 
       // Basic email validation
       if (!email.includes("@") || email.length < 5) {
+        console.log("Signup validation failed: invalid email format");
         return res
           .status(400)
           .json({ error: "Please enter a valid email address" });
@@ -87,22 +90,28 @@ export function setupAuthRoutes(app: Express) {
 
       // Password validation
       if (password.length < 8) {
+        console.log("Signup validation failed: password too short");
         return res
           .status(400)
           .json({ error: "Password must be at least 8 characters long" });
       }
       if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        console.log("Signup validation failed: password complexity");
         return res.status(400).json({
           error:
             "Password must contain at least one uppercase letter, one lowercase letter, and one number",
         });
       }
 
+      console.log("Checking if user already exists...");
       // Check if user already exists as a paid user
       const existingUser = await storage.getUserByUsername(email);
       if (existingUser) {
+        console.log("User already exists, returning 409");
         return res.status(409).json({ error: "User already exists" });
       }
+
+      console.log("User doesn't exist, proceeding with temporary storage...");
 
       // Store temporary account data (no real account created yet)
       // We'll create the actual account only after successful payment
@@ -110,16 +119,23 @@ export function setupAuthRoutes(app: Express) {
         req.sessionID ||
         `temp_${Date.now()}_${Math.random().toString(36).substring(2)}`;
 
+      console.log("Generated sessionId:", sessionId);
+
       // Get quiz data from request or localStorage indication
       const quizData = req.body.quizData || {};
 
+      console.log("Hashing password...");
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      console.log("Storing unpaid user email...");
       await storage.storeUnpaidUserEmail(sessionId, email, {
         email,
-        password: await bcrypt.hash(password, 10),
+        password: hashedPassword,
         name,
         quizData,
       });
 
+      console.log("Signup successful, returning temporary user data");
       // Return a temporary user object for frontend
       res.json({
         id: `temp_${sessionId}`,
@@ -131,6 +147,15 @@ export function setupAuthRoutes(app: Express) {
       });
     } catch (error) {
       console.error("Error in /api/auth/signup:", error);
+      console.error(
+        "Error stack:",
+        error instanceof Error ? error.stack : "No stack trace",
+      );
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        name: error instanceof Error ? error.name : "Unknown",
+        code: (error as any)?.code || "Unknown",
+      });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -289,6 +314,34 @@ export function setupAuthRoutes(app: Express) {
       res.json({ valid: true });
     } catch (error) {
       console.error("Error in /api/auth/verify-reset-token:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Unsubscribe from emails
+  app.post("/api/auth/unsubscribe", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByUsername(email);
+      if (user) {
+        // Update user to mark as unsubscribed
+        await storage.updateUser(user.id, { isUnsubscribed: true });
+        console.log(`User ${email} has been unsubscribed from emails`);
+      }
+
+      // Always return success to prevent email enumeration
+      res.json({
+        success: true,
+        message: "Successfully unsubscribed from all emails",
+      });
+    } catch (error) {
+      console.error("Error in /api/auth/unsubscribe:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

@@ -108,7 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // If JSON parsing fails, use the response status text or default message
           errorMessage = response.statusText || errorMessage;
         }
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage) as any;
+        error.status = response.status;
+        throw error;
       }
 
       const data = await response.json();
@@ -156,7 +158,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             parseError,
           }); // Debug log
         }
-        throw new Error(errorMessage);
+
+        // Ensure the exact error message is preserved for frontend handling
+        const error = new Error(errorMessage) as any;
+        error.status = response.status;
+        throw error;
       }
 
       const data = await response.json();

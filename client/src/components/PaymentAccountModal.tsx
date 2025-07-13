@@ -147,14 +147,32 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       console.log("PaymentAccountModal: Signup successful, moving to payment");
       setStep("payment");
     } catch (err: any) {
-      console.log("PaymentAccountModal: Signup error caught:", err.message);
+      console.log("PaymentAccountModal: Signup error caught:", {
+        message: err.message,
+        status: err.status,
+        stack: err.stack,
+      });
 
       // Check for user already exists error - try multiple approaches
       const errorMessage = (err.message || "").toLowerCase();
       const isUserExistsError =
         errorMessage.includes("user already exists") ||
         errorMessage.includes("already exists") ||
-        errorMessage === "user already exists";
+        errorMessage === "user already exists" ||
+        // Handle exact server error message
+        errorMessage === "user already exists" ||
+        // Handle more variations
+        errorMessage.includes("email already") ||
+        errorMessage.includes("account already") ||
+        errorMessage.includes("email is already") ||
+        // Check HTTP status code for conflict
+        err.status === 409;
+
+      console.log("PaymentAccountModal: Error analysis:", {
+        errorMessage,
+        isUserExistsError,
+        status: err.status,
+      });
 
       if (isUserExistsError) {
         console.log(
@@ -162,9 +180,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         );
         setLoginEmail(formData.email);
         setStep("login");
-        setError(
-          "Welcome back! We found your existing account. Please log in to access your features.",
-        );
+        setError("");
       } else {
         console.log("PaymentAccountModal: Other error:", err.message);
         setError(err.message || "Failed to create account");
@@ -565,10 +581,13 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             {/* Login Form */}
             {step === "login" && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-                  <p className="text-green-800 text-sm">
-                    Welcome back! We found your existing account. Log in to
-                    access your features.
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                  <p className="text-blue-800 text-sm font-medium mb-1">
+                    Welcome back!
+                  </p>
+                  <p className="text-blue-700 text-sm">
+                    We found an existing account with this email. Please enter
+                    your password to continue.
                   </p>
                 </div>
 

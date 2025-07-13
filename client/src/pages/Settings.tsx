@@ -1,45 +1,88 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Mail, Save, AlertCircle, CheckCircle, Bell, Upload } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  User,
+  Mail,
+  Save,
+  AlertCircle,
+  CheckCircle,
+  Bell,
+  Upload,
+  Trash2,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const Settings: React.FC = () => {
   const { user, updateProfile, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || ''
+    name: user?.name || "",
+    email: user?.email || "",
   });
   const [notifications, setNotifications] = useState({
     emailUpdates: true,
-    marketingEmails: true
+    marketingEmails: true,
   });
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell }
+    { id: "profile", label: "Profile", icon: User },
+    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "account", label: "Account", icon: Trash2 },
   ];
 
   const handleProfileSave = async () => {
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     try {
       await updateProfile(formData);
-      setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     }
   };
 
   const handleNotificationSave = () => {
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     // Simulate API call
     setTimeout(() => {
-      setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     }, 1000);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/auth/account", {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        // Account deleted successfully, redirect to home
+        window.location.href = "/";
+      } else {
+        const data = await response.json();
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+    } catch (error) {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -53,7 +96,9 @@ const Settings: React.FC = () => {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-          <p className="text-gray-600">Manage your account preferences and settings</p>
+          <p className="text-gray-600">
+            Manage your account preferences and settings
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -72,8 +117,8 @@ const Settings: React.FC = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 rounded-r-lg'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? "bg-blue-50 text-blue-700 border-l-4 border-blue-700 rounded-r-lg"
+                        : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
                     <tab.icon className="h-5 w-5 mr-3" />
@@ -93,49 +138,55 @@ const Settings: React.FC = () => {
           >
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               {/* Save Status */}
-              {saveStatus !== 'idle' && (
+              {saveStatus !== "idle" && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`mb-6 p-4 rounded-xl flex items-center ${
-                    saveStatus === 'success'
-                      ? 'bg-green-50 border border-green-200'
-                      : saveStatus === 'error'
-                      ? 'bg-red-50 border border-red-200'
-                      : 'bg-blue-50 border border-blue-200'
+                    saveStatus === "success"
+                      ? "bg-green-50 border border-green-200"
+                      : saveStatus === "error"
+                        ? "bg-red-50 border border-red-200"
+                        : "bg-blue-50 border border-blue-200"
                   }`}
                 >
-                  {saveStatus === 'success' ? (
+                  {saveStatus === "success" ? (
                     <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                  ) : saveStatus === 'error' ? (
+                  ) : saveStatus === "error" ? (
                     <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
                   ) : (
                     <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2" />
                   )}
-                  <span className={`text-sm font-medium ${
-                    saveStatus === 'success'
-                      ? 'text-green-700'
-                      : saveStatus === 'error'
-                      ? 'text-red-700'
-                      : 'text-blue-700'
-                  }`}>
-                    {saveStatus === 'success'
-                      ? 'Settings saved successfully!'
-                      : saveStatus === 'error'
-                      ? 'Failed to save settings. Please try again.'
-                      : 'Saving settings...'}
+                  <span
+                    className={`text-sm font-medium ${
+                      saveStatus === "success"
+                        ? "text-green-700"
+                        : saveStatus === "error"
+                          ? "text-red-700"
+                          : "text-blue-700"
+                    }`}
+                  >
+                    {saveStatus === "success"
+                      ? "Settings saved successfully!"
+                      : saveStatus === "error"
+                        ? "Failed to save settings. Please try again."
+                        : "Saving settings..."}
                   </span>
                 </motion.div>
               )}
 
               {/* Profile Tab */}
-              {activeTab === 'profile' && (
+              {activeTab === "profile" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile Information</h2>
-                  
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    Profile Information
+                  </h2>
+
                   {/* Profile Photo Section */}
                   <div className="mb-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Photo</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Profile Photo
+                    </h3>
                     <div className="flex items-center space-x-6">
                       <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
                         <User className="h-12 w-12 text-white" />
@@ -147,7 +198,11 @@ const Settings: React.FC = () => {
                         <label className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
                           <Upload className="h-4 w-4 mr-2" />
                           Upload Photo
-                          <input type="file" className="hidden" accept="image/*" />
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                          />
                         </label>
                       </div>
                     </div>
@@ -162,7 +217,12 @@ const Settings: React.FC = () => {
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -174,7 +234,12 @@ const Settings: React.FC = () => {
                       <input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -192,26 +257,40 @@ const Settings: React.FC = () => {
               )}
 
               {/* Notifications Tab */}
-              {activeTab === 'notifications' && (
+              {activeTab === "notifications" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Notification Preferences</h2>
-                  
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    Notification Preferences
+                  </h2>
+
                   <div className="space-y-6">
                     {Object.entries(notifications).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 rounded-xl">
+                      <div
+                        key={key}
+                        className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 rounded-xl"
+                      >
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">
-                            {key === 'emailUpdates' ? 'Email Updates' : 'Marketing Emails'}
+                            {key === "emailUpdates"
+                              ? "Email Updates"
+                              : "Marketing Emails"}
                           </h3>
                           <p className="text-gray-600 text-sm">
-                            {key === 'emailUpdates' ? 'Receive updates about your business recommendations' : 'Receive promotional emails and newsletters'}
+                            {key === "emailUpdates"
+                              ? "Receive updates about your business recommendations"
+                              : "Receive promotional emails and newsletters"}
                           </p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
                             checked={value}
-                            onChange={(e) => setNotifications(prev => ({ ...prev, [key]: e.target.checked }))}
+                            onChange={(e) =>
+                              setNotifications((prev) => ({
+                                ...prev,
+                                [key]: e.target.checked,
+                              }))
+                            }
                             className="sr-only peer"
                           />
                           <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -230,7 +309,95 @@ const Settings: React.FC = () => {
                 </div>
               )}
 
+              {/* Account Tab */}
+              {activeTab === "account" && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    Account Management
+                  </h2>
 
+                  {/* Danger Zone */}
+                  <div className="border-2 border-red-200 rounded-xl p-6 bg-red-50">
+                    <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
+                      <AlertCircle className="h-5 w-5 mr-2" />
+                      Danger Zone
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-md font-medium text-red-700 mb-2">
+                          Delete Account
+                        </h4>
+                        <p className="text-sm text-red-600 mb-4">
+                          This action cannot be undone. This will permanently
+                          delete your account, all quiz attempts, and remove all
+                          associated data from our servers.
+                        </p>
+                      </div>
+
+                      {!showDeleteConfirm ? (
+                        <button
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Account
+                        </button>
+                      ) : (
+                        <div className="space-y-4 p-4 bg-white rounded-lg border border-red-300">
+                          <div>
+                            <p className="text-sm text-gray-700 mb-3">
+                              To confirm account deletion, please type{" "}
+                              <strong>DELETE</strong> below:
+                            </p>
+                            <input
+                              type="text"
+                              value={deleteConfirmText}
+                              onChange={(e) =>
+                                setDeleteConfirmText(e.target.value)
+                              }
+                              placeholder="Type DELETE to confirm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={handleDeleteAccount}
+                              disabled={
+                                deleteConfirmText !== "DELETE" || isDeleting
+                              }
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                            >
+                              {isDeleting ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                  Deleting...
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Permanently Delete Account
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setShowDeleteConfirm(false);
+                                setDeleteConfirmText("");
+                              }}
+                              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
