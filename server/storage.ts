@@ -124,6 +124,7 @@ export class MemStorage implements IStorage {
     const id = this.currentId++;
     const user: User = {
       ...insertUser,
+      name: insertUser.name ?? null,
       id,
       email: null,
       hasAccessPass: false,
