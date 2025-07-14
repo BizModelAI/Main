@@ -321,9 +321,11 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       );
       // Continue to generate analysis
     }
-    // For authenticated users with access pass, allow immediate access
-    else if (user && user.hasAccessPass) {
-      console.log("BusinessModelDetail: User has access pass, allowing access");
+    // For authenticated users, allow immediate access to basic features
+    else if (user) {
+      console.log(
+        "BusinessModelDetail: Authenticated user, allowing basic access",
+      );
       // Continue to generate analysis
     }
     // For authenticated users, check if they can access business models
