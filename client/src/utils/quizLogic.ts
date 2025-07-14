@@ -15,7 +15,7 @@ export async function generateAIPersonalizedPaths(
       xhr.open("POST", "/api/ai-business-fit-analysis", true);
       xhr.withCredentials = true;
       xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.timeout = 50000; // 50 second timeout (server has 45s)
+      xhr.timeout = 40000; // 40 second timeout (server has 35s)
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
