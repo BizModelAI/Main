@@ -851,33 +851,22 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   </h2>
                 </div>
 
-                {isLoadingAnalysis ? (
+                {isLoadingModelInsights ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader className="h-8 w-8 text-blue-600 animate-spin mr-3" />
                     <span className="text-gray-600">
                       Generating personalized analysis...
                     </span>
                   </div>
-                ) : aiAnalysis ? (
+                ) : modelInsights ? (
                   <>
                     <div className="prose max-w-none mb-8">
                       <div className="text-gray-700 leading-relaxed space-y-4 text-lg">
-                        {aiAnalysis.fullAnalysis
-                          .split("\n")
-                          .map((paragraph, index) => {
-                            const trimmedParagraph = paragraph.trim();
-                            if (trimmedParagraph) {
-                              return (
-                                <p
-                                  key={index}
-                                  dangerouslySetInnerHTML={renderMarkdownContent(
-                                    trimmedParagraph,
-                                  )}
-                                />
-                              );
-                            }
-                            return null;
-                          })}
+                        <p
+                          dangerouslySetInnerHTML={renderMarkdownContent(
+                            modelInsights.modelFitReason,
+                          )}
+                        />
                       </div>
                     </div>
 
@@ -903,7 +892,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             : "Key Insights"}
                         </h3>
                         <ul className="space-y-3">
-                          {aiAnalysis.keyInsights?.map(
+                          {modelInsights.keyInsights?.map(
                             (insight: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 {fitCategory === "Possible Fit" ||
@@ -952,7 +941,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             : "Success Predictors"}
                         </h3>
                         <ul className="space-y-3">
-                          {aiAnalysis.successPredictors?.map(
+                          {modelInsights.successPredictors?.map(
                             (predictor: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 {fitCategory === "Possible Fit" ||
