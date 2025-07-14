@@ -1,6 +1,8 @@
 import React from "react";
 import { QuizData } from "../types";
 import { generatePersonalizedPaths } from "../utils/quizLogic";
+import { aiCacheManager } from "../utils/aiCacheManager";
+import { renderMarkdownContent } from "../utils/markdownUtils";
 import {
   TrendingUp,
   Target,
