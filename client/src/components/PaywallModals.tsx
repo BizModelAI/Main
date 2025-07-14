@@ -373,6 +373,9 @@ interface LockedCardOverlayProps {
 export const LockedCardOverlay: React.FC<LockedCardOverlayProps> = ({
   onUnlock,
 }) => {
+  const { user } = useAuth();
+  const price = user ? "$4.99" : "$9.99";
+
   return (
     <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center p-6 text-center">
       <motion.div
