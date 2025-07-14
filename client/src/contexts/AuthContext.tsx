@@ -262,7 +262,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
-    if (!user) return;
+    if (!user) {
+      console.log("updateProfile: No user found, aborting");
+      return;
+    }
 
     console.log("updateProfile: Starting with data:", updates);
     console.log("updateProfile: Current user:", {
@@ -270,6 +273,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       name: user.name,
       email: user.email,
     });
+
+    // First check if the session is still valid
+    try {
+      const authCheck = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("updateProfile: Auth check status:", authCheck.status);
+
+      if (!authCheck.ok) {
+        console.log(
+          "updateProfile: Session invalid, user needs to log in again",
+        );
+        throw new Error("Your session has expired. Please log in again.");
+      }
+    } catch (authError) {
+      console.error("updateProfile: Auth check failed:", authError);
+      throw new Error("Authentication check failed. Please log in again.");
+    }
 
     setIsLoading(true);
     try {
