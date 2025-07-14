@@ -519,6 +519,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return !!user;
   };
 
+  const verifyAndRefreshAuth = async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        console.log("verifyAndRefreshAuth: Session valid, user refreshed");
+        return true;
+      } else {
+        console.log("verifyAndRefreshAuth: Session invalid");
+        setUser(null);
+        return false;
+      }
+    } catch (error) {
+      console.error("verifyAndRefreshAuth: Error:", error);
+      setUser(null);
+      return false;
+    }
+  };
+
   const value = {
     user,
     isLoading,
