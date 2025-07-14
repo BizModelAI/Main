@@ -762,8 +762,11 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const { quizData } = req.body;
       if (!quizData) {
+        console.log("Save quiz data: No quiz data provided");
         return res.status(400).json({ error: "Quiz data is required" });
       }
+
+      console.log(`Save quiz data: Saving quiz data for user ${userId}`);
 
       // Save quiz data to user's account
       const attempt = await storage.recordQuizAttempt({
@@ -771,16 +774,31 @@ export async function registerRoutes(app: Express): Promise<void> {
         quizData,
       });
 
+      console.log(
+        `Save quiz data: Quiz attempt recorded with ID ${attempt.id} for user ${userId}`,
+      );
+
       // Also decrement retakes for paid users with access pass
       const user = await storage.getUser(userId);
       const isPaid = await storage.isPaidUser(userId);
-      const hasAccessPass = user.hasAccessPass;
+      const hasAccessPass = user?.hasAccessPass;
 
       if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
+        console.log(
+          `Save quiz data: Decrementing quiz retakes for paid user ${userId}`,
+        );
         await storage.decrementQuizRetakes(userId);
       }
 
-      res.json({ success: true, attemptId: attempt.id });
+      console.log(
+        `Save quiz data: Successfully saved quiz data for user ${userId}`,
+      );
+
+      res.json({
+        success: true,
+        attemptId: attempt.id,
+        message: "Quiz data saved successfully",
+      });
     } catch (error) {
       console.error("Error saving quiz data:", error);
       res.status(500).json({ error: "Internal server error" });
