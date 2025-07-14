@@ -513,7 +513,7 @@ const BusinessModelCard = ({
                   {Math.round(fitScore)}%
                 </div>
                 <div className="text-xs text-gray-500">
-                  {fitCategory || "Fit"}
+                  {fitCategory ? `${fitCategory} Fit` : "Fit"}
                 </div>
               </div>
             )}
