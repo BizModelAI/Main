@@ -835,7 +835,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   // Download functionality
   const handleDownloadResults = async () => {
-    if (!hasUnlockedAnalysis) {
+    if (!canViewFullReport) {
       setPendingAction("download");
       setPaywallType("full-report");
       setShowUnlockModal(true);
