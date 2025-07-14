@@ -75,6 +75,8 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
             "PaywallContext: Development mode - assuming quiz completed for logged-in user",
           );
           setHasCompletedQuiz(true);
+          // Also unlock analysis for development
+          setHasUnlockedAnalysis(true);
         }
 
         // Update localStorage for consistency
