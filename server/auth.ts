@@ -10,7 +10,7 @@ const tempSessionCache = new Map<
 >();
 
 // Helper function to get session key from request
-function getSessionKey(req: any): string {
+export function getSessionKey(req: any): string {
   // Use a combination of IP and User-Agent as session key
   const ip = req.ip || req.connection.remoteAddress || "unknown";
   const userAgent = req.headers["user-agent"] || "unknown";
@@ -18,7 +18,7 @@ function getSessionKey(req: any): string {
 }
 
 // Helper function to get user from session or cache
-function getUserIdFromRequest(req: any): number | undefined {
+export function getUserIdFromRequest(req: any): number | undefined {
   // First try normal session
   if (req.session?.userId) {
     return req.session.userId;
