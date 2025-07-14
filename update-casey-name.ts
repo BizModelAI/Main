@@ -5,7 +5,7 @@ const storage = new Storage();
 async function updateCaseyName() {
   try {
     console.log("Looking for user caseyedunham@gmail.com...");
-    const user = await storage.getUserByEmail("caseyedunham@gmail.com");
+    const user = await storage.getUserByUsername("caseyedunham@gmail.com");
     console.log("Found user:", {
       id: user.id,
       email: user.email,
