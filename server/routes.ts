@@ -557,21 +557,10 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
       const isPaid = await storage.isPaidUser(userId);
-      const hasAccessPass = user.hasAccessPass;
 
-      // New pay-per-report system logic:
-      // - First quiz is always free for everyone
-      // - Users with access pass can take unlimited quizzes
-      // - Check if user can take this quiz
-      const isFirstQuiz = attemptsCount === 0;
-      const canTakeQuiz = isFirstQuiz || hasAccessPass;
-
-      if (!canTakeQuiz) {
-        return res.status(403).json({
-          error:
-            "Access pass required to retake the quiz. Please purchase an access pass to continue.",
-        });
-      }
+      // Pure pay-per-report system logic:
+      // - Everyone can take unlimited quiz attempts for free
+      // - They pay per report unlock when they want full reports
 
       // Record the quiz attempt - stored permanently for all users now
       const attempt = await storage.recordQuizAttempt({
