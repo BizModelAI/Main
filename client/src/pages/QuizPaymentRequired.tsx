@@ -350,7 +350,7 @@ const QuizPaymentRequired: React.FC = () => {
                 </p>
               </div>
 
-              {clientSecret && (
+              {clientSecret && paymentId && (
                 <Elements
                   stripe={stripePromise}
                   options={{
@@ -363,11 +363,10 @@ const QuizPaymentRequired: React.FC = () => {
                     },
                   }}
                 >
-                  <PaymentForm
+                  <SimplePaymentForm
                     onSuccess={handlePaymentSuccess}
                     onError={(error) => setError(error)}
-                    amount="4.99"
-                    description="Quiz Payment"
+                    paymentId={paymentId}
                   />
                 </Elements>
               )}
