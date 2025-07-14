@@ -287,9 +287,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         Object.fromEntries(response.headers.entries()),
       );
 
-      // Clone response before reading to avoid "body already read" error
-      const responseClone = response.clone();
-
       if (response.ok) {
         const quizData = await response.json();
         console.log(
@@ -298,17 +295,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         );
         return quizData;
       } else {
-        let errorMessage;
+        // For error responses, safely read the body once
+        let errorMessage = `HTTP ${response.status} ${response.statusText}`;
         try {
-          const errorData = await responseClone.json();
-          errorMessage =
-            errorData.error || errorData.message || "Unknown error";
-        } catch {
+          const responseText = await response.text();
           try {
-            errorMessage = await response.text();
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || errorData.message || errorMessage;
           } catch {
-            errorMessage = `HTTP ${response.status} ${response.statusText}`;
+            // If not JSON, use the text as is
+            errorMessage = responseText || errorMessage;
           }
+        } catch {
+          // If can't read body, use status text
         }
         console.error("getLatestQuizData: Request failed:", {
           status: response.status,
