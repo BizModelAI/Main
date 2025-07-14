@@ -651,7 +651,7 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
       const cached =
         typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
       if (cached) {
-        const data = JSON.parse(cached);
+        const data = JSON.parse(cached!);
         // Check if cache is still valid (1 hour)
         if (Date.now() - data.timestamp < 3600000) {
           return data.insights;
