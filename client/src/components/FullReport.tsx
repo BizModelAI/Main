@@ -538,22 +538,97 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
       } catch (error) {
         console.error("Error generating AI insights:", error);
         // Set fallback insights that use actual quiz data
+        const fallbackPreviewInsights = `Based on your quiz responses, you show strong alignment with ${paths[0]?.name || "online business"} with a ${paths[0]?.fitScore || 75}% compatibility score. Your income goal of ${getIncomeRangeLabel(quizData.successIncomeGoal)} and ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} per week commitment indicate ${quizData.successIncomeGoal >= 5000 ? "ambitious" : "realistic"} expectations.
+
+Your ${quizData.techSkillsRating}/5 tech skills rating combined with your ${quizData.learningPreference} learning preference suggests you're well-suited for ${quizData.techSkillsRating >= 4 ? "advanced" : "foundational"} business approaches. With ${quizData.riskComfortLevel}/5 risk tolerance, you're positioned to ${quizData.riskComfortLevel >= 4 ? "explore innovative strategies" : "build systematically"}.
+
+This business path aligns with your ${quizData.workCollaborationPreference} work style and ${quizData.decisionMakingStyle} decision-making approach, creating strong potential for sustainable growth.`;
+
+        const fallbackKeyIndicators = [
+          `Strong alignment with ${quizData.workStructurePreference} work structure preferences`,
+          `${quizData.selfMotivationLevel >= 4 ? "High self-motivation" : "Good self-direction"} supports independent business building`,
+          `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance matches entrepreneurial requirements`,
+          `Time commitment of ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} allows for realistic progress`,
+        ];
+
         setAiInsights({
-          personalizedSummary: `Based on your quiz responses, you show strong alignment with ${paths[0]?.name || "online business"} with a ${paths[0]?.fitScore || 75}% compatibility score. Your income goal of ${getIncomeRangeLabel(quizData.successIncomeGoal)} and ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} per week commitment indicate ${quizData.successIncomeGoal >= 5000 ? "ambitious" : "realistic"} expectations.`,
+          // New structure (priority)
+          previewInsights: fallbackPreviewInsights,
+          keySuccessIndicators: fallbackKeyIndicators,
+          personalizedRecommendations: [
+            `Given your ${quizData.techSkillsRating}/5 tech skills rating, ${quizData.techSkillsRating >= 4 ? "leverage your technical abilities" : "focus on user-friendly tools initially"}`,
+            `Your ${quizData.learningPreference} learning preference suggests ${quizData.learningPreference === "hands_on" ? "jumping into projects quickly" : "studying comprehensive guides first"}`,
+            `With ${quizData.riskComfortLevel}/5 risk tolerance, ${quizData.riskComfortLevel >= 4 ? "explore innovative approaches" : "stick to proven methods initially"}`,
+            `Focus on ${quizData.workCollaborationPreference === "solo-only" ? "independent execution" : "collaborative opportunities"} that match your work style`,
+            `Your ${quizData.organizationLevel}/5 organization level suggests ${quizData.organizationLevel >= 4 ? "creating detailed systems" : "using simple tracking methods"}`,
+            `Your motivation toward ${quizData.mainMotivation} provides clear direction for business focus`,
+          ],
+          potentialChallenges: [
+            `Your ${quizData.firstIncomeTimeline} timeline expectation may need adjustment based on typical ${paths[0]?.name || "business"} growth patterns`,
+            `Budget of ${getInvestmentRangeLabel(quizData.upfrontInvestment)} ${quizData.upfrontInvestment < 1000 ? "may require creative bootstrapping strategies" : "provides good foundation for getting started"}`,
+            `${quizData.selfMotivationLevel <= 3 ? "Building consistent daily habits" : "Maintaining momentum during slow periods"} will be important`,
+            `Balancing ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} availability with business building requirements`,
+          ],
+          keyInsights: [
+            `Your ${quizData.riskComfortLevel >= 4 ? "high" : "moderate"} risk tolerance aligns well with entrepreneurial requirements`,
+            `Time commitment of ${getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)} matches realistic business building pace`,
+            `Technical skills level provides ${quizData.techSkillsRating >= 4 ? "strong" : "adequate"} foundation for business tools`,
+            `Communication comfort supports ${quizData.directCommunicationEnjoyment >= 4 ? "strong" : "developing"} customer relationships`,
+          ],
+          bestFitCharacteristics: [
+            quizData.selfMotivationLevel >= 4
+              ? "Highly self-motivated"
+              : "Self-directed",
+            quizData.riskComfortLevel >= 4
+              ? "High risk tolerance"
+              : "Calculated risk-taker",
+            quizData.techSkillsRating >= 4
+              ? "Strong tech skills"
+              : "Tech-capable",
+            quizData.directCommunicationEnjoyment >= 4
+              ? "Excellent communicator"
+              : "Good communicator",
+            quizData.organizationLevel >= 4
+              ? "Highly organized"
+              : "Structured approach",
+            quizData.creativeWorkEnjoyment >= 4
+              ? "Creative problem solver"
+              : "Analytical thinker",
+          ],
+          top3Fits: paths.slice(0, 3).map((path, index) => ({
+            model: path.name,
+            reason: `This business model aligns well with your ${index === 0 ? "top" : index === 1 ? "secondary" : "alternative"} strengths and offers a ${path.fitScore}% compatibility match with your profile.`,
+          })),
+          bottom3Avoid: [
+            {
+              model: "High-risk speculation",
+              reason: "Requires risk tolerance beyond your comfort level",
+              futureConsideration:
+                "Could be viable after building experience and capital",
+            },
+            {
+              model: "Complex technical development",
+              reason:
+                "May require more technical expertise than currently available",
+              futureConsideration:
+                "Consider after developing stronger technical skills",
+            },
+            {
+              model: "High-investment businesses",
+              reason: "Investment requirements exceed your current budget",
+              futureConsideration:
+                "Revisit when you have more capital available",
+            },
+          ],
+
+          // Backward compatibility fields
+          personalizedSummary: fallbackPreviewInsights,
           customRecommendations: [
             `Given your ${quizData.techSkillsRating}/5 tech skills rating, ${quizData.techSkillsRating >= 4 ? "leverage your technical abilities" : "focus on user-friendly tools initially"}`,
             `Your ${quizData.learningPreference} learning preference suggests ${quizData.learningPreference === "hands_on" ? "jumping into projects quickly" : "studying comprehensive guides first"}`,
             `With ${quizData.riskComfortLevel}/5 risk tolerance, ${quizData.riskComfortLevel >= 4 ? "explore innovative approaches" : "stick to proven methods initially"}`,
           ],
-          potentialChallenges: [
-            `Your ${quizData.firstIncomeTimeline} timeline expectation may need adjustment based on typical ${paths[0]?.name || "business"} growth patterns`,
-            `Budget of ${getInvestmentRangeLabel(quizData.upfrontInvestment)} ${quizData.upfrontInvestment < 1000 ? "may require creative bootstrapping strategies" : "provides good foundation for getting started"}`,
-          ],
-          successStrategies: [
-            `Focus on ${quizData.workCollaborationPreference === "solo" ? "independent execution" : "collaborative opportunities"} that match your work style`,
-            `Leverage your ${quizData.organizationLevel}/5 organization level by ${quizData.organizationLevel >= 4 ? "creating detailed systems" : "using simple tracking methods"}`,
-            `Your ${quizData.selfMotivationLevel}/5 self-motivation suggests ${quizData.selfMotivationLevel >= 4 ? "maintaining consistent daily progress" : "finding accountability partners"}`,
-          ],
+          successStrategies: fallbackKeyIndicators,
           personalizedActionPlan: {
             week1: [
               `Research ${paths[0]?.name || "your chosen business model"} thoroughly`,
@@ -562,18 +637,21 @@ Examples: {"characteristics": ["Highly self-motivated", "Strategic risk-taker", 
             ],
             month1: [
               `Launch MVP with ${getInvestmentRangeLabel(quizData.upfrontInvestment)} budget allocation`,
-              `Create content that matches your ${quizData.creativeWorkEnjoyment}/5 creativity level`,
-              `Gather feedback using your ${quizData.feedbackRejectionResponse}/5 feedback resilience`,
+              `Create content that matches your ${quizData.creativeWorkEnjoyment >= 4 ? "high" : "moderate"} creativity level`,
+              `Gather feedback and iterate based on responses`,
+              `Establish basic business processes and tracking systems`,
             ],
             month3: [
-              `Scale based on ${quizData.businessGrowthSize} growth expectations`,
-              `Optimize for ${quizData.passiveIncomeImportance >= 4 ? "passive income streams" : "active income generation"}`,
+              `Scale based on ${quizData.weeklyTimeCommitment >= 25 ? "full-time" : "part-time"} growth expectations`,
+              `Optimize for sustainable income generation`,
               `Build partnerships that align with ${quizData.workCollaborationPreference} preference`,
+              `Develop systems for consistent delivery and customer service`,
             ],
             month6: [
               `Evaluate progress toward ${getIncomeRangeLabel(quizData.successIncomeGoal)} goal`,
-              `Consider ${quizData.businessExitPlan === "build_and_sell" ? "preparing for eventual sale" : "long-term sustainability"}`,
-              `Adjust strategy based on ${quizData.pathPreference === "innovative" ? "innovation opportunities" : "proven methods"}`,
+              `Consider expansion opportunities based on success`,
+              `Adjust strategy based on market feedback and results`,
+              `Plan next phase of growth and development`,
             ],
           },
           motivationalMessage:
