@@ -52,7 +52,7 @@ export class AIService {
       }
 
       console.log(
-        `🔄 Generating fresh model insights for ${modelName} (${fitType})`,
+        `�� Generating fresh model insights for ${modelName} (${fitType})`,
       );
 
       const userProfile = this.createUserProfile(quizData);
@@ -699,6 +699,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
     maxTokens: number = 1200,
     temperature: number = 0.7,
     retries: number = 3,
+    systemMessage?: string,
   ): Promise<string> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -749,6 +750,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
                 prompt,
                 maxTokens,
                 temperature,
+                systemMessage,
               }),
             );
           });
@@ -767,6 +769,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
               prompt,
               maxTokens,
               temperature,
+              systemMessage,
             }),
           });
         }
