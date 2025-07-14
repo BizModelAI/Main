@@ -139,38 +139,29 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
   }, [hasCompletedQuiz, user]);
 
   const isUnlocked = () => {
-    // For logged-in users with access pass, consider them unlocked even if local state is stale
-    if (user && user.hasAccessPass) return true;
-
+    // In pure pay-per-report model, global unlock is not relevant
     return hasUnlockedAnalysis;
   };
 
   const canAccessBusinessModel = (modelId?: string) => {
-    // For logged-in users with access pass, grant access even if local state is stale
-    if (user && user.hasAccessPass) return true;
-
     // Must have completed quiz to access any business model details
     if (!hasCompletedQuiz) return false;
 
-    // If unlocked, can access all models
-    if (hasUnlockedAnalysis) return true;
-
-    // If not unlocked, no access to detailed pages
-    return false;
+    // In pure pay-per-report model, basic access is free
+    // Users pay per specific report unlock
+    return true;
   };
 
   const canAccessFullReport = () => {
-    // For logged-in users with access pass, grant access even if local state is stale
-    if (user && user.hasAccessPass && hasCompletedQuiz) return true;
-
-    return hasCompletedQuiz && hasUnlockedAnalysis;
+    // In pure pay-per-report model, basic report access is available
+    // Users pay for detailed report unlocks individually
+    return hasCompletedQuiz;
   };
 
   const hasMadeAnyPayment = () => {
-    // For authenticated users, strictly check hasAccessPass only
-    if (user) {
-      return user.hasAccessPass;
-    }
+    // In pure pay-per-report model, we can't easily check this from client
+    // For now, assume no global payment status
+    return false;
 
     // For non-authenticated users, check localStorage flags
     const hasUnlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";
