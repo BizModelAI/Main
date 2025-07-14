@@ -15,7 +15,7 @@ export async function generateAIPersonalizedPaths(
       xhr.open("POST", "/api/ai-business-fit-analysis", true);
       xhr.withCredentials = true;
       xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.timeout = 30000; // 30 second timeout
+      xhr.timeout = 50000; // 50 second timeout (server has 45s)
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
@@ -23,9 +23,20 @@ export async function generateAIPersonalizedPaths(
             const data = JSON.parse(xhr.responseText);
             resolve(data);
           } catch (e) {
+            console.error(
+              "generateAIPersonalizedPaths: Invalid JSON response",
+              e,
+            );
             reject(new Error("Invalid JSON response"));
           }
+        } else if (xhr.status === 429) {
+          console.error("generateAIPersonalizedPaths: Rate limited");
+          reject(new Error("Rate limited - too many requests"));
         } else {
+          console.error(
+            `generateAIPersonalizedPaths: API error ${xhr.status}:`,
+            xhr.responseText,
+          );
           reject(new Error(`API error: ${xhr.status}`));
         }
       };
@@ -36,7 +47,7 @@ export async function generateAIPersonalizedPaths(
       };
       xhr.ontimeout = () => {
         console.error(
-          "generateAIPersonalizedPaths: Request timeout after 30 seconds",
+          "generateAIPersonalizedPaths: Request timeout after 50 seconds",
         );
         reject(new Error("Request timeout"));
       };
