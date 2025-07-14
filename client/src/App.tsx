@@ -49,6 +49,8 @@ function App() {
   const [showCongratulations, setShowCongratulations] = React.useState(false);
   const [congratulationsShown, setCongratulationsShown] = React.useState(false);
 
+  
+
   // Restore data from localStorage on app start
   React.useEffect(() => {
     console.log(
@@ -231,10 +233,11 @@ function App() {
   return (
     <AuthProvider>
       <PaywallProvider>
-        <Router>
-          <Analytics />
-          <SpeedInsights />
-          <Routes>
+                <Router>
+          <NavigationGuardWrapper>
+            <Analytics />
+            <SpeedInsights />
+            <Routes>
             {/* Public routes with layout */}
             <Route
               path="/"
