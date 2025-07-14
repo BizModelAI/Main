@@ -346,8 +346,8 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     if (quizData && path) {
       generateAndCacheAIAnalysis(quizData, path);
       generateSkillsAnalysis(quizData, model);
-    } else if (import.meta.env.MODE === "development" && user && path) {
-      // Development fallback: create mock quiz data for paid users
+    } else if (user && user.hasAccessPass && path) {
+      // Fallback for paid users when quiz data API fails: create mock quiz data
       const mockQuizData = {
         successIncomeGoal: 5000,
         firstIncomeTimeline: "3-6-months",
