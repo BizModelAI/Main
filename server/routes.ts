@@ -2408,8 +2408,6 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.log("After quiz attempt:", {
         userId: testUser.id,
         hasAccessPass: finalUser.hasAccessPass,
-        quizRetakesRemaining: finalUser.quizRetakesRemaining,
-        totalQuizRetakesUsed: finalUser.totalQuizRetakesUsed,
         attemptsCount: finalAttemptsCount,
       });
 
