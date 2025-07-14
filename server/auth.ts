@@ -433,12 +433,12 @@ export function setupAuthRoutes(app: Express) {
       const updates = req.body;
       console.log(
         "Profile update: Received updates for userId",
-        req.session.userId,
+        userId,
         ":",
         updates,
       );
 
-      const user = await storage.updateUser(req.session.userId, updates);
+      const user = await storage.updateUser(userId, updates);
       console.log("Profile update: Updated user:", {
         id: user.id,
         name: user.name,
