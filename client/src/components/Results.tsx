@@ -1684,7 +1684,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
               <button
                 onClick={handleShareResults}
                 className={`p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
-                  hasUnlockedAnalysis ? "bg-white" : "bg-gray-100 relative"
+                  canViewFullReport ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
                 {!hasUnlockedAnalysis && (
