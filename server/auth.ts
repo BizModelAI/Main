@@ -368,8 +368,6 @@ export function setupAuthRoutes(app: Express) {
         username: email,
         email: email,
         name: name,
-        hasAccessPass: false,
-        quizRetakesRemaining: 0,
         isTemporary: true,
       });
     } catch (error) {
