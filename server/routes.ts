@@ -2319,7 +2319,9 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       });
     } catch (error) {
       console.error("Error in test retake flow:", error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
