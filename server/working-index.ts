@@ -25,8 +25,8 @@ app.use(
     secret:
       process.env.SESSION_SECRET ||
       "development-secret-key-change-in-production",
-    resave: false, // Don't force session save on every request
-    saveUninitialized: false, // Don't save empty sessions
+    resave: true, // Force session save to ensure persistence
+    saveUninitialized: true, // Save empty sessions
     store: new MemoryStoreSession({
       checkPeriod: 86400000,
       max: 10000,
@@ -34,11 +34,10 @@ app.use(
     }),
     cookie: {
       secure: false, // HTTP in development
-      httpOnly: true, // Secure cookie, browser manages it
+      httpOnly: false, // Allow client-side access for debugging
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "lax", // Allow same-site requests
+      sameSite: false, // No CSRF protection for development
       path: "/", // Ensure cookie is available for all paths
-      domain: undefined, // Don't set domain explicitly for cloud environment
     },
     rolling: false, // Don't change session ID on each request
     name: "connect.sid",
