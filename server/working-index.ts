@@ -58,6 +58,19 @@ app.use((req: any, res: any, next: any) => {
     protocol: req.protocol,
     secure: req.secure,
   });
+
+  // Debug response headers after response
+  const originalSend = res.send;
+  res.send = function (data: any) {
+    if (req.path.startsWith("/api/auth/login")) {
+      console.log("Login Response Headers:", {
+        setCookie: res.getHeaders()["set-cookie"],
+        allHeaders: res.getHeaders(),
+      });
+    }
+    return originalSend.call(this, data);
+  };
+
   next();
 });
 
