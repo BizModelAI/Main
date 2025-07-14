@@ -75,8 +75,12 @@ const Settings: React.FC = () => {
     setSaveStatus("saving");
     try {
       // Create clean server data with only valid User fields
+      const firstName = formData.firstName.trim();
+      const lastName = formData.lastName.trim();
+      const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
       const serverData = {
-        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        name: fullName,
         email: formData.email.trim(),
       };
 
