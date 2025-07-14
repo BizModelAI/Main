@@ -735,11 +735,24 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Save quiz data for authenticated user after payment
   app.post("/api/auth/save-quiz-data", async (req, res) => {
+    console.log("API: POST /api/auth/save-quiz-data", {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+
     try {
+      const sessionKey = getSessionKey(req);
+      console.log("Save quiz data: Session debug", {
+        sessionUserId: req.session?.userId,
+        sessionKey: sessionKey,
+      });
+
       const userId = getUserIdFromRequest(req);
+      console.log("Save quiz data: getUserIdFromRequest returned", userId);
 
       if (!userId) {
-        console.log("Save quiz data: Not authenticated", {
+        console.log("Save quiz data: Not authenticated - returning 401", {
           sessionUserId: req.session?.userId,
           cacheUserId: userId,
           sessionKey: getSessionKey(req),
