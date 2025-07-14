@@ -62,7 +62,6 @@ const Settings: React.FC = () => {
 
       console.log("Settings: Saving profile data:", {
         formData,
-        profileData,
         serverData,
         user: user?.id,
       });
