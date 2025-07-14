@@ -648,7 +648,8 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
       );
       return null;
 
-      const cached = localStorage.getItem(cacheKey);
+      const cached =
+        typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
       if (cached) {
         const data = JSON.parse(cached);
         // Check if cache is still valid (1 hour)
@@ -1515,7 +1516,7 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
   private getFallbackContent(prompt: string): string {
     // Provide meaningful fallback content based on the prompt type
     if (prompt.includes("action plan") || prompt.includes("actionable steps")) {
-      return `Week 1:\n• Research your target market and competition\n• Set up basic business infrastructure\n• Define your value proposition\n\nMonth 1:\n��� Launch your minimum viable product/service\n• Start building your customer base\n• Establish your online presence\n\nMonth 3:\n• Optimize based on customer feedback\n• Scale your marketing efforts\n• Build strategic partnerships\n\nMonth 6:\n• Expand your offerings\n• Consider hiring or outsourcing\n• Plan for next growth phase`;
+      return `Week 1:\n• Research your target market and competition\n• Set up basic business infrastructure\n• Define your value proposition\n\nMonth 1:\n• Launch your minimum viable product/service\n• Start building your customer base\n• Establish your online presence\n\nMonth 3:\n• Optimize based on customer feedback\n• Scale your marketing efforts\n• Build strategic partnerships\n\nMonth 6:\n• Expand your offerings\n• Consider hiring or outsourcing\n• Plan for next growth phase`;
     }
 
     if (prompt.includes("avoid") || prompt.includes("poor fit")) {
