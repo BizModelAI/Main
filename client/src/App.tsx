@@ -49,8 +49,6 @@ function App() {
   const [showCongratulations, setShowCongratulations] = React.useState(false);
   const [congratulationsShown, setCongratulationsShown] = React.useState(false);
 
-  
-
   // Restore data from localStorage on app start
   React.useEffect(() => {
     console.log(
@@ -232,191 +230,184 @@ function App() {
 
   return (
     <AuthProvider>
-            <PaywallProvider>
+      <PaywallProvider>
         <Router>
           <NavigationGuardWrapper>
             <Analytics />
             <SpeedInsights />
             <Routes>
-            {/* Public routes with layout */}
-            <Route
-              path="/"
-              element={
-                <Layout>
-                  <Index />
-                </Layout>
-              }
-            />
+              {/* Public routes with layout */}
+              <Route
+                path="/"
+                element={
+                  <Layout>
+                    <Index />
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/explore"
-              element={
-                <Layout>
-                  <BusinessExplorer quizData={quizData} />
-                </Layout>
-              }
-            />
+              <Route
+                path="/explore"
+                element={
+                  <Layout>
+                    <BusinessExplorer quizData={quizData} />
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/contact"
-              element={
-                <Layout>
-                  <ContactUs />
-                </Layout>
-              }
-            />
+              <Route
+                path="/contact"
+                element={
+                  <Layout>
+                    <ContactUs />
+                  </Layout>
+                }
+              />
 
-            {/* Auth routes (no layout) */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+              {/* Auth routes (no layout) */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Protected routes with layout */}
-            <Route
-              path="/dashboard"
-              element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                </Layout>
-              }
-            />
+              {/* Protected routes with layout */}
+              <Route
+                path="/dashboard"
+                element={
+                  <Layout>
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/settings"
-              element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                </Layout>
-              }
-            />
+              <Route
+                path="/settings"
+                element={
+                  <Layout>
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  </Layout>
+                }
+              />
 
-            {/* Quiz without layout (has its own design) */}
-            <Route
-              path="/quiz"
-              element={
-                <QuizWithNavigation
-                  quizData={quizData}
-                  setQuizData={setQuizData}
-                  showEmailCapture={showEmailCapture}
-                  setShowEmailCapture={setShowEmailCapture}
-                  userEmail={userEmail}
-                  setUserEmail={setUserEmail}
-                  generateMockQuizData={generateMockQuizData}
-                  showAILoading={showAILoading}
-                  setShowAILoading={setShowAILoading}
-                  loadedReportData={loadedReportData}
-                  setLoadedReportData={setLoadedReportData}
-                  showCongratulations={showCongratulations}
-                  setShowCongratulations={setShowCongratulations}
-                  congratulationsShown={congratulationsShown}
-                  setCongratulationsShown={setCongratulationsShown}
-                  handleAILoadingComplete={handleAILoadingComplete}
-                />
-              }
-            />
-
-            {/* Quiz completion loading page - NOW uses AIReportLoading */}
-            <Route
-              path="/quiz-loading"
-              element={
-                <AIReportLoadingWrapper
-                  quizData={quizData}
-                  setShowCongratulations={setShowCongratulations}
-                />
-              }
-            />
-
-            {/* Loading page - NOW uses QuizCompletionLoading */}
-            <Route
-              path="/loading"
-              element={
-                <QuizCompletionLoadingWrapper
-                  quizData={quizData}
-                  userEmail={userEmail}
-                  showCongratulations={showCongratulations}
-                  setUserEmail={setUserEmail}
-                  setShowCongratulations={setShowCongratulations}
-                  loadedReportData={loadedReportData}
-                  handleAILoadingComplete={handleAILoadingComplete}
-                />
-              }
-            />
-
-            {/* Results with layout */}
-            <Route
-              path="/results"
-              element={
-                <Layout>
-                  <ResultsWrapperWithReset
+              {/* Quiz without layout (has its own design) */}
+              <Route
+                path="/quiz"
+                element={
+                  <QuizWithNavigation
                     quizData={quizData}
+                    setQuizData={setQuizData}
+                    showEmailCapture={showEmailCapture}
+                    setShowEmailCapture={setShowEmailCapture}
                     userEmail={userEmail}
-                    onBack={() => window.history.back()}
+                    setUserEmail={setUserEmail}
+                    generateMockQuizData={generateMockQuizData}
+                    showAILoading={showAILoading}
+                    setShowAILoading={setShowAILoading}
                     loadedReportData={loadedReportData}
+                    setLoadedReportData={setLoadedReportData}
+                    showCongratulations={showCongratulations}
+                    setShowCongratulations={setShowCongratulations}
+                    congratulationsShown={congratulationsShown}
+                    setCongratulationsShown={setCongratulationsShown}
+                    handleAILoadingComplete={handleAILoadingComplete}
+                  />
+                }
+              />
+
+              {/* Quiz completion loading page - NOW uses AIReportLoading */}
+              <Route
+                path="/quiz-loading"
+                element={
+                  <AIReportLoadingWrapper
+                    quizData={quizData}
                     setShowCongratulations={setShowCongratulations}
                   />
-                </Layout>
-              }
-            />
+                }
+              />
 
-            {/* Business Model Detail Page */}
-            <Route
-              path="/business/:businessId"
-              element={
-                <Layout>
-                  <BusinessModelDetail quizData={quizData} />
-                </Layout>
-              }
-            />
+              {/* Loading page - NOW uses QuizCompletionLoading */}
+              <Route
+                path="/loading"
+                element={
+                  <QuizCompletionLoadingWrapper
+                    quizData={quizData}
+                    userEmail={userEmail}
+                    showCongratulations={showCongratulations}
+                    setUserEmail={setUserEmail}
+                    setShowCongratulations={setShowCongratulations}
+                    loadedReportData={loadedReportData}
+                    handleAILoadingComplete={handleAILoadingComplete}
+                  />
+                }
+              />
 
-            {/* Business Guide Page */}
-            <Route
-              path="/guide/:businessId"
-              element={
-                <Layout>
-                  <BusinessGuide quizData={quizData} />
-                </Layout>
-              }
-            />
+              {/* Results with layout */}
+              <Route
+                path="/results"
+                element={
+                  <Layout>
+                    <ResultsWrapperWithReset
+                      quizData={quizData}
+                      userEmail={userEmail}
+                      onBack={() => window.history.back()}
+                      loadedReportData={loadedReportData}
+                      setShowCongratulations={setShowCongratulations}
+                    />
+                  </Layout>
+                }
+              />
 
-            {/* Download Report Page */}
-            <Route path="/report" element={<DownloadReportPage />} />
+              {/* Business Model Detail Page */}
+              <Route
+                path="/business/:businessId"
+                element={
+                  <Layout>
+                    <BusinessModelDetail quizData={quizData} />
+                  </Layout>
+                }
+              />
 
-            {/* PDF Report Page (no layout) */}
-            <Route path="/pdf-report" element={<PDFReportPage />} />
+              {/* Business Guide Page */}
+              <Route
+                path="/guide/:businessId"
+                element={
+                  <Layout>
+                    <BusinessGuide quizData={quizData} />
+                  </Layout>
+                }
+              />
 
-            {/* Privacy Policy */}
-            <Route path="/privacy" element={<PrivacyPolicy />} />
+              {/* Download Report Page */}
+              <Route path="/report" element={<DownloadReportPage />} />
 
-            {/* Unsubscribe Page */}
-            <Route path="/unsubscribe" element={<UnsubscribePage />} />
+              {/* PDF Report Page (no layout) */}
+              <Route path="/pdf-report" element={<PDFReportPage />} />
 
-            {/* Admin Page */}
-            <Route path="/admin" element={<AdminPage />} />
+              {/* Privacy Policy */}
+              <Route path="/privacy" element={<PrivacyPolicy />} />
 
-            {/* Quiz Payment Required */}
-            <Route
-              path="/quiz-payment-required"
-              element={<QuizPaymentRequired />}
-            />
+              {/* Unsubscribe Page */}
+              <Route path="/unsubscribe" element={<UnsubscribePage />} />
 
-            {/* Save Results Payment */}
-            <Route
-              path="/save-results-payment"
-              element={<SaveResultsPayment />}
-            />
-          </Routes>
+              {/* Admin Page */}
+              <Route path="/admin" element={<AdminPage />} />
 
-          {/* Save Quiz Results Modal */}
-          <SaveQuizResultsModal
-            isOpen={showSaveModal}
-            onClose={handleCloseModal}
-            onPayNow={handleSaveResults}
-            onLoseResults={handleLoseResults}
-          />
+              {/* Quiz Payment Required */}
+              <Route
+                path="/quiz-payment-required"
+                element={<QuizPaymentRequired />}
+              />
+
+              {/* Save Results Payment */}
+              <Route
+                path="/save-results-payment"
+                element={<SaveResultsPayment />}
+              />
+            </Routes>
+          </NavigationGuardWrapper>
         </Router>
       </PaywallProvider>
     </AuthProvider>
