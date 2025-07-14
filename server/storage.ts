@@ -210,18 +210,11 @@ export class MemStorage implements IStorage {
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
-    const user = await this.getUser(userId);
-    if (!user) return;
-
-    const attemptCount = await this.getQuizAttemptsCount(userId);
-
-    // Don't decrement for first quiz (it's free)
-    if (attemptCount === 0) return;
-
-    await this.updateUser(userId, {
-      quizRetakesRemaining: Math.max(0, user.quizRetakesRemaining - 1),
-      totalQuizRetakesUsed: user.totalQuizRetakesUsed + 1,
-    });
+    // No longer needed in pay-per-report system
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      "decrementQuizRetakes called but no longer needed in pay-per-report system",
+    );
   }
 
   async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
