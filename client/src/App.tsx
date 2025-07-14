@@ -50,23 +50,6 @@ function App() {
   const [showCongratulations, setShowCongratulations] = React.useState(false);
   const [congratulationsShown, setCongratulationsShown] = React.useState(false);
 
-  // Navigation guard for unsaved quiz results
-  const {
-    showSaveModal,
-    hasPendingQuizResults,
-    navigateWithGuard,
-    handleSaveResults: guardHandleSaveResults,
-    handleLoseResults,
-    handleCloseModal,
-  } = useNavigationGuard();
-
-  // Custom save results handler that triggers payment
-  const handleSaveResults = () => {
-    guardHandleSaveResults();
-    // Navigate to save results payment page
-    window.location.href = "/save-results-payment";
-  };
-
   // Restore data from localStorage on app start
   React.useEffect(() => {
     console.log(
