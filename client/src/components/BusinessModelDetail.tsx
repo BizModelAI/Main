@@ -348,21 +348,63 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       generateSkillsAnalysis(quizData, model);
     } else if (user && user.hasAccessPass && path) {
       // Fallback for paid users when quiz data API fails: create mock quiz data
-      const mockQuizData = {
-        successIncomeGoal: 5000,
+      const mockQuizData: QuizData = {
+        // Round 1: Motivation & Vision
+        mainMotivation: "financial",
         firstIncomeTimeline: "3-6-months",
+        successIncomeGoal: 5000,
+        upfrontInvestment: 1000,
         passionIdentityAlignment: 4,
-        techSkillsRating: 3,
-        workCollaborationPreference: "mostly-solo",
-        directCommunicationEnjoyment: 3,
-        brandFaceComfort: 2,
-        creativeWorkEnjoyment: 4,
-        workStructurePreference: "some-structure",
-        systemsRoutinesEnjoyment: 3,
-        pathPreference: "problem-solving",
+        businessExitPlan: "sell",
+        businessGrowthSize: "small-team",
         passiveIncomeImportance: 4,
+
+        // Round 2: Time, Effort & Learning Style
+        weeklyTimeCommitment: 20,
+        longTermConsistency: 4,
+        trialErrorComfort: 3,
+        learningPreference: "hands-on",
+        systemsRoutinesEnjoyment: 3,
+        discouragementResilience: 4,
         toolLearningWillingness: "yes",
+        organizationLevel: 3,
+        selfMotivationLevel: 4,
+        uncertaintyHandling: 3,
+        repetitiveTasksFeeling: "tolerate",
+        workCollaborationPreference: "mostly-solo",
+
+        // Round 3: Personality & Preferences
+        brandFaceComfort: 2,
+        competitivenessLevel: 3,
+        creativeWorkEnjoyment: 4,
+        directCommunicationEnjoyment: 3,
+        workStructurePreference: "some-structure",
+
+        // Round 4: Tools & Work Environment
+        techSkillsRating: 3,
+        workspaceAvailability: "dedicated",
+        supportSystemStrength: "moderate",
+        internetDeviceReliability: 4,
+        familiarTools: ["basic-computer"],
+
+        // Round 5: Strategy & Decision-Making
+        decisionMakingStyle: "analytical",
+        riskComfortLevel: 3,
+        feedbackRejectionResponse: 3,
+        pathPreference: "problem-solving",
         controlImportance: 4,
+
+        // Round 6: Business Model Fit Filters
+        onlinePresenceComfort: "comfortable",
+        clientCallsComfort: "somewhat-comfortable",
+        physicalShippingOpenness: "open",
+        workStylePreference: "flexible",
+        socialMediaInterest: 3,
+        ecosystemParticipation: "participate",
+        existingAudience: "none",
+        promotingOthersOpenness: "open",
+        teachVsSolvePreference: "solve",
+        meaningfulContributionImportance: 4,
       };
       generateAndCacheAIAnalysis(mockQuizData, path);
       generateSkillsAnalysis(mockQuizData, model);
