@@ -886,7 +886,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         currency: "usd",
         type: "retake_bundle",
         status: "pending",
-        retakesGranted: 5,
+        retakesGranted: 3,
         stripePaymentIntentId: paymentIntent.id,
       });
 
