@@ -130,8 +130,12 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const content = getContent();
 
   const validateAccountForm = () => {
-    if (!formData.name.trim()) {
-      setError("Name is required");
+    if (!formData.firstName.trim()) {
+      setError("First name is required");
+      return false;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Last name is required");
       return false;
     }
     if (!formData.email.trim()) {
