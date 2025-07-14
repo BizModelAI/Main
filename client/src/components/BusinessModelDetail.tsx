@@ -345,6 +345,26 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     if (quizData && path) {
       generateAndCacheAIAnalysis(quizData, path);
       generateSkillsAnalysis(quizData, model);
+    } else if (import.meta.env.MODE === "development" && user && path) {
+      // Development fallback: create mock quiz data for paid users
+      const mockQuizData = {
+        successIncomeGoal: 5000,
+        firstIncomeTimeline: "3-6-months",
+        passionIdentityAlignment: 4,
+        techSkillsRating: 3,
+        workCollaborationPreference: "mostly-solo",
+        directCommunicationEnjoyment: 3,
+        brandFaceComfort: 2,
+        creativeWorkEnjoyment: 4,
+        workStructurePreference: "some-structure",
+        systemsRoutinesEnjoyment: 3,
+        pathPreference: "problem-solving",
+        passiveIncomeImportance: 4,
+        toolLearningWillingness: "yes",
+        controlImportance: 4,
+      };
+      generateAndCacheAIAnalysis(mockQuizData, path);
+      generateSkillsAnalysis(mockQuizData, model);
     } else {
       setIsLoadingAnalysis(false);
       setIsLoadingSkills(false);
