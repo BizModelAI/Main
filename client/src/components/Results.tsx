@@ -1403,8 +1403,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       </div>
                     </div>
 
-                    {/* Paywall Section */}
-                    {!hasUnlockedAnalysis && (
+                    {/* Paywall Section - Show for both logged and non-logged users who haven't unlocked */}
+                    {(!hasUnlockedAnalysis || (user && !isReportUnlocked)) && (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
