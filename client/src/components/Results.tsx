@@ -335,7 +335,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Check for cached AI data from the loading page first
       const cachedAIData = localStorage.getItem("quiz-completion-ai-insights");
 
-      console.log("🔍 DEBUGGING AI INSIGHTS LOADING:");
+      console.log("���� DEBUGGING AI INSIGHTS LOADING:");
       console.log("Cached AI data found:", !!cachedAIData);
 
       if (cachedAIData) {
@@ -1872,7 +1872,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                     $49.99 Value
                   </div>
                   <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
-                    $9.99
+                    {user ? "$4.99" : "$9.99"}
                   </div>
                   <div className="text-gray-300 text-sm md:text-base lg:text-lg px-2 md:px-0">
                     One-time payment • Instant access • 30-day guarantee
