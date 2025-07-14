@@ -23,6 +23,11 @@ export async function setupVite(app: Express, server: Server) {
   console.log("Starting Vite development server...");
 
   try {
+    // Dynamic import of Vite
+    const viteModule = await import("vite");
+    createViteServer = viteModule.createServer;
+    createLogger = viteModule.createLogger;
+
     const serverOptions = {
       middlewareMode: true,
       hmr: { server },
