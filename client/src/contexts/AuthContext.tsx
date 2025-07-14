@@ -408,15 +408,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return null;
     }
 
-    // First verify the session is valid by checking auth status
+    // First verify the session is valid by checking auth status using XMLHttpRequest
     try {
-      const authCheck = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", "/api/auth/me", true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      const authCheck = await new Promise<{ ok: boolean; status: number }>(
+        (resolve, reject) => {
+          xhr.onload = () => {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+            });
+          };
+          xhr.onerror = () =>
+            reject(new Error("Auth check XMLHttpRequest failed"));
+          xhr.timeout = 5000; // 5 second timeout for auth check
+          xhr.ontimeout = () => reject(new Error("Auth check timeout"));
+          xhr.send();
         },
-      });
+      );
 
       if (!authCheck.ok) {
         console.log(
