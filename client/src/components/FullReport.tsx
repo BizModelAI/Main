@@ -1200,7 +1200,7 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {(
                       aiInsights?.bestFitCharacteristics || allCharacteristics
-                    ).map((characteristic, index) => (
+                    ).map((characteristic: string, index: number) => (
                       <div key={index} className="flex items-center">
                         <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                         <span className="text-gray-700">{characteristic}</span>
