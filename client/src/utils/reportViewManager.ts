@@ -120,7 +120,7 @@ export class ReportViewManager {
   markReportAsViewed(
     quizAttemptId: number,
     quizData: QuizData,
-    userEmail?: string,
+    userEmail?: string | null,
   ): void {
     const viewedReports = this.getViewedReports();
 
