@@ -39,7 +39,7 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
       if (response.success) {
         toast({
           title: "Access Pass Purchased!",
-          description: "You now have 5 quiz retakes available.",
+          description: "You now have 3 quiz retakes available.",
         });
         onPaymentSuccess();
         onClose();
