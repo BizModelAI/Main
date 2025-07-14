@@ -28,6 +28,228 @@ export class AIService {
     }
   }
 
+  async generateModelInsights(
+    quizData: QuizData,
+    modelName: string,
+    fitType: "best" | "strong" | "possible" | "poor",
+  ): Promise<{
+    modelFitReason: string;
+    keyInsights: string[];
+    successPredictors: string[];
+  }> {
+    try {
+      // Create cache key
+      const quizKey = this.createCacheKey(quizData, []);
+      const cacheKey = `model_${modelName}_${quizKey}`;
+
+      // Check for existing cached insights
+      const cached = this.getCachedInsights(cacheKey);
+      if (cached) {
+        console.log(
+          `✅ Using cached model insights for ${modelName} (${fitType})`,
+        );
+        return cached;
+      }
+
+      console.log(
+        `🔄 Generating fresh model insights for ${modelName} (${fitType})`,
+      );
+
+      const userProfile = this.createUserProfile(quizData);
+      const prompt = this.buildModelInsightsPrompt(
+        userProfile,
+        modelName,
+        fitType,
+      );
+
+      const response = await this.makeOpenAIRequest(prompt, 700, 0.7);
+
+      // Clean up response
+      let cleanContent = response;
+      if (cleanContent.includes("```json")) {
+        cleanContent = cleanContent
+          .replace(/```json\n?/g, "")
+          .replace(/```/g, "");
+      }
+
+      const parsed = JSON.parse(cleanContent);
+
+      const result = {
+        modelFitReason:
+          parsed.modelFitReason ||
+          `${modelName} shows ${fitType} alignment with your profile.`,
+        keyInsights: this.validateArray(
+          parsed.keyInsights,
+          3,
+          `This business model ${fitType === "best" || fitType === "strong" ? "aligns well" : "has challenges"} with your current profile.`,
+        ),
+        successPredictors: this.validateArray(
+          parsed.successPredictors,
+          3,
+          fitType === "best" || fitType === "strong"
+            ? "Your traits support success in this model"
+            : "Some traits may create challenges in this model",
+        ),
+      };
+
+      // Cache the results
+      this.cacheInsights(cacheKey, result);
+
+      console.log(
+        `✅ Fresh model insights generated and cached for ${modelName}`,
+      );
+      return result;
+    } catch (error) {
+      console.error(
+        `❌ Error generating model insights for ${modelName}:`,
+        error,
+      );
+      return this.generateModelInsightsFallback(modelName, fitType);
+    }
+  }
+
+  private buildModelInsightsPrompt(
+    userProfile: string,
+    modelName: string,
+    fitType: "best" | "strong" | "possible" | "poor",
+  ): string {
+    const basePrompt = `
+You are an AI business coach analyzing why ${modelName} is a ${fitType} fit for this user. Based only on the user profile, generate personalized insights.
+
+${userProfile}
+
+Generate a JSON response with this exact structure:
+
+{
+  "modelFitReason": "Single paragraph explanation",
+  "keyInsights": ["insight 1", "insight 2", "insight 3"],
+  "successPredictors": ["predictor 1", "predictor 2", "predictor 3"]
+}
+
+CRITICAL RULES:
+- Use ONLY the data provided in the user profile
+- Do NOT make up specific numbers, amounts, or timeframes
+- Do NOT include markdown or formatting
+- Keep modelFitReason as ONE paragraph
+- Reference exact values from the user profile
+`;
+
+    switch (fitType) {
+      case "best":
+        return `${basePrompt}
+
+FIT TYPE: BEST - This is their ideal match
+- modelFitReason: Explain why ${modelName} is the user's ideal match. Use clear, confident tone.
+- keyInsights: All positive insights about why this works for them
+- successPredictors: Traits that increase their odds of success
+
+Be enthusiastic and confident about this being their perfect fit.`;
+
+      case "strong":
+        return `${basePrompt}
+
+FIT TYPE: STRONG - Great fit but not their #1
+- modelFitReason: Explain why it's a great fit, but briefly note why it's not their absolute best match
+- keyInsights: Mostly strengths with 1 light drawback if relevant
+- successPredictors: Mostly positive traits, minor caveat if needed
+
+Be positive but acknowledge it's not their perfect match.`;
+
+      case "possible":
+        return `${basePrompt}
+
+FIT TYPE: POSSIBLE - Might work but likely won't right now
+- modelFitReason: Explain why it might work, but emphasize 2-3 quiz-based reasons why it likely won't work right now
+- keyInsights: Highlight gaps or blockers from their profile
+- successPredictors: Traits that reduce their odds of success
+
+Be honest about the challenges while remaining constructive.`;
+
+      case "poor":
+        return `${basePrompt}
+
+FIT TYPE: POOR - Clearly misaligned
+- modelFitReason: Clearly explain why ${modelName} is misaligned with their profile. End with future-oriented line about what would need to change.
+- keyInsights: Clear mismatches between their profile and this model
+- successPredictors: Traits that would make success unlikely
+
+Be direct about the poor fit while offering hope for the future.`;
+
+      default:
+        return basePrompt;
+    }
+  }
+
+  private generateModelInsightsFallback(
+    modelName: string,
+    fitType: "best" | "strong" | "possible" | "poor",
+  ): {
+    modelFitReason: string;
+    keyInsights: string[];
+    successPredictors: string[];
+  } {
+    const fallbackContent = {
+      best: {
+        reason: `${modelName} aligns exceptionally well with your profile, making it an ideal entrepreneurial path for your current situation and goals.`,
+        insights: [
+          "Your skills and preferences match this model's requirements perfectly",
+          "Your available time and resources support this business approach",
+          "This model's income potential aligns with your financial goals",
+        ],
+        predictors: [
+          "Strong alignment between your traits and success factors",
+          "Your motivation style supports this type of business building",
+          "Your available resources provide a solid foundation for growth",
+        ],
+      },
+      strong: {
+        reason: `${modelName} represents a strong fit for your profile, offering good potential for success with some minor considerations to keep in mind.`,
+        insights: [
+          "Most of your traits align well with this business model",
+          "Your goals and timeline work well with this approach",
+          "Some minor adjustments may optimize your success potential",
+        ],
+        predictors: [
+          "Your core strengths support success in this field",
+          "Your available resources provide adequate foundation",
+          "Minor skill development could enhance your outcomes",
+        ],
+      },
+      possible: {
+        reason: `${modelName} might work for you, but several aspects of your current profile suggest significant challenges that could impact your success.`,
+        insights: [
+          "Some misalignment between your preferences and model requirements",
+          "Your current resources may not fully support this approach",
+          "Timing and skill gaps present notable obstacles",
+        ],
+        predictors: [
+          "Certain traits may create challenges in this business model",
+          "Resource or time constraints could limit initial progress",
+          "Skill development would be necessary for success",
+        ],
+      },
+      poor: {
+        reason: `${modelName} shows significant misalignment with your current profile and would likely present substantial challenges that could impact your entrepreneurial success. As your skills and resources develop, this could become more viable in the future.`,
+        insights: [
+          "Major gaps between your profile and this model's requirements",
+          "Your current situation doesn't align with success factors",
+          "Alternative business models would better suit your strengths",
+        ],
+        predictors: [
+          "Current traits suggest high difficulty in this business model",
+          "Resource and skill requirements exceed your current capacity",
+          "Success would require significant changes to your approach",
+        ],
+      },
+    };
+
+    return {
+      modelFitReason: fallbackContent[fitType].reason,
+      keyInsights: fallbackContent[fitType].insights,
+      successPredictors: fallbackContent[fitType].predictors,
+    };
+  }
+
   async generateResultsPreview(
     quizData: QuizData,
     topPaths: BusinessPath[],
