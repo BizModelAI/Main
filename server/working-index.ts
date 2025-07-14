@@ -123,11 +123,10 @@ async function setupRoutes() {
 // Setup server with routes BEFORE Vite middleware
 async function setupApiRoutes() {
   try {
-    console.log("Skipping route registration for now...");
-    // Temporarily disabled to get server working
-    // const { registerRoutes } = await import("./routes.js");
-    // await registerRoutes(app);
-    console.log("Routes registration skipped");
+    console.log("Importing and registering routes...");
+    const { registerRoutes } = await import("./routes.js");
+    await registerRoutes(app);
+    console.log("Routes registered successfully");
   } catch (error) {
     console.error("Failed to register routes:", error);
   }
