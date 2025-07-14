@@ -87,7 +87,7 @@ export function setupAuthRoutes(app: Express) {
     res.json({
       sessionId: req.sessionID,
       userId: req.session?.userId,
-      testValue: req.session?.testValue || "none",
+      testValue: (req.session as any)?.testValue || "none",
       sessionExists: !!req.session,
       cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
       userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
@@ -98,7 +98,7 @@ export function setupAuthRoutes(app: Express) {
   app.post("/api/auth/session-test", async (req, res) => {
     try {
       const testValue = `test-${Date.now()}`;
-      req.session.testValue = testValue;
+      (req.session as any).testValue = testValue;
 
       console.log("Session test: Setting test value", {
         sessionId: req.sessionID,
@@ -121,7 +121,7 @@ export function setupAuthRoutes(app: Express) {
   app.get("/api/auth/session-test", async (req, res) => {
     res.json({
       sessionId: req.sessionID,
-      testValue: req.session?.testValue || null,
+      testValue: (req.session as any)?.testValue || null,
       sessionExists: !!req.session,
       cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
     });
