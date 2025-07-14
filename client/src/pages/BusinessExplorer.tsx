@@ -238,11 +238,25 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   };
 
   const handleLearnMore = (businessId: string) => {
+    // For logged-in users with access pass, allow direct access
+    if (user && user.hasAccessPass) {
+      console.log(
+        "BusinessExplorer: User has access pass, navigating directly to business model",
+      );
+      navigate(`/business/${businessId}`);
+      return;
+    }
+
     // For logged-in users with quiz data, allow access regardless of hasCompletedQuiz flag
     const userHasQuizData = user && quizData;
 
-    // Check if user has completed quiz (either flag is true OR user has quiz data)
-    if (!hasCompletedQuiz && !userHasQuizData) {
+    // Check if user has completed quiz (either flag is true OR user has quiz data OR can access business model)
+    if (
+      !hasCompletedQuiz &&
+      !userHasQuizData &&
+      !canAccessBusinessModel(businessId)
+    ) {
+      console.log("BusinessExplorer: User needs to complete quiz first");
       setPaywallType("quiz-required");
       setShowPaywallModal(true);
       return;
@@ -251,9 +265,15 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     // Check if user can access business model details (has paid)
     if (canAccessBusinessModel(businessId)) {
       // User has paid, navigate directly
+      console.log(
+        "BusinessExplorer: User can access business model, navigating",
+      );
       navigate(`/business/${businessId}`);
     } else {
       // User has completed quiz but hasn't paid
+      console.log(
+        "BusinessExplorer: User needs to pay for business model access",
+      );
       setSelectedBusinessId(businessId);
       setPaywallType("learn-more");
 
