@@ -28,6 +28,8 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({
   userId,
   onQuizSelected,
 }) => {
+  console.log("QuizAttemptHistory: Rendered with userId:", userId);
+
   const {
     data: attempts = [],
     isLoading,
@@ -35,6 +37,13 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({
   } = useQuery<QuizAttempt[]>({
     queryKey: [`/api/quiz-attempts/${userId}`],
     enabled: !!userId,
+  });
+
+  console.log("QuizAttemptHistory: Query state:", {
+    userId,
+    isLoading,
+    error: error?.message || error,
+    attemptsCount: attempts?.length || 0,
   });
 
   const [selectedAttemptId, setSelectedAttemptId] = React.useState<
