@@ -61,12 +61,13 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
           body: JSON.stringify(requestBody),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create payment intent");
+          throw new Error(data.error || "Failed to create payment intent");
         }
 
-        const { clientSecret } = await response.json();
+        const { clientSecret } = data;
         setClientSecret(clientSecret);
       } catch (error) {
         console.error("Error creating payment intent:", error);
