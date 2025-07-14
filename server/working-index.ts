@@ -46,6 +46,8 @@ app.use(
 
 // Add session debugging middleware
 app.use((req: any, res: any, next: any) => {
+  const isApiRequest = req.path.startsWith("/api/");
+
   console.log(`Session Debug: ${req.method} ${req.path}`, {
     sessionId: req.sessionID,
     userId: req.session?.userId,
@@ -57,6 +59,8 @@ app.use((req: any, res: any, next: any) => {
     origin: req.headers.origin || "none",
     protocol: req.protocol,
     secure: req.secure,
+    // Show all headers for API requests to debug
+    ...(isApiRequest ? { allHeaders: req.headers } : {}),
   });
 
   // Debug response headers after response
