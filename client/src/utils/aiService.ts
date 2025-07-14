@@ -1138,6 +1138,44 @@ Use only provided data. No invented details.`;
     return validAvoid;
   }
 
+  // Method for quiz loading phase - only generates preview insights
+  async generatePreviewInsightsOnly(
+    quizData: QuizData,
+    topPaths: BusinessPath[],
+  ): Promise<{
+    personalizedSummary: string;
+    customRecommendations: string[];
+    potentialChallenges: string[];
+    successStrategies: string[];
+    personalizedActionPlan: {
+      week1: string[];
+      month1: string[];
+      month3: string[];
+      month6: string[];
+    };
+    motivationalMessage: string;
+  }> {
+    try {
+      console.log("🔄 Generating PREVIEW insights only (no full report data)");
+
+      // Get preview content from cache or generate it
+      const previewData = await this.generateResultsPreview(quizData, topPaths);
+
+      // Return preview data with fallback values for full report fields
+      return {
+        personalizedSummary: previewData.previewInsights,
+        customRecommendations: previewData.keyInsights,
+        potentialChallenges: previewData.successPredictors,
+        successStrategies: this.getFallbackStrategies(),
+        personalizedActionPlan: this.getFallbackActionPlan(),
+        motivationalMessage: this.getFallbackMotivationalMessage(),
+      };
+    } catch (error) {
+      console.error("❌ Error generating preview insights:", error);
+      return this.getFallbackInsights();
+    }
+  }
+
   // Backward compatibility method - redirects to new structure
   async generatePersonalizedInsights(
     quizData: QuizData,
@@ -1156,6 +1194,10 @@ Use only provided data. No invented details.`;
     motivationalMessage: string;
   }> {
     try {
+      console.log(
+        "🔄 Generating FULL personalized insights (preview + full report data)",
+      );
+
       // Get preview content from cache or generate it
       const previewData = await this.generateResultsPreview(quizData, topPaths);
 
