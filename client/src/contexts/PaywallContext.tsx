@@ -78,14 +78,21 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
         console.log("PaywallContext: User has access pass:", hasAccess);
         setHasUnlockedAnalysis(hasAccess);
 
-        // Development mode: If user exists but quiz data call failed, assume they have completed quiz
-        if (!hasQuiz && import.meta.env.MODE === "development") {
+        // If user is authenticated but quiz data call failed or returned empty,
+        // assume they have completed quiz (this handles existing users)
+        if (!hasQuiz) {
           console.log(
-            "PaywallContext: Development mode - assuming quiz completed for logged-in user",
+            "PaywallContext: No quiz data found but user is authenticated - assuming quiz completed",
           );
           setHasCompletedQuiz(true);
-          // Also unlock analysis for development
-          setHasUnlockedAnalysis(true);
+
+          // In development mode, also unlock analysis
+          if (import.meta.env.MODE === "development") {
+            console.log(
+              "PaywallContext: Development mode - also unlocking analysis",
+            );
+            setHasUnlockedAnalysis(true);
+          }
         }
 
         // Update localStorage for consistency
