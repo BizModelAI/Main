@@ -308,7 +308,7 @@ export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
           className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 mx-auto"
         >
           <CreditCard className="w-5 h-5" />
-          Unlock for $4.99
+          Unlock for ${amount}
         </button>
 
         <p className="text-blue-200 text-sm mt-4">
