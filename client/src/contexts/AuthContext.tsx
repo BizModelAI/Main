@@ -269,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
     if (!user) {
       console.log("updateProfile: No user found, aborting");
-      return;
+      throw new Error("No user logged in");
     }
 
     console.log("updateProfile: Starting with data:", updates);
@@ -278,38 +278,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       name: user.name,
       email: user.email,
     });
-
-    // First check if the session is still valid
-    try {
-      const authCheck = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("updateProfile: Auth check status:", authCheck.status);
-
-      if (!authCheck.ok) {
-        console.log(
-          "updateProfile: Session invalid, clearing client auth state",
-        );
-        // Clear the client-side user state since server doesn't recognize the session
-        setUser(null);
-        throw new Error("Your session has expired. Please log in again.");
-      }
-
-      // If auth check passes, refresh user data
-      const userData = await authCheck.json();
-      setUser(userData);
-      console.log("updateProfile: Auth check passed, user data refreshed");
-    } catch (authError) {
-      console.error("updateProfile: Auth check failed:", authError);
-      // Clear client auth state on any auth error
-      setUser(null);
-      throw new Error("Authentication check failed. Please log in again.");
-    }
 
     setIsLoading(true);
     try {
@@ -368,9 +336,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
           // Provide more specific error message for common cases
           if (response.status === 401) {
-            console.log("updateProfile: 401 error, clearing user state");
-            setUser(null); // Clear user state on authentication error
-            errorMessage = "Not authenticated. Please log in and try again.";
+            console.log("updateProfile: 401 error, session expired");
+            errorMessage =
+              "Your session has expired. Please log in and try again.";
           } else if (response.status === 403) {
             errorMessage = "Permission denied.";
           } else if (response.status >= 500) {
