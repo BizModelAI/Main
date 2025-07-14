@@ -962,6 +962,21 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     );
   }
 
+  if (showFullReportLoading) {
+    return (
+      <FullReportLoading
+        quizData={quizData}
+        userEmail={userEmail}
+        onComplete={(data) => {
+          setLoadedReportData(data);
+          setShowFullReportLoading(false);
+          setShowFullReport(true);
+        }}
+        onExit={() => setShowFullReportLoading(false)}
+      />
+    );
+  }
+
   if (showFullReport) {
     return (
       <FullReport
