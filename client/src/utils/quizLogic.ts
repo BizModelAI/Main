@@ -30,8 +30,16 @@ export async function generateAIPersonalizedPaths(
         }
       };
 
-      xhr.onerror = () => reject(new Error("Network error"));
-      xhr.ontimeout = () => reject(new Error("Request timeout"));
+      xhr.onerror = () => {
+        console.error("generateAIPersonalizedPaths: Network error");
+        reject(new Error("Network error"));
+      };
+      xhr.ontimeout = () => {
+        console.error(
+          "generateAIPersonalizedPaths: Request timeout after 30 seconds",
+        );
+        reject(new Error("Request timeout"));
+      };
 
       xhr.send(JSON.stringify({ quizData: data }));
     });
