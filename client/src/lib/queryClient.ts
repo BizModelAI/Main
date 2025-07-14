@@ -78,24 +78,83 @@ const defaultFetcher = async (url: string) => {
   return response.json();
 };
 
-// API request helper function
+// API request helper function with FullStory compatibility
 export const apiRequest = async (
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   url: string,
   data?: any,
 ) => {
-  const options: RequestInit = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+  let response: Response;
 
-  if (data && method !== "GET") {
-    options.body = JSON.stringify(data);
+  // Use XMLHttpRequest first to avoid FullStory interference
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    response = await new Promise<Response>((resolve, reject) => {
+      xhr.onload = () => {
+        const responseText = xhr.responseText;
+        resolve({
+          ok: xhr.status >= 200 && xhr.status < 300,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          json: () => {
+            try {
+              return Promise.resolve(JSON.parse(responseText));
+            } catch (e) {
+              return Promise.reject(new Error("Invalid JSON response"));
+            }
+          },
+          text: () => Promise.resolve(responseText),
+          headers: new Headers(),
+          url: url,
+          redirected: false,
+          type: "basic",
+          clone: () => response,
+          body: null,
+          bodyUsed: false,
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+          blob: () => Promise.resolve(new Blob()),
+          formData: () => Promise.resolve(new FormData()),
+        } as Response);
+      };
+      xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
+      xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+      xhr.timeout = 10000; // 10 second timeout
+
+      if (data && method !== "GET") {
+        xhr.send(JSON.stringify(data));
+      } else {
+        xhr.send();
+      }
+    });
+  } catch (xhrError) {
+    // Fallback to fetch
+    const options: RequestInit = {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    if (data && method !== "GET") {
+      options.body = JSON.stringify(data);
+    }
+
+    try {
+      response = await fetch(url, options);
+    } catch (fetchError) {
+      console.error("apiRequest: Both XMLHttpRequest and fetch failed:", {
+        method,
+        url,
+        xhrError,
+        fetchError,
+      });
+      throw new Error(`Failed to ${method} ${url}: All request methods failed`);
+    }
   }
-
-  const response = await fetch(url, options);
 
   if (!response.ok) {
     throw new Error(`${response.status}: ${response.statusText}`);
