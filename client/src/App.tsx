@@ -606,6 +606,18 @@ const QuizWithNavigation: React.FC<{
 
         if (response.ok) {
           console.log("Quiz data saved successfully for authenticated user");
+          // Store quiz attempt ID for report unlock functionality
+          try {
+            const responseData = JSON.parse(response.text);
+            if (responseData.quizAttemptId) {
+              localStorage.setItem(
+                "currentQuizAttemptId",
+                responseData.quizAttemptId.toString(),
+              );
+            }
+          } catch (parseError) {
+            console.error("Error parsing save response:", parseError);
+          }
         } else if (response.status === 402) {
           // Payment required for additional quiz
           console.log("Payment required for additional quiz attempt");
