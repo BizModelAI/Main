@@ -244,6 +244,7 @@ export class AIScoringService {
   }
 
   private fallbackAnalysis(quizData: QuizData): ComprehensiveFitAnalysis {
+    console.log("🎯 Starting fallback analysis (algorithmic scoring)");
     // Enhanced algorithmic scoring as fallback
     const scoredPaths = businessPaths
       .map((path) => {
