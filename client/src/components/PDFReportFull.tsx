@@ -557,6 +557,424 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
           </div>
         </section>
 
+        {/* AI Personalized Analysis */}
+        <section className="mb-12 page-break">
+          <h2 className="text-3xl font-bold mb-8 flex items-center">
+            <Brain className="h-8 w-8 mr-3 text-purple-600" />
+            AI Personalized Analysis
+          </h2>
+
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
+            <div className="space-y-4 text-gray-700 leading-relaxed">
+              <p>
+                Based on your quiz responses, our AI has identified key patterns
+                in your entrepreneurial profile that suggest strong potential
+                for success in certain business models. Your responses indicate
+                a unique combination of traits that align particularly well with
+                businesses requiring your specific skill set and work style
+                preferences.
+              </p>
+              <p>
+                Your time availability of{" "}
+                {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)},
+                combined with your{" "}
+                {quizData.riskComfortLevel <= 2
+                  ? "conservative risk approach"
+                  : "willingness to take calculated risks"}
+                , positions you well for business models that can scale
+                gradually while providing steady returns. This approach aligns
+                with your timeline expectations and investment capacity.
+              </p>
+              <p>
+                The analysis also reveals that your preferred learning style (
+                {quizData.learningPreference?.replace("-", " ")}) and work
+                structure preferences (
+                {quizData.workStructurePreference?.replace("-", " ")}) are
+                strong indicators for success in your top-recommended business
+                paths. These factors, combined with your income goals and
+                available resources, create a clear roadmap for entrepreneurial
+                success.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <Star className="h-6 w-6 mr-2 text-yellow-500" />
+                Key Success Factors
+              </h3>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Strong alignment with your natural working style and
+                    preferences
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Optimal time investment matching your availability
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Risk level appropriate for your comfort zone
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Income potential aligns with your financial goals
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <Lightbulb className="h-6 w-6 mr-2 text-blue-500" />
+                Personalized Recommendations
+              </h3>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <Target className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Start with your highest-scoring business model for best
+                    initial success
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <Target className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Leverage your{" "}
+                    {quizData.learningPreference?.replace("-", " ")} learning
+                    style for skill development
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <Target className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Focus on building consistent habits matching your{" "}
+                    {quizData.workStructurePreference?.replace("-", " ")}{" "}
+                    preference
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <Target className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">
+                    Consider the timeline and investment requirements that match
+                    your current situation
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Business Models to Avoid */}
+        <section className="mb-12 page-break">
+          <h2 className="text-3xl font-bold mb-8 flex items-center">
+            <Shield className="h-8 w-8 mr-3 text-red-600" />
+            Business Models to Avoid
+          </h2>
+
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-red-800 text-sm">
+              <strong>Important Note:</strong> These business models scored
+              lowest for your current profile. This doesn't mean they're bad
+              businesses—they just don't align well with your current goals,
+              skills, or preferences. As you grow and develop, some of these
+              might become viable options in the future.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {paths
+              .slice(-3)
+              .reverse()
+              .map((path, index) => (
+                <div
+                  key={index}
+                  className="border border-red-200 rounded-xl p-6 bg-red-50"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-red-100 text-red-600">
+                        <AlertTriangle className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {path.name}
+                      </h3>
+                    </div>
+                    <div className="text-2xl font-bold text-red-600">
+                      {path.fitScore}%
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 mb-4">{path.description}</p>
+
+                  <div className="bg-white border border-red-200 rounded-2xl p-4">
+                    <h4 className="font-semibold text-red-900 mb-2">
+                      Why This Doesn't Fit Your Current Profile
+                    </h4>
+                    <p className="text-red-800 text-sm">
+                      This business model scored {path.fitScore}% for your
+                      profile, indicating significant misalignment with your
+                      current goals, skills, and preferences. Based on your quiz
+                      responses, you would likely face substantial challenges in
+                      this field that could impact your success. Your{" "}
+                      {quizData.riskComfortLevel <= 2
+                        ? "lower risk tolerance"
+                        : "risk preferences"}{" "}
+                      and{" "}
+                      {getTimeCommitmentRangeLabel(
+                        quizData.weeklyTimeCommitment,
+                      )}{" "}
+                      availability suggest other business models would be more
+                      suitable for your entrepreneurial journey.
+                    </p>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <h3 className="font-semibold text-blue-900 mb-2">
+              💡 Future Consideration
+            </h3>
+            <p className="text-blue-800 text-sm">
+              As you develop your skills and gain experience, some of these
+              business models may become more suitable. Consider revisiting this
+              analysis in 6-12 months as your profile evolves.
+            </p>
+          </div>
+        </section>
+
+        {/* Work Preferences */}
+        <section className="mb-12 page-break">
+          <h2 className="text-3xl font-bold mb-8 flex items-center">
+            <User className="h-8 w-8 mr-3 text-purple-600" />
+            Work Preferences Analysis
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 font-medium flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-purple-600" />
+                    Time Commitment
+                  </span>
+                  <span className="text-purple-600 font-semibold">
+                    {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Weekly hours available for business activities
+                </p>
+              </div>
+
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 font-medium flex items-center">
+                    <BookOpen className="h-4 w-4 mr-2 text-purple-600" />
+                    Learning Style
+                  </span>
+                  <span className="text-purple-600 font-semibold capitalize">
+                    {quizData.learningPreference?.replace("-", " ")}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  How you best absorb new information and skills
+                </p>
+              </div>
+
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 font-medium flex items-center">
+                    <BarChart3 className="h-4 w-4 mr-2 text-purple-600" />
+                    Work Structure
+                  </span>
+                  <span className="text-purple-600 font-semibold capitalize">
+                    {quizData.workStructurePreference?.replace("-", " ")}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Your preferred level of routine and organization
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 font-medium flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-purple-600" />
+                    Collaboration
+                  </span>
+                  <span className="text-purple-600 font-semibold capitalize">
+                    {quizData.workCollaborationPreference?.replace("-", " ")}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  How you prefer to work with others
+                </p>
+              </div>
+
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 font-medium flex items-center">
+                    <Target className="h-4 w-4 mr-2 text-purple-600" />
+                    Decision Making
+                  </span>
+                  <span className="text-purple-600 font-semibold capitalize">
+                    {quizData.decisionMakingStyle?.replace("-", " ")}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Your approach to making important choices
+                </p>
+              </div>
+
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-700 font-medium flex items-center">
+                    <DollarSign className="h-4 w-4 mr-2 text-purple-600" />
+                    Income Goal
+                  </span>
+                  <span className="text-purple-600 font-semibold">
+                    {getIncomeRangeLabel(quizData.successIncomeGoal)}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Your target monthly income objective
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+              <Lightbulb className="h-5 w-5 mr-2 text-yellow-500" />
+              How This Impacts Your Business Choice
+            </h3>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              Your work preferences strongly influence which business models
+              will feel natural and sustainable for you. With{" "}
+              {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}{" "}
+              available per week and a preference for{" "}
+              {quizData.workStructurePreference?.replace("-", " ")} work
+              structures, you're best suited for business models that can
+              accommodate your schedule and working style. Your{" "}
+              {quizData.learningPreference?.replace("-", " ")} learning
+              preference means you'll excel in businesses where you can develop
+              skills through this approach.
+            </p>
+          </div>
+        </section>
+
+        {/* Market Trends & Opportunities */}
+        <section className="mb-12 page-break">
+          <h2 className="text-3xl font-bold mb-8 flex items-center">
+            <TrendingUp className="h-8 w-8 mr-3 text-green-600" />
+            Market Trends & Opportunities
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+                Growing Markets
+              </h3>
+              <div className="space-y-3">
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <h4 className="font-semibold text-green-900 mb-1">
+                    AI & Automation Services
+                  </h4>
+                  <p className="text-green-800 text-sm">
+                    Businesses increasingly need help implementing AI tools and
+                    automating processes. High demand, growing market.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <h4 className="font-semibold text-green-900 mb-1">
+                    Remote Services
+                  </h4>
+                  <p className="text-green-800 text-sm">
+                    Virtual assistance, online consulting, and remote support
+                    services continue expanding rapidly.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                  <h4 className="font-semibold text-green-900 mb-1">
+                    Content Creation
+                  </h4>
+                  <p className="text-green-800 text-sm">
+                    Video content, social media management, and digital
+                    marketing services in high demand across industries.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Lightbulb className="h-5 w-5 mr-2 text-blue-600" />
+                Emerging Opportunities
+              </h3>
+              <div className="space-y-3">
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-1">
+                    Sustainability Consulting
+                  </h4>
+                  <p className="text-blue-800 text-sm">
+                    Helping businesses become more environmentally friendly and
+                    sustainable is becoming essential.
+                  </p>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-1">
+                    Digital Wellness
+                  </h4>
+                  <p className="text-blue-800 text-sm">
+                    Services focused on managing digital overwhelm and promoting
+                    healthy technology use.
+                  </p>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-1">
+                    Personalized Learning
+                  </h4>
+                  <p className="text-blue-800 text-sm">
+                    Custom educational content and training programs for
+                    businesses and individuals.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <h3 className="font-semibold text-yellow-900 mb-2 flex items-center">
+              <Star className="h-5 w-5 mr-2 text-yellow-600" />
+              Opportunities Aligned with Your Profile
+            </h3>
+            <p className="text-yellow-800 text-sm leading-relaxed">
+              Based on your quiz responses, you're particularly well-positioned
+              to capitalize on trends in{" "}
+              {topThreePaths[0]?.category || "your top business area"}. Your{" "}
+              {quizData.learningPreference?.replace("-", " ")} learning style
+              and {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}{" "}
+              availability make you ideal for capturing emerging opportunities
+              in this space. Consider how market trends align with your
+              top-recommended business models for maximum potential.
+            </p>
+          </div>
+        </section>
+
         {/* Action Plan */}
         <section className="mb-12 page-break">
           <h2 className="text-3xl font-bold mb-8 flex items-center">
