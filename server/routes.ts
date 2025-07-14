@@ -762,22 +762,17 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.json(null);
       }
 
-      // For access pass users: find latest attempt that has report unlocked
+            // For access pass users: they have access to all their attempts
       if (user.hasAccessPass) {
-        // Check each attempt to see if it has been unlocked (paid for)
-        for (const attempt of attempts) {
-          const unlockStatus = await storage.checkReportUnlockStatus(
-            userId,
-            attempt.id,
-          );
-          if (unlockStatus.isUnlocked) {
-            console.log(
-              `Latest paid quiz data: Found unlocked attempt ${attempt.id}`,
-            );
-            return res.json({
-              quizData: attempt.quizData,
-              quizAttemptId: attempt.id,
-              isUnlocked: true,
+        // Users with access pass have access to all their attempts
+        const latestAttempt = attempts[0]; // attempts are sorted by most recent
+        console.log(
+          `Latest paid quiz data: Access pass user, returning latest attempt ${latestAttempt.id}`,
+        );
+        return res.json({
+          quizData: latestAttempt.quizData,
+          quizAttemptId: latestAttempt.id,
+          isUnlocked: true,
             });
           }
         }
