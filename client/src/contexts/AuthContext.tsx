@@ -303,7 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     // Don't try to fetch quiz data for temporary users via API
-    if (user.id.startsWith("temp_")) {
+    if (String(user.id).startsWith("temp_")) {
       console.log(
         "getLatestQuizData: Temporary user detected, skipping API call",
       );
