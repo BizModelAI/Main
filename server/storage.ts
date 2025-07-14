@@ -568,16 +568,7 @@ export class DatabaseStorage implements IStorage {
         throw new Error("Payment not found");
       }
 
-      // For access pass payments, update user's access
-      if (payment.type === "access_pass") {
-        await tx
-          .update(users)
-          .set({
-            hasAccessPass: true,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, payment.userId));
-      }
+      // Payment completed - no need to update user access in pay-per-report model
     });
   }
 
