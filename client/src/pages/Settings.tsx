@@ -40,7 +40,14 @@ const Settings: React.FC = () => {
   const handleProfileSave = async () => {
     setSaveStatus("saving");
     try {
-      await updateProfile(formData);
+      // Combine firstName and lastName into a single name field for the server
+      const profileData = {
+        ...formData,
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+      };
+      // Remove the separate firstName/lastName fields as server expects 'name'
+      const { firstName, lastName, ...serverData } = profileData;
+      await updateProfile(serverData);
       setSaveStatus("success");
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
