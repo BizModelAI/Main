@@ -2422,8 +2422,6 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
         shouldDecrement,
         after: {
           hasAccessPass: finalUser.hasAccessPass,
-          quizRetakesRemaining: finalUser.quizRetakesRemaining,
-          totalQuizRetakesUsed: finalUser.totalQuizRetakesUsed,
           attemptsCount: finalAttemptsCount,
         },
       });
