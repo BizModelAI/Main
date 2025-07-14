@@ -79,8 +79,8 @@ export const SaveQuizResultsModal: React.FC<SaveQuizResultsModalProps> = ({
                 What You Get for $4.99
               </h3>
               <ul className="text-sm text-gray-600 space-y-2">
-                {user?.hasAccessPass ? (
-                  // For access pass users - they're paying to unlock this specific report
+                {user ? (
+                  // For logged users - they're paying to unlock this specific report
                   <>
                     <li className="flex items-start">
                       <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2 mt-2 flex-shrink-0"></span>
