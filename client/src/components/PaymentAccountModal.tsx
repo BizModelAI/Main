@@ -93,9 +93,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     // If this is a retake payment, show different messaging
     if (isRetakePayment) {
       return {
-        title: "Get 4 More Quiz Attempts",
+        title: "Get 2 More Quiz Attempts",
         subtitle:
-          "Continue exploring your personality with 4 additional attempts for $4.99",
+          "Continue exploring your personality with 2 additional attempts for $4.99",
       };
     }
 
