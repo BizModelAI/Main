@@ -1417,13 +1417,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                         </h4>
                         <p className="text-blue-100 mb-6">
                           Get the full personalized analysis, detailed insights,
-                          and success strategies for just $9.99
+                          and success strategies for just{" "}
+                          {user ? "$4.99" : "$9.99"}
                         </p>
                         <button
                           onClick={handleUnlockAnalysis}
                           className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-3 rounded-full font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-xl mb-8"
                         >
-                          Unlock Full Analysis - $9.99
+                          Unlock Full Analysis - {user ? "$4.99" : "$9.99"}
                         </button>
                       </motion.div>
                     )}
