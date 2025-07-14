@@ -663,6 +663,7 @@ Return JSON format:
 
         // Clear the generation flag even on error
         localStorage.removeItem("ai-generation-in-progress");
+        localStorage.removeItem("ai-generation-timestamp");
 
         // Mark this report as viewed even on error (user saw the loading process)
         const quizAttemptId = parseInt(
