@@ -105,8 +105,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       case "business-model":
         return {
           title: "Unlock Your Full Business Blueprint",
-          subtitle:
-            "Create your account and unlock personalized insights for $9.99",
+          subtitle: `Create your account and unlock personalized insights for ${user ? "$4.99" : "$9.99"}`,
         };
       case "learn-more":
         return {
