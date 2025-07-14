@@ -850,6 +850,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         message: "Quiz data saved successfully",
         isFirstQuiz,
         requiresPayment: !isFirstQuiz && !user?.hasAccessPass,
+        quizAttemptId: attempt.id,
       });
     } catch (error) {
       console.error("Error saving quiz data:", error);
