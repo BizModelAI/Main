@@ -590,10 +590,20 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
                 combined with your{" "}
                 {quizData.riskComfortLevel <= 2
                   ? "conservative risk approach"
-                  : "willingness to take calculated risks"}
-                , positions you well for business models that can scale
-                gradually while providing steady returns. This approach aligns
-                with your timeline expectations and investment capacity.
+                  : quizData.riskComfortLevel >= 7
+                    ? "high risk tolerance"
+                    : "balanced risk approach"}
+                , positions you well for business models that can{" "}
+                {quizData.firstIncomeTimeline === "under-1-month"
+                  ? "generate quick returns"
+                  : quizData.firstIncomeTimeline === "no-rush"
+                    ? "build steadily over time"
+                    : "provide returns within your " +
+                      getTimelineLabel(quizData.firstIncomeTimeline) +
+                      " timeline"}
+                . Your investment capacity of{" "}
+                {getInvestmentRangeLabel(quizData.upfrontInvestment)} aligns
+                perfectly with the startup requirements of your top matches.
               </p>
               <p>
                 The analysis also reveals that your preferred learning style (
