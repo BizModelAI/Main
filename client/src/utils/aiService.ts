@@ -243,7 +243,11 @@ With focused skill development, increased resources, or changes to your current 
         ],
       },
       poor: {
-        reason: `${modelName} shows significant misalignment with your current profile and would likely present substantial challenges that could impact your entrepreneurial success. As your skills and resources develop, this could become more viable in the future.`,
+        reason: `${modelName} shows significant misalignment with your current profile, creating substantial obstacles that would make success in this field particularly challenging for you. The fundamental requirements of this business model don't match well with your current skills, resources, or preferences.
+
+Your personality traits, available time, risk tolerance, and other key factors suggest you would struggle with the core activities and demands of ${modelName}. This mismatch could lead to frustration, wasted effort, and potentially discouraging results that might impact your overall entrepreneurial journey.
+
+However, this assessment is based on your current situation and profile. As you develop new skills, gain more resources, or your circumstances change, ${modelName} could potentially become a viable option for you in the future. For now, focusing on business models that better align with your strengths will give you the best chance of entrepreneurial success.`,
         insights: [
           "Major gaps between your profile and this model's requirements",
           "Your current situation doesn't align with success factors",
