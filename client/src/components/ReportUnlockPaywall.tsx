@@ -243,6 +243,10 @@ export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
             onSuccess={handlePaymentSuccess}
             onError={handlePaymentError}
             quizAttemptId={quizAttemptId}
+            onPricingUpdate={(newAmount, newIsFirstReport) => {
+              setAmount(newAmount);
+              setIsFirstReport(newIsFirstReport);
+            }}
           />
         </Elements>
 
