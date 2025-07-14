@@ -287,6 +287,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         Object.fromEntries(response.headers.entries()),
       );
 
+      // Clone response before reading to avoid "body already read" error
+      const responseClone = response.clone();
+
       if (response.ok) {
         const quizData = await response.json();
         console.log(
@@ -295,15 +298,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         );
         return quizData;
       } else {
-        // Clone response to avoid "body already read" error
-        const responseClone = response.clone();
         let errorMessage;
         try {
-          const errorData = await response.json();
+          const errorData = await responseClone.json();
           errorMessage =
             errorData.error || errorData.message || "Unknown error";
         } catch {
-          errorMessage = await responseClone.text();
+          try {
+            errorMessage = await response.text();
+          } catch {
+            errorMessage = `HTTP ${response.status} ${response.statusText}`;
+          }
         }
         console.error("getLatestQuizData: Request failed:", {
           status: response.status,
