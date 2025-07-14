@@ -249,6 +249,7 @@ export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
               setAmount(newAmount);
               setIsFirstReport(newIsFirstReport);
             }}
+            amount={amount}
           />
         </Elements>
 
