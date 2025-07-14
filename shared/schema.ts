@@ -19,8 +19,6 @@ export const users = pgTable("users", {
   name: text("name"), // User's full name
   email: text("email"), // Optional email for paid users
   hasAccessPass: boolean("has_access_pass").default(false).notNull(),
-  quizRetakesRemaining: integer("quiz_retakes_remaining").default(0).notNull(),
-  totalQuizRetakesUsed: integer("total_quiz_retakes_used").default(0).notNull(),
   isUnsubscribed: boolean("is_unsubscribed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
