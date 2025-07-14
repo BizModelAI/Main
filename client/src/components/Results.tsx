@@ -51,6 +51,7 @@ import { renderMarkdownContent } from "../utils/markdownUtils";
 import { ReportUnlockPaywall } from "./ReportUnlockPaywall";
 import { useReportUnlock } from "../hooks/useReportUnlock";
 import EmailResultsModal from "./EmailResultsModal";
+import { reportViewManager } from "../utils/reportViewManager";
 
 // Helper function to generate 2-sentence descriptions for business models
 const getBusinessModelDescription = (
@@ -615,14 +616,19 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       return;
     }
 
-    // Show loading screen if this is the first time viewing the full report
+    // Check if this report has been viewed before
+    const hasBeenViewed =
+      quizAttemptId &&
+      reportViewManager.hasViewedReport(quizAttemptId, quizData, userEmail);
+
+    // Show loading screen only if this is the first time viewing the full report
     // or if we don't have preloaded data
-    if (!loadedReportData) {
+    if (!loadedReportData && !hasBeenViewed) {
       setShowAILoading(true);
       // Scroll to top of page immediately
       window.scrollTo({ top: 0, behavior: "instant" });
     } else {
-      // If we have preloaded data, go directly to the full report
+      // If we have preloaded data or have viewed before, go directly to the full report
       setShowFullReport(true);
       // Scroll to top of page immediately and then again after DOM update
       window.scrollTo({ top: 0, behavior: "instant" });
