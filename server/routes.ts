@@ -567,28 +567,28 @@ export async function registerRoutes(app: Express): Promise<void> {
       const isPaid = await storage.isPaidUser(userId);
       const hasAccessPass = user.hasAccessPass;
 
-      // For paid users: Store every quiz attempt permanently
-      // For unpaid users: Allow unlimited attempts but data will be cleaned up after 24h
-      const canTakeQuiz = isPaid || !isPaid; // Everyone can take quiz
+      // New pay-per-report system logic:
+      // - First quiz is always free for everyone
+      // - Users with access pass can take unlimited quizzes
+      // - Check if user can take this quiz
+      const isFirstQuiz = attemptsCount === 0;
+      const canTakeQuiz = isFirstQuiz || hasAccessPass;
 
-      if (isPaid && hasAccessPass && user.quizRetakesRemaining <= 0) {
+      if (!canTakeQuiz) {
         return res.status(403).json({
           error:
-            "No quiz retakes remaining. Purchase more retakes to continue.",
+            "Access pass required to retake the quiz. Please purchase an access pass to continue.",
         });
       }
 
-      // Record the quiz attempt - stored permanently for paid users
+      // Record the quiz attempt - stored permanently for all users now
       const attempt = await storage.recordQuizAttempt({
         userId,
         quizData,
       });
 
-      // Decrement retakes only for paid users
-      // The first quiz attempt should count against their retakes
-      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
-        await storage.decrementQuizRetakes(userId);
-      }
+      // No retake decrements in the new system
+      console.log("Pay-per-quiz model - no retakes to decrement");
 
       res.json({
         success: true,
