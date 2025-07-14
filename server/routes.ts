@@ -1211,12 +1211,6 @@ export async function registerRoutes(app: Express): Promise<void> {
                     username: email,
                     password: password, // Already hashed
                   });
-
-                  // Update with additional fields including name
-                  await storage.updateUser(user.id, {
-                    email: email,
-                    name: name, // Include the name from signup data
-                  });
                 } catch (createUserError) {
                   // If user creation fails due to duplicate email, try to get the user again
                   // This can happen in rare race conditions
