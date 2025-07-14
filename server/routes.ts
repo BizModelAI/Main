@@ -587,17 +587,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Decrement retakes only for paid users
       // The first quiz attempt should count against their retakes
-      console.log(`DEBUG - Quiz attempt decrement check for user ${userId}:`, {
-        isPaid,
-        hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
-        attemptsCount,
-        shouldDecrement:
-          isPaid && hasAccessPass && user.quizRetakesRemaining > 0,
-      });
-
       if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
-        console.log(`DEBUG - Decrementing retakes for user ${userId}`);
         await storage.decrementQuizRetakes(userId);
       }
 
