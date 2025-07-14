@@ -664,6 +664,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Get latest quiz data for authenticated user (for business model pages)
   app.get("/api/auth/latest-quiz-data", async (req, res) => {
+    console.log("LATEST QUIZ DATA: Endpoint called!");
     console.log("API: GET /api/auth/latest-quiz-data", {
       sessionId: req.sessionID,
       userId: req.session?.userId,
