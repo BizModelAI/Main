@@ -335,15 +335,33 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Check for cached AI data from the loading page first
       const cachedAIData = localStorage.getItem("quiz-completion-ai-insights");
 
+      console.log("🔍 DEBUGGING AI INSIGHTS LOADING:");
+      console.log("Cached AI data found:", !!cachedAIData);
+
       if (cachedAIData) {
         try {
-          const { insights, analysis, complete, error, timestamp } =
-            JSON.parse(cachedAIData);
+          const parsedData = JSON.parse(cachedAIData);
+          console.log("Parsed cached data:", parsedData);
+
+          const { insights, analysis, complete, error, timestamp } = parsedData;
           const isRecent = Date.now() - timestamp < 5 * 60 * 1000; // 5 minutes
 
-          if (isRecent && insights && complete) {
+          console.log("Data validity check:", {
+            isRecent,
+            hasInsights: !!insights,
+            isComplete: complete,
+            hasError: error,
+            timeAgo:
+              Math.round((Date.now() - timestamp) / 1000) + " seconds ago",
+          });
+
+          if (isRecent && insights && complete && !error) {
             console.log(
               "✅ Using cached AI insights from loading page - no API calls needed",
+            );
+            console.log(
+              "Insights summary:",
+              insights.personalizedSummary?.substring(0, 100) + "...",
             );
             setAiInsights(insights);
 
@@ -358,6 +376,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 personalizedPaths[0],
               );
             } else {
+              console.log(
+                "📝 No analysis cached, using fallback analysis only",
+              );
               const fallbackAnalysis = generateFallbackAnalysis();
               setAiAnalysis(fallbackAnalysis);
               // Cache the fallback analysis
@@ -371,15 +392,21 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
             setIsGeneratingAI(false);
             return;
+          } else {
+            console.log(
+              "❌ Cached data invalid - falling back to generic content",
+            );
           }
         } catch (error) {
           console.error("Error parsing cached AI data:", error);
         }
+      } else {
+        console.log("❌ No cached AI data found in localStorage");
       }
 
       // Fallback if no valid cached data
       console.log(
-        "🚀 Setting fallback AI content (no API calls in production)",
+        "🚀 Setting fallback AI content (no valid AI data from loading page)",
       );
       const fallbackInsights = generateFallbackInsights();
       const fallbackAnalysis = generateFallbackAnalysis();
