@@ -62,7 +62,16 @@ export class AIService {
         fitType,
       );
 
-      const response = await this.makeOpenAIRequest(prompt, 700, 0.7);
+      const systemMessage =
+        "You are an AI business coach. Generate JSON responses only. Use professional, direct tone. Base analysis strictly on provided user profile data. Do not invent numbers or details.";
+
+      const response = await this.makeOpenAIRequest(
+        prompt,
+        700,
+        0.7,
+        3,
+        systemMessage,
+      );
 
       // Clean up response
       let cleanContent = response;
@@ -128,27 +137,22 @@ export class AIService {
     modelName: string,
     fitType: "best" | "strong" | "possible" | "poor",
   ): string {
-    const basePrompt = `
-You are an AI business coach analyzing why ${modelName} is a ${fitType} fit for this user. Based only on the user profile, generate personalized insights.
+    const basePrompt = `Analyze why ${modelName} is a ${fitType} fit for this user:
 
 ${userProfile}
 
-Generate a JSON response with this exact structure:
-
+Return JSON:
 {
-  "modelFitReason": "Three paragraphs explaining the fit - each paragraph should be substantial and provide different aspects of the analysis",
+  "modelFitReason": "Three paragraphs explaining fit analysis",
   "keyInsights": ["insight 1", "insight 2", "insight 3"],
   "successPredictors": ["predictor 1", "predictor 2", "predictor 3"]
 }
 
-CRITICAL RULES:
-- Use ONLY the data provided in the user profile
-- Do NOT make up specific numbers, amounts, or timeframes
-- Do NOT include markdown or formatting
-- modelFitReason must be exactly THREE paragraphs separated by double line breaks
-- keyInsights must be exactly 3 items
-- successPredictors must be exactly 3 items
-- Reference exact values from the user profile
+Requirements:
+- modelFitReason: exactly 3 paragraphs
+- keyInsights: exactly 3 items
+- successPredictors: exactly 3 items
+- Use only provided profile data
 `;
 
     switch (fitType) {
