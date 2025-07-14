@@ -621,6 +621,7 @@ Return JSON format:
 
         // Clear the generation flag
         localStorage.removeItem("ai-generation-in-progress");
+        localStorage.removeItem("ai-generation-timestamp");
 
         // Mark this report as viewed now that it's been fully loaded
         const quizAttemptId = parseInt(
