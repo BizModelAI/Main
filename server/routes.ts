@@ -2347,7 +2347,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
         },
         shouldDecrement,
         after: {
-          hasAccessPass: finalUser.hasAccessPass,
+          hasAccessPass: false, // Access pass concept removed
           attemptsCount: finalAttemptsCount,
         },
       });
