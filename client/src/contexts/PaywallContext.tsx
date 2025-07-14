@@ -141,14 +141,14 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
   };
 
   const canAccessBusinessModel = (modelId?: string) => {
+    // For logged-in users with access pass, grant access even if local state is stale
+    if (user && user.hasAccessPass) return true;
+
     // Must have completed quiz to access any business model details
     if (!hasCompletedQuiz) return false;
 
     // If unlocked, can access all models
     if (hasUnlockedAnalysis) return true;
-
-    // For logged-in users with access pass, grant access even if local state is stale
-    if (user && user.hasAccessPass) return true;
 
     // If not unlocked, no access to detailed pages
     return false;
