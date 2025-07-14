@@ -310,6 +310,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return null;
     }
 
+    // First verify the session is valid by checking auth status
+    try {
+      const authCheck = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!authCheck.ok) {
+        console.log(
+          "getLatestQuizData: Session not valid, user not authenticated",
+        );
+        return null;
+      }
+    } catch (error) {
+      console.log("getLatestQuizData: Auth check failed:", error);
+      return null;
+    }
+
     try {
       const url = "/api/auth/latest-quiz-data";
       console.log("getLatestQuizData: Making request to:", url);
