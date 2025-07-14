@@ -62,6 +62,19 @@ export const unpaidUserEmails = pgTable("unpaid_user_emails", {
   expiresAt: timestamp("expires_at").notNull(),
 });
 
+// Report views tracking for optimizing user experience
+export const reportViews = pgTable("report_views", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  sessionId: text("session_id"), // For anonymous users
+  quizAttemptId: integer("quiz_attempt_id")
+    .references(() => quizAttempts.id, { onDelete: "cascade" })
+    .notNull(),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+});
+
 // Password reset tokens table
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: serial("id").primaryKey(),
