@@ -109,36 +109,9 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({
     window.location.reload();
   };
 
-  if (!attempts || !attempts.length) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Quiz History
-        </h3>
-        <div className="text-center py-8">
-          <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 mb-2 font-medium">
-            No quiz attempts yet
-          </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
-            Take the quiz to discover your ideal business path and track your
-            results here
-          </p>
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-left">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              Your history will show:
-            </p>
-            <ul className="text-xs text-gray-400 dark:text-gray-500 space-y-1">
-              <li>• Top business recommendations</li>
-              <li>• Quiz completion dates</li>
-              <li>• Income goals and preferences</li>
-              <li>• Progress tracking over time</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Since users can't create accounts without taking the quiz,
+  // logged-in users should always have at least one quiz attempt.
+  // If attempts is empty, it's likely a loading or error state.
 
   const getTopBusinessPath = (quizData: QuizData) => {
     try {
