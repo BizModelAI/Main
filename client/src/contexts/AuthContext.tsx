@@ -288,12 +288,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (!authCheck.ok) {
         console.log(
-          "updateProfile: Session invalid, user needs to log in again",
+          "updateProfile: Session invalid, clearing client auth state",
         );
+        // Clear the client-side user state since server doesn't recognize the session
+        setUser(null);
         throw new Error("Your session has expired. Please log in again.");
       }
+
+      // If auth check passes, refresh user data
+      const userData = await authCheck.json();
+      setUser(userData);
+      console.log("updateProfile: Auth check passed, user data refreshed");
     } catch (authError) {
       console.error("updateProfile: Auth check failed:", authError);
+      // Clear client auth state on any auth error
+      setUser(null);
       throw new Error("Authentication check failed. Please log in again.");
     }
 
