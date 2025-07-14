@@ -58,10 +58,20 @@ const Settings: React.FC = () => {
       };
       // Remove the separate firstName/lastName fields as server expects 'name'
       const { firstName, lastName, ...serverData } = profileData;
+
+      console.log("Settings: Saving profile data:", {
+        formData,
+        profileData,
+        serverData,
+        user: user?.id,
+      });
+
       await updateProfile(serverData);
+      console.log("Settings: Profile saved successfully");
       setSaveStatus("success");
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
+      console.error("Settings: Profile save error:", error);
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 3000);
     }
