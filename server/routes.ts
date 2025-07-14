@@ -684,13 +684,17 @@ export async function registerRoutes(app: Express): Promise<void> {
       console.log("Latest quiz data: getUserIdFromRequest returned", userId);
 
       if (!userId) {
-        console.log("Latest quiz data: Not authenticated", {
+        console.log("Latest quiz data: Not authenticated - returning 401", {
           sessionUserId: req.session?.userId,
           cacheUserId: userId,
           sessionKey: getSessionKey(req),
         });
         return res.status(401).json({ error: "Not authenticated" });
       }
+
+      console.log(
+        `Latest quiz data: Authenticated user ${userId}, fetching attempts`,
+      );
 
       console.log(`Latest quiz data: Fetching attempts for user ${userId}`);
       const attempts = await storage.getQuizAttempts(userId);
