@@ -88,7 +88,7 @@ function getIncomeGoalRange(value: number): string {
 function getTimeCommitmentRange(value: number): string {
   if (value <= 3) return "Less than 5 hours/week";
   if (value <= 7) return "5–10 hours/week";
-  if (value <= 17) return "10���25 hours/week";
+  if (value <= 17) return "10–25 hours/week";
   return "25+ hours/week";
 }
 
@@ -663,6 +663,15 @@ export async function registerRoutes(app: Express): Promise<void> {
     });
 
     try {
+      // Debug session information before calling getUserIdFromRequest
+      const sessionKey = getSessionKey(req);
+      console.log("Latest quiz data: Session debug", {
+        sessionUserId: req.session?.userId,
+        sessionKey: sessionKey,
+        userAgent: req.headers["user-agent"]?.substring(0, 50) + "...",
+        ip: req.ip || req.connection.remoteAddress,
+      });
+
       const userId = getUserIdFromRequest(req);
       console.log("Latest quiz data: getUserIdFromRequest returned", userId);
 
