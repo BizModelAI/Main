@@ -959,14 +959,14 @@ export async function registerRoutes(app: Express): Promise<void> {
         } else {
           // New user needs full access - $9.99
           amount = "9.99";
-          retakesGranted = "5";
+          retakesGranted = "3";
           paymentType = "access_pass";
           description = "BizModelAI Access Pass - Unlock all features";
         }
       } else {
         // Temporary user always gets full access - $9.99
         amount = "9.99";
-        retakesGranted = "5";
+        retakesGranted = "3";
         paymentType = "access_pass";
         description = "BizModelAI Access Pass - Unlock all features";
       }
