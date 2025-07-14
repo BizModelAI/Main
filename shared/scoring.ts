@@ -1005,7 +1005,7 @@ export function assignCategories(
 }
 
 // STEP 5: Calculate all business model matches
-export function calculateAllBusinessModelMatches(data: QuizData): Array<{
+export function calculateAllBusinessModelMatches(data: QuizDataCompat): Array<{
   id: string;
   name: string;
   score: number;
