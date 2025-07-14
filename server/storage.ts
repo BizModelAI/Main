@@ -19,7 +19,7 @@ import {
   type InsertPasswordResetToken,
 } from "../shared/schema.js";
 import { db } from "./db.js";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, count, sql, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
