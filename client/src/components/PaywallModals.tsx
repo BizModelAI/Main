@@ -65,7 +65,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -102,7 +102,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -138,7 +138,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -209,7 +209,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
