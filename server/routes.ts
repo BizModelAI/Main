@@ -684,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Save quiz data to user's account
       const attempt = await storage.recordQuizAttempt({
-        userId: req.session.userId,
+        userId: userId,
         quizData,
       });
 
