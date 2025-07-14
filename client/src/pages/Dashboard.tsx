@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
     };
 
     loadBusinessModelScores();
-  }, [user, getLatestQuizData]);
+  }, [user, getLatestQuizData, authLoading]);
 
   // Check if user has ever selected a business model on component mount
   React.useEffect(() => {
@@ -372,7 +372,7 @@ const Dashboard: React.FC = () => {
       timeToProfit: "2-8 weeks",
       potentialIncome: "$1K-12K/month",
       difficulty: "Medium",
-      icon: "��",
+      icon: "🏠",
     },
   ];
 
