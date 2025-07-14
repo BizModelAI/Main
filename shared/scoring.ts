@@ -552,7 +552,7 @@ export const BUSINESS_MODEL_PROFILES = {
 };
 
 // STEP 2: Normalize User Answers (Convert to 0-1 scale)
-export function normalizeUserResponses(data: any): Record<string, number> {
+export function normalizeUserResponses(data: QuizData): Record<string, number> {
   const normalized: Record<string, number> = {};
 
   const normalizeFivePointScale = (value: number) => (value - 1) / 4; // Converts 1-5 to 0-1
