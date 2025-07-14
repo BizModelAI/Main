@@ -326,7 +326,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             readError: readError,
             updates: updates,
           });
-          errorMessage = response.statusText || errorMessage;
+          // Provide more specific error message for common cases
+          if (response.status === 401) {
+            errorMessage = "Not authenticated. Please log in and try again.";
+          } else if (response.status === 403) {
+            errorMessage = "Permission denied.";
+          } else if (response.status >= 500) {
+            errorMessage = "Server error. Please try again later.";
+          } else {
+            errorMessage = response.statusText || errorMessage;
+          }
         }
 
         throw new Error(errorMessage);
