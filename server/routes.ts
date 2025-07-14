@@ -1018,7 +1018,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Create payment for unlocking full report ($4.99 per report)
+  // Create payment for unlocking full report ($9.99 first, $4.99 subsequent for logged users)
   app.post("/api/create-report-unlock-payment", async (req, res) => {
     try {
       const { userId, quizAttemptId } = req.body;
