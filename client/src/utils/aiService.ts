@@ -278,37 +278,32 @@ However, this assessment is based on your current situation and profile. As you 
       const userProfile = this.createUserProfile(quizData);
       const topBusinessModel = topPaths[0];
 
-      const prompt = `
-You are an expert business coach. Based on this user's quiz profile and top business model match, generate the following in JSON format:
+      const prompt = `Generate results preview for user:
 
-1. "previewInsights": Exactly 3 paragraphs introducing the user's entrepreneurial potential and business alignment. Use a professional, supportive tone that feels personalized. Focus on motivation, alignment, strengths, and readiness.
-
-2. "keyInsights": 4 bullet points summarizing important themes from their quiz (e.g., structure preference, creativity, motivation, tech skills, risk tolerance, etc.)
-
-3. "successPredictors": 4 bullet points predicting success based on their profile traits. These should reference specific quiz data (e.g., high motivation, tech skills, time commitment).
-
-Return the result as a valid JSON object like:
-{
-  "previewInsights": "...",
-  "keyInsights": ["...", "...", "...", "..."],
-  "successPredictors": ["...", "...", "...", "..."]
-}
-
-CRITICAL RULES:
-- Use only the data below.
-- Do NOT make up numbers, goals, or experience.
-- Do NOT include HTML or markdown.
-- Do NOT include introductory text—only output the JSON object.
-
-USER PROFILE:
 ${userProfile}
 
-Top Business Match:
-${topBusinessModel.name} (${topBusinessModel.fitScore}% match)
+Top Match: ${topBusinessModel.name} (${topBusinessModel.fitScore}%)
 Description: ${topBusinessModel.description}
-`;
 
-      const raw = await this.makeOpenAIRequest(prompt, 600, 0.7);
+Return JSON:
+{
+  "previewInsights": "3 paragraphs on entrepreneurial potential and alignment",
+  "keyInsights": ["4 themes from quiz data"],
+  "successPredictors": ["4 success predictors based on profile"]
+}
+
+Rules: Use only provided data, no invented details.`;
+
+      const systemMessage =
+        "You are an expert business coach. Generate JSON responses only. Use professional, supportive tone. Base analysis strictly on provided user profile data.";
+
+      const raw = await this.makeOpenAIRequest(
+        prompt,
+        600,
+        0.7,
+        3,
+        systemMessage,
+      );
 
       let clean = raw;
       if (clean.includes("```json")) {
