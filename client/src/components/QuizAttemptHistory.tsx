@@ -48,7 +48,7 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({
     );
   }
 
-  if (error || !attempts) {
+  if (error) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
