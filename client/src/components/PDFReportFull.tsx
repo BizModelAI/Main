@@ -606,14 +606,21 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
                 perfectly with the startup requirements of your top matches.
               </p>
               <p>
-                The analysis also reveals that your preferred learning style (
-                {quizData.learningPreference?.replace("-", " ")}) and work
-                structure preferences (
-                {quizData.workStructurePreference?.replace("-", " ")}) are
-                strong indicators for success in your top-recommended business
-                paths. These factors, combined with your income goals and
-                available resources, create a clear roadmap for entrepreneurial
-                success.
+                The analysis reveals that your preferred learning style (
+                {quizData.learningPreference?.replace("-", " ")}) and{" "}
+                {quizData.workStructurePreference?.replace("-", " ")} work
+                structure preferences are strong indicators for success in your
+                top-recommended business paths. With your{" "}
+                {quizData.techSkillsRating >= 7
+                  ? "strong technical skills"
+                  : quizData.techSkillsRating >= 4
+                    ? "solid technical foundation"
+                    : "developing technical abilities"}{" "}
+                and {quizData.supportSystemStrength} support system, you have{" "}
+                {quizData.meaningfulContributionImportance >= 7
+                  ? "strong motivation to make a meaningful impact"
+                  : "good foundation for business success"}{" "}
+                in your chosen field.
               </p>
             </div>
           </div>
