@@ -2212,10 +2212,10 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.error("Error getting data retention status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
-  });
+    });
 
-  // Test endpoint for debugging retake issue
-  app.post("/api/test-retake-flow", async (req, res) => {
+  // Routes registered successfully
+}
     try {
       console.log("=== Testing retake flow ===");
 
