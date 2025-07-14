@@ -100,6 +100,16 @@ export function setupAuthRoutes(app: Express) {
         userId: user.id,
         userEmail: user.email,
         sessionSaved: !!req.session.userId,
+        cookieSettings: {
+          secure: req.sessionStore?.options?.cookie?.secure,
+          httpOnly: req.sessionStore?.options?.cookie?.httpOnly,
+          sameSite: req.sessionStore?.options?.cookie?.sameSite,
+          domain: req.sessionStore?.options?.cookie?.domain,
+        },
+        headers: {
+          setCookie: req.res?.getHeaders?.()?.["set-cookie"],
+          userAgent: req.headers["user-agent"]?.substring(0, 50),
+        },
       });
 
       // Don't send password
