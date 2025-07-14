@@ -325,7 +325,12 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       return;
     }
 
-    if (!canAccessBusinessModel(businessId)) {
+    // In development mode, if user is logged in, assume they have access
+    const hasAccess =
+      canAccessBusinessModel(businessId) ||
+      (import.meta.env.MODE === "development" && user);
+
+    if (!hasAccess) {
       if (!user) {
         setShowPaymentModal(true);
       } else {
