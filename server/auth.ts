@@ -28,20 +28,6 @@ export function getUserIdFromRequest(req: any): number | undefined {
   const sessionKey = getSessionKey(req);
   const cachedSession = tempSessionCache.get(sessionKey);
 
-  // Debug logging for quiz data endpoint specifically
-  if (req.url && req.url.includes("/api/auth/latest-quiz-data")) {
-    console.log("getUserIdFromRequest debug for latest-quiz-data:", {
-      sessionKey,
-      hasCachedSession: !!cachedSession,
-      cachedUserId: cachedSession?.userId,
-      cachedTimestamp: cachedSession?.timestamp,
-      timeSinceCached: cachedSession
-        ? Date.now() - cachedSession.timestamp
-        : "N/A",
-      totalCacheEntries: tempSessionCache.size,
-    });
-  }
-
   if (cachedSession) {
     // Check if session is still valid (24 hours)
     const now = Date.now();
