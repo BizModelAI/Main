@@ -24,11 +24,13 @@ import { QuizRetakeDashboard } from "../components/QuizRetakeDashboard";
 import { QuizAttemptHistory } from "../components/QuizAttemptHistory";
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, getLatestQuizData } = useAuth();
   const navigate = useNavigate();
   const [selectedBusinessModel, setSelectedBusinessModel] = useState<any>(null);
   const [showBusinessSelection, setShowBusinessSelection] = useState(false);
   const [hasEverSelectedModel, setHasEverSelectedModel] = useState(false);
+  const [topBusinessModels, setTopBusinessModels] = useState<any[]>([]);
+  const [isLoadingScores, setIsLoadingScores] = useState(true);
 
   // Check if user has ever selected a business model on component mount
   React.useEffect(() => {
