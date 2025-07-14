@@ -1062,11 +1062,9 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Check if user already has access pass (they get unlimited quiz attempts)
       if (user.hasAccessPass) {
-        return res
-          .status(400)
-          .json({
-            error: "User with access pass can take unlimited quizzes for free",
-          });
+        return res.status(400).json({
+          error: "User with access pass can take unlimited quizzes for free",
+        });
       }
 
       // Check if this is their first quiz (should be free)
@@ -1559,7 +1557,10 @@ export async function registerRoutes(app: Express): Promise<void> {
             }
 
             // Complete the payment in our system
-            if (payment.type === "quiz_payment") {
+            if (
+              payment.type === "quiz_payment" ||
+              payment.type === "report_unlock"
+            ) {
               await storage.completePayment(payment.id, 0);
             } else {
               await storage.completePayment(
