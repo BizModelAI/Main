@@ -2297,9 +2297,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.log("Created test user:", testUser.id);
 
       // Give them access pass
-      await storage.updateUser(testUser.id, {
-        hasAccessPass: true,
-      });
+      // Access pass concept removed - users pay per report instead
       console.log("Updated user with access pass and 3 retakes");
 
       // Simulate first quiz attempt by calling our internal endpoint
