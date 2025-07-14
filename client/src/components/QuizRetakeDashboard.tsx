@@ -86,7 +86,7 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
               </span>
             </div>
             <p className="text-green-800 dark:text-green-200">
-              {quizRetakesRemaining}/5 remaining
+              {quizRetakesRemaining}/3 remaining
             </p>
           </div>
         </div>
