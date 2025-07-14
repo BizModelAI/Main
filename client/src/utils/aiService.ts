@@ -125,63 +125,61 @@ Description: ${topBusinessModel.description}
     }
   }
 
-  async generatePersonalizedInsights(
+  async generateFullReportInsights(
     quizData: QuizData,
     topPaths: BusinessPath[],
+    previewInsights: string,
+    keySuccessIndicators: string[],
   ): Promise<{
-    personalizedSummary: string;
-    customRecommendations: string[];
+    personalizedRecommendations: string[];
     potentialChallenges: string[];
-    successStrategies: string[];
-    personalizedActionPlan: {
-      week1: string[];
-      month1: string[];
-      month3: string[];
-      month6: string[];
-    };
-    motivationalMessage: string;
+    keyInsights: string[];
+    bestFitCharacteristics: string[];
+    top3Fits: { model: string; reason: string }[];
+    bottom3Avoid: {
+      model: string;
+      reason: string;
+      futureConsideration?: string;
+    }[];
   }> {
     try {
       // Create cache key based on quiz data and top paths
-      const cacheKey = this.createCacheKey(quizData, topPaths);
+      const cacheKey = `fullreport_${this.createCacheKey(quizData, topPaths)}`;
 
       // Check for existing cached insights
       const cached = this.getCachedInsights(cacheKey);
       if (cached) {
-        console.log("✅ Using cached AI insights (no API call needed)");
+        console.log(
+          "✅ Using cached full report insights (no API call needed)",
+        );
         return cached;
       }
 
       console.log(
-        "🔄 Generating fresh AI insights with single comprehensive call",
+        "🔄 Generating fresh full report insights with streamlined AI call",
       );
 
       // Create a comprehensive user profile for the AI
       const userProfile = this.createUserProfile(quizData);
-      const topBusinessPaths = topPaths.map((path) => ({
-        name: path.name,
-        fitScore: path.fitScore,
-        description: path.description,
-      }));
 
-      // Make SINGLE comprehensive OpenAI call
-      const insights = await this.generateComprehensiveInsights(
+      // Make streamlined OpenAI call for full report only
+      const insights = await this.generateStreamlinedFullReportInsights(
         userProfile,
-        topBusinessPaths,
+        topPaths,
+        previewInsights,
+        keySuccessIndicators,
       );
 
       // Cache the results
       this.cacheInsights(cacheKey, insights);
 
-      console.log("✅ Fresh AI insights generated and cached");
+      console.log("✅ Fresh full report insights generated and cached");
       return insights;
     } catch (error) {
       console.error("Error generating AI insights:", error);
       // Always return fallback content instead of throwing
-      console.log(
-        "AI insights generation failed - using comprehensive fallback",
-      );
-      return this.generateFallbackInsights(quizData, topPaths);
+      console.log("Full report AI insights generation failed - using fallback");
+      return this.generateFullReportFallbackInsights(quizData, topPaths);
     }
   }
 
@@ -679,99 +677,75 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
     }
   }
 
-  private async generateComprehensiveInsights(
+  private async generateStreamlinedFullReportInsights(
     userProfile: string,
-    topBusinessPaths: any[],
+    topPaths: BusinessPath[],
+    previewInsights: string,
+    keySuccessIndicators: string[],
   ): Promise<{
-    personalizedSummary: string;
-    customRecommendations: string[];
+    personalizedRecommendations: string[];
     potentialChallenges: string[];
-    successStrategies: string[];
-    personalizedActionPlan: {
-      week1: string[];
-      month1: string[];
-      month3: string[];
-      month6: string[];
-    };
-    motivationalMessage: string;
+    keyInsights: string[];
+    bestFitCharacteristics: string[];
+    top3Fits: { model: string; reason: string }[];
+    bottom3Avoid: {
+      model: string;
+      reason: string;
+      futureConsideration?: string;
+    }[];
   }> {
-    const topBusinessModel = topBusinessPaths[0];
+    const prompt = `
+You are an AI business coach. Based only on the quiz data and top 3 business matches, generate the following JSON output. This is for a full business analysis report. Do NOT include formatting or markdown. Be specific and use only known data.
 
-    // ADD DETAILED DEBUGGING
-    console.log("🔍 DEBUGGING AI PERSONALIZATION:");
-    console.log("User Profile being sent to AI:", userProfile);
-    console.log(
-      "Top Business Model:",
-      topBusinessModel.name,
-      `(${topBusinessModel.fitScore}%)`,
-    );
-    console.log(
-      "All paths:",
-      topBusinessPaths.map((p) => `${p.name} (${p.fitScore}%)`),
-    );
-
-    const comprehensivePrompt = `
-You are an expert business coach analyzing a user's entrepreneurial profile. Based on the user profile and their top business match, generate a comprehensive personalized business analysis.
-
-IMPORTANT: This response must be HIGHLY PERSONALIZED to the user's specific data below. Do NOT use generic responses.
-
-${userProfile}
-
-TOP BUSINESS MATCH:
-${topBusinessModel.name} (${topBusinessModel.fitScore}% compatibility)
-Description: ${topBusinessModel.description}
-
-Additional Top Matches:
-${topBusinessPaths
-  .slice(1, 3)
-  .map((path, i) => `${i + 2}. ${path.name} (${path.fitScore}% match)`)
-  .join("\n")}
-
-Generate a comprehensive analysis in the following JSON format. Be specific, personal, and actionable for ${topBusinessModel.name}:
+Return exactly this structure:
 
 {
-  "personalizedSummary": "2-3 sentence summary explaining why ${topBusinessModel.name} is perfect for this user",
-  "customRecommendations": [
-    "6 specific actionable recommendations for starting ${topBusinessModel.name}",
-    "Each should be 1-2 sentences and consider user's strengths, time, and goals"
+  "personalizedRecommendations": ["...", "...", "...", "...", "...", "..."],
+  "potentialChallenges": ["...", "...", "...", "..."],
+  "keyInsights": ["...", "...", "...", "..."],
+  "bestFitCharacteristics": ["...", "...", "...", "...", "...", "..."],
+  "top3Fits": [
+    {
+      "model": "${topPaths[0]?.name || "Business Model"}",
+      "reason": "One short paragraph explaining why this is a strong match"
+    },
+    {
+      "model": "${topPaths[1]?.name || "Business Model"}",
+      "reason": "One short paragraph explaining why this is a strong match"
+    },
+    {
+      "model": "${topPaths[2]?.name || "Business Model"}",
+      "reason": "One short paragraph explaining why this is a strong match"
+    }
   ],
-  "potentialChallenges": [
-    "4 specific challenges this user might face in ${topBusinessModel.name}",
-    "Include brief solution or mitigation strategy for each"
-  ],
-  "successStrategies": [
-    "6 success strategies that leverage this user's strengths for ${topBusinessModel.name}",
-    "Each should be specific to both the user and the business model"
-  ],
-  "actionPlan": {
-    "week1": ["3 specific tasks for the first week"],
-    "month1": ["4 specific tasks for the first month"],
-    "month3": ["4 specific tasks for month 3"],
-    "month6": ["4 specific tasks for month 6"]
-  },
-  "motivationalMessage": "2-3 sentence inspirational message that acknowledges user's strengths and encourages action in ${topBusinessModel.name}"
+  "bottom3Avoid": [
+    {
+      "model": "Example Business Model",
+      "reason": "Why this model doesn't align with current profile",
+      "futureConsideration": "How it could become viable in the future (optional)"
+    }
+  ]
 }
 
-CRITICAL REQUIREMENTS:
-- Use ONLY the actual data provided in the user profile
-- Do NOT make up specific numbers, amounts, or timeframes
-- Reference the exact ranges and values shown in the user profile
-- Be specific to ${topBusinessModel.name}, not generic business advice
-- All content should feel personal and tailored to this specific user
-- Action plan should be progressive and logical
+CRITICAL RULES:
+- Use ONLY the following data:
+  - ${userProfile}
+  - Top matches:
+    1. ${topPaths[0]?.name} (${topPaths[0]?.fitScore}%)
+    2. ${topPaths[1]?.name ?? "N/A"} (${topPaths[1]?.fitScore ?? "N/A"}%)
+    3. ${topPaths[2]?.name ?? "N/A"} (${topPaths[2]?.fitScore ?? "N/A"}%)
+- DO NOT generate previewInsights or keySuccessIndicators (already created).
+- Use clean, specific, professional language only.
+- Do NOT invent numbers, ratings, or filler traits.
     `;
 
     try {
       console.log(
-        "📤 Sending prompt to OpenAI:",
-        comprehensivePrompt.substring(0, 200) + "...",
+        "📤 Sending streamlined full report prompt to OpenAI:",
+        prompt.substring(0, 200) + "...",
       );
 
-      const response = await this.makeOpenAIRequest(
-        comprehensivePrompt,
-        1200,
-        0.7,
-      );
+      const response = await this.makeOpenAIRequest(prompt, 1000, 0.7);
 
       console.log("📥 Raw AI response:", response.substring(0, 300) + "...");
 
@@ -783,24 +757,12 @@ CRITICAL REQUIREMENTS:
           .replace(/```/g, "");
       }
 
-      console.log(
-        "🧹 Cleaned response:",
-        cleanContent.substring(0, 300) + "...",
-      );
-
       const parsed = JSON.parse(cleanContent);
-      console.log(
-        "✅ Parsed AI response - Summary:",
-        parsed.personalizedSummary?.substring(0, 100) + "...",
-      );
 
       // Validate and structure the response
       return {
-        personalizedSummary:
-          parsed.personalizedSummary ||
-          `Your unique combination of traits makes you perfectly suited for ${topBusinessModel.name} success.`,
-        customRecommendations: this.validateArray(
-          parsed.customRecommendations,
+        personalizedRecommendations: this.validateArray(
+          parsed.personalizedRecommendations,
           6,
           "Focus on building core skills and taking consistent action.",
         ),
@@ -809,39 +771,24 @@ CRITICAL REQUIREMENTS:
           4,
           "Initial learning curve may require patience and persistence.",
         ),
-        successStrategies: this.validateArray(
-          parsed.successStrategies,
-          6,
-          "Leverage your natural strengths while building new capabilities.",
+        keyInsights: this.validateArray(
+          parsed.keyInsights,
+          4,
+          "Your profile shows strong entrepreneurial potential.",
         ),
-        personalizedActionPlan: {
-          week1: this.validateArray(
-            parsed.actionPlan?.week1,
-            3,
-            "Research and plan your approach",
-          ),
-          month1: this.validateArray(
-            parsed.actionPlan?.month1,
-            4,
-            "Begin implementation and testing",
-          ),
-          month3: this.validateArray(
-            parsed.actionPlan?.month3,
-            4,
-            "Optimize and scale your efforts",
-          ),
-          month6: this.validateArray(
-            parsed.actionPlan?.month6,
-            4,
-            "Expand and grow your business",
-          ),
-        },
-        motivationalMessage:
-          parsed.motivationalMessage ||
-          `Your unique combination of skills and drive positions you perfectly for ${topBusinessModel.name} success. Trust in your abilities and take that first step.`,
+        bestFitCharacteristics: this.validateArray(
+          parsed.bestFitCharacteristics,
+          6,
+          "Strong business foundation",
+        ),
+        top3Fits: this.validateTop3Fits(parsed.top3Fits, topPaths),
+        bottom3Avoid: this.validateBottom3Avoid(parsed.bottom3Avoid),
       };
     } catch (error) {
-      console.error("Error in comprehensive insights generation:", error);
+      console.error(
+        "Error in streamlined full report insights generation:",
+        error,
+      );
       throw error; // Let the parent method handle fallback
     }
   }
@@ -1306,32 +1253,74 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
   }
 
   // Fallback method in case OpenAI API fails
-  private generateFallbackInsights(
+  private generateFullReportFallbackInsights(
     quizData: QuizData,
     topPaths: BusinessPath[],
   ): {
-    personalizedSummary: string;
-    customRecommendations: string[];
+    personalizedRecommendations: string[];
     potentialChallenges: string[];
-    successStrategies: string[];
-    personalizedActionPlan: {
-      week1: string[];
-      month1: string[];
-      month3: string[];
-      month6: string[];
-    };
-    motivationalMessage: string;
+    keyInsights: string[];
+    bestFitCharacteristics: string[];
+    top3Fits: { model: string; reason: string }[];
+    bottom3Avoid: {
+      model: string;
+      reason: string;
+      futureConsideration?: string;
+    }[];
   } {
-    const topPath = topPaths[0];
-
     return {
-      personalizedSummary: `Based on your comprehensive assessment, ${topPath.name} achieves a ${topPath.fitScore}% compatibility score with your unique profile. Your goals, personality traits, and available resources align perfectly with this business model's requirements and potential outcomes.`,
-      customRecommendations: this.getFallbackRecommendations(),
-      potentialChallenges: this.getFallbackChallenges(),
-      successStrategies: this.getFallbackStrategies(),
-      personalizedActionPlan: this.getFallbackActionPlan(),
-      motivationalMessage:
-        "Your unique combination of skills, motivation, and strategic thinking creates the perfect foundation for entrepreneurial success. Trust in your abilities, stay consistent with your efforts, and remember that every successful entrepreneur started exactly where you are now.",
+      personalizedRecommendations: [
+        "Start with proven tools and systems to minimize learning curve",
+        "Focus on systematic execution rather than trying to reinvent approaches",
+        "Leverage your natural strengths while gradually building new skills",
+        "Set realistic milestones and celebrate small wins along the way",
+        "Join communities in your chosen field for support and networking",
+        "Track your progress and adjust strategies based on results",
+      ],
+      potentialChallenges: [
+        "Initial learning curve may require patience and persistence",
+        "Building confidence to position yourself as an expert",
+        "Managing time effectively between learning and doing",
+        "Staying motivated during periods when results are slow",
+      ],
+      keyInsights: [
+        "Your risk tolerance aligns well with entrepreneurial requirements",
+        "Time commitment matches realistic income expectations",
+        "Technical skills provide a solid foundation for success",
+        "Communication preferences support customer relationship building",
+      ],
+      bestFitCharacteristics: [
+        "Self-motivated and goal-oriented",
+        "Strong analytical thinking",
+        "Good communication skills",
+        "Realistic expectations",
+        "Willingness to learn and adapt",
+        "Consistent and disciplined approach",
+      ],
+      top3Fits: topPaths.slice(0, 3).map((path, index) => ({
+        model: path.name,
+        reason: `This business model aligns well with your ${index === 0 ? "top" : index === 1 ? "secondary" : "alternative"} strengths and offers a ${path.fitScore}% compatibility match with your profile.`,
+      })),
+      bottom3Avoid: [
+        {
+          model: "High-risk speculation",
+          reason: "Requires risk tolerance beyond your comfort level",
+          futureConsideration:
+            "Could be viable after building experience and capital",
+        },
+        {
+          model: "Complex technical development",
+          reason:
+            "May require more technical expertise than currently available",
+          futureConsideration:
+            "Consider after developing stronger technical skills",
+        },
+        {
+          model: "High-investment businesses",
+          reason: "Investment requirements exceed your current budget",
+          futureConsideration: "Revisit when you have more capital available",
+        },
+      ],
     };
   }
 
