@@ -32,6 +32,7 @@ const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
   onSuccess,
   onError,
   quizAttemptId,
+  onPricingUpdate,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
