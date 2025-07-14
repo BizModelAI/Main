@@ -238,8 +238,11 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   };
 
   const handleLearnMore = (businessId: string) => {
-    // Check if user has completed quiz
-    if (!hasCompletedQuiz) {
+    // For logged-in users with quiz data, allow access regardless of hasCompletedQuiz flag
+    const userHasQuizData = user && quizData;
+
+    // Check if user has completed quiz (either flag is true OR user has quiz data)
+    if (!hasCompletedQuiz && !userHasQuizData) {
       setPaywallType("quiz-required");
       setShowPaywallModal(true);
       return;
