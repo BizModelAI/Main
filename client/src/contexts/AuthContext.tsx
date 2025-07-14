@@ -6,8 +6,6 @@ interface User {
   email: string;
   username: string;
   name?: string;
-  hasAccessPass: boolean;
-  quizRetakesRemaining: number;
   isTemporary?: boolean;
 }
 
