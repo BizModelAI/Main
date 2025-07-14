@@ -657,7 +657,9 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
           return data.insights;
         } else {
           // Remove expired cache
-          localStorage.removeItem(cacheKey);
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(cacheKey);
+          }
         }
       }
     } catch (error) {
