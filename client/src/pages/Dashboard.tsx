@@ -76,14 +76,14 @@ const Dashboard: React.FC = () => {
     };
   };
 
-  // Top 9 business models - in real app this would come from quiz results
-  const topBusinessModels = [
+  // Function to get default business models as fallback
+  const getDefaultBusinessModels = () => [
     {
       id: "content-creation-ugc",
       name: "Content Creation & UGC",
       description:
         "Create engaging content and user-generated content for brands",
-      fitScore: 92,
+      fitScore: 75,
       timeToProfit: "2-4 weeks",
       potentialIncome: "$2K-15K/month",
       difficulty: "Beginner",
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
       name: "Affiliate Marketing",
       description:
         "Promote other people's products and earn commission on sales",
-      fitScore: 88,
+      fitScore: 70,
       timeToProfit: "3-6 months",
       potentialIncome: "$100-10K+/month",
       difficulty: "Easy",
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
       name: "Freelancing",
       description:
         "Offer your skills and services to clients on a project basis",
-      fitScore: 85,
+      fitScore: 68,
       timeToProfit: "1-2 weeks",
       potentialIncome: "$500-8K/month",
       difficulty: "Easy",
@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
       id: "e-commerce-dropshipping",
       name: "E-commerce / Dropshipping",
       description: "Sell products online without holding inventory",
-      fitScore: 78,
+      fitScore: 65,
       timeToProfit: "2-6 months",
       potentialIncome: "$1K-50K/month",
       difficulty: "Medium",
@@ -125,7 +125,7 @@ const Dashboard: React.FC = () => {
       id: "virtual-assistant",
       name: "Virtual Assistant",
       description: "Provide administrative support to businesses remotely",
-      fitScore: 76,
+      fitScore: 60,
       timeToProfit: "1-3 weeks",
       potentialIncome: "$300-5K/month",
       difficulty: "Easy",
@@ -135,7 +135,7 @@ const Dashboard: React.FC = () => {
       id: "online-coaching-consulting",
       name: "Online Coaching & Consulting",
       description: "Share your expertise through 1-on-1 coaching or consulting",
-      fitScore: 74,
+      fitScore: 58,
       timeToProfit: "4-8 weeks",
       potentialIncome: "$1K-20K/month",
       difficulty: "Medium",
@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
       id: "print-on-demand",
       name: "Print on Demand",
       description: "Design and sell custom products without inventory",
-      fitScore: 70,
+      fitScore: 55,
       timeToProfit: "6-12 weeks",
       potentialIncome: "$200-8K/month",
       difficulty: "Easy",
@@ -156,7 +156,7 @@ const Dashboard: React.FC = () => {
       name: "YouTube Automation",
       description:
         "Create and monetize YouTube channels with outsourced content",
-      fitScore: 68,
+      fitScore: 52,
       timeToProfit: "3-9 months",
       potentialIncome: "$500-15K/month",
       difficulty: "Medium",
@@ -166,7 +166,7 @@ const Dashboard: React.FC = () => {
       id: "local-service-arbitrage",
       name: "Local Service Arbitrage",
       description: "Connect local customers with service providers",
-      fitScore: 65,
+      fitScore: 50,
       timeToProfit: "2-8 weeks",
       potentialIncome: "$1K-12K/month",
       difficulty: "Medium",
