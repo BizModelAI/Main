@@ -52,6 +52,14 @@ const Settings: React.FC = () => {
   ];
 
   const handleProfileSave = async () => {
+    // Check if user is authenticated before attempting to save
+    if (!user) {
+      setSaveStatus("error");
+      console.error("Settings: Cannot save - user not authenticated");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+      return;
+    }
+
     setSaveStatus("saving");
     try {
       // Create clean server data with only valid User fields
