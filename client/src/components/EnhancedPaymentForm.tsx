@@ -19,6 +19,8 @@ interface EnhancedPaymentFormProps {
   onError: (error: string) => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
+  amount?: number;
+  isFirstReport?: boolean;
 }
 
 const PaymentMethodSelector: React.FC<{
@@ -209,7 +211,7 @@ const CreditCardForm: React.FC<{
         ) : (
           <>
             <CheckCircle className="h-4 w-4 mr-2" />
-            Pay $9.99 Securely
+            Pay ${amount.toFixed(2)} Securely
           </>
         )}
       </button>
@@ -222,7 +224,8 @@ const PayPalForm: React.FC<{
   onError: (error: string) => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
-}> = ({ onSuccess, onError, isProcessing, setIsProcessing }) => {
+  amount: number;
+}> = ({ onSuccess, onError, isProcessing, setIsProcessing, amount }) => {
   const { user } = useAuth();
 
   const createOrder = async () => {
@@ -242,7 +245,12 @@ const PayPalForm: React.FC<{
         requestBody.userId = parseInt(user?.id || "0");
       }
 
-      const response = await fetch("/api/create-paypal-payment", {
+      // Use appropriate endpoint based on user type
+      const endpoint = isTemporaryUser
+        ? "/api/create-paypal-anonymous-report-unlock-payment"
+        : "/api/create-paypal-report-unlock-payment";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -336,6 +344,8 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
   onError,
   isProcessing,
   setIsProcessing,
+  amount = 9.99,
+  isFirstReport = true,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -365,7 +375,12 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           requestBody.userId = parseInt(user.id);
         }
 
-        const response = await fetch("/api/create-access-pass-payment", {
+        // Use appropriate endpoint based on user type
+        const endpoint = isTemporaryUser
+          ? "/api/create-anonymous-report-unlock-payment"
+          : "/api/create-report-unlock-payment";
+
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -436,10 +451,13 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between">
           <span className="font-medium text-blue-900">Total:</span>
-          <span className="text-2xl font-bold text-blue-900">$9.99</span>
+          <span className="text-2xl font-bold text-blue-900">
+            ${amount.toFixed(2)}
+          </span>
         </div>
         <p className="text-sm text-blue-700 mt-1">
-          One-time payment • Instant access
+          {isFirstReport ? "First report unlock" : "Report unlock"} • Instant
+          access
         </p>
       </div>
 
@@ -460,6 +478,7 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           onError={onError}
           isProcessing={isProcessing}
           setIsProcessing={setIsProcessing}
+          amount={amount}
         />
       )}
 
@@ -478,6 +497,8 @@ interface EnhancedPaymentWrapperProps {
   onError: (error: string) => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
+  amount?: number;
+  isFirstReport?: boolean;
 }
 
 export const EnhancedPaymentWrapper: React.FC<EnhancedPaymentWrapperProps> = (
