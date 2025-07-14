@@ -335,8 +335,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       const analysisPromise = aiScoringService.analyzeBusinessFit(quizData);
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
-          () => reject(new Error("Analysis timed out after 30 seconds")),
-          30000,
+          () => reject(new Error("Analysis timed out after 15 seconds")),
+          15000,
         ),
       );
 
