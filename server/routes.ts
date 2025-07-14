@@ -985,12 +985,10 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // Check if user already has access pass (no payment needed for additional quizzes)
       if (user.hasAccessPass) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "User with access pass doesn't need to pay for additional quizzes",
-          });
+        return res.status(400).json({
+          error:
+            "User with access pass doesn't need to pay for additional quizzes",
+        });
       }
 
       // Check if this is their first quiz (should be free)
@@ -1425,10 +1423,14 @@ export async function registerRoutes(app: Express): Promise<void> {
               });
 
               // Complete the payment
-              await storage.completePayment(
-                payment.id,
-                parseInt(retakesGranted) || 5,
-              );
+              if (type === "quiz_payment") {
+                await storage.completePayment(payment.id, 0);
+              } else {
+                await storage.completePayment(
+                  payment.id,
+                  parseInt(retakesGranted) || 5,
+                );
+              }
 
               // Clean up temporary data
               await storage.cleanupExpiredUnpaidEmails();
