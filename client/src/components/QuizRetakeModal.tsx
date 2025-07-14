@@ -185,8 +185,8 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
               </p>
               <ul className="space-y-2">
                 <li>• Your first quiz is always free</li>
-                <li>• Access Pass includes 5 retakes for $9.99</li>
-                <li>• Additional retake bundles are $4.99 for 5 more</li>
+                <li>• Access Pass includes 3 retakes for $9.99</li>
+                <li>• Additional retake bundles are $4.99 for 3 more</li>
                 <li>• Retakes never expire</li>
               </ul>
             </div>
