@@ -218,10 +218,12 @@ export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
         <div className="mb-6 p-4 bg-gray-50 rounded-xl">
           <div className="flex justify-between items-center">
             <span className="font-semibold text-gray-900">Report Unlock</span>
-            <span className="text-xl font-bold text-gray-900">$4.99</span>
+            <span className="text-xl font-bold text-gray-900">${amount}</span>
           </div>
           <p className="text-gray-600 text-sm mt-1">
-            One-time payment for this quiz report
+            {isFirstReport
+              ? "First report unlock - includes full analysis"
+              : "Additional report unlock"}
           </p>
         </div>
 
