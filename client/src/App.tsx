@@ -33,6 +33,8 @@ import AdminPage from "./pages/Admin";
 import AIReportLoading from "./components/AIReportLoading";
 import QuizCompletionLoading from "./components/QuizCompletionLoading";
 import QuizPaymentRequired from "./pages/QuizPaymentRequired";
+import { SaveQuizResultsModal } from "./components/SaveQuizResultsModal";
+import { useNavigationGuard } from "./hooks/useNavigationGuard";
 
 // Alias for loading page component
 const LoadingPage = AIReportLoading;
