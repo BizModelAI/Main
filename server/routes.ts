@@ -609,8 +609,13 @@ export async function registerRoutes(app: Express): Promise<void> {
     try {
       const userId = parseInt(req.params.userId);
 
-      // Check if user is authenticated and requesting their own data
-      if (req.session.userId && req.session.userId !== userId) {
+      // Check if user is authenticated
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      // Check if user is requesting their own data
+      if (req.session.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
 
