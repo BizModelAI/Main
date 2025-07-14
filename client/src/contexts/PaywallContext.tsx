@@ -64,6 +64,15 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
         console.log("PaywallContext: Quiz data found:", hasQuiz);
         setHasCompletedQuiz(hasQuiz);
 
+        // If user is logged in but we couldn't get quiz data due to network issues,
+        // but they have hasAccessPass, assume they've completed the quiz
+        if (!hasQuiz && user.hasAccessPass) {
+          console.log(
+            "PaywallContext: User has access pass but no quiz data retrieved - assuming quiz completed",
+          );
+          setHasCompletedQuiz(true);
+        }
+
         // Check if user has access pass (payment)
         const hasAccess = user.hasAccessPass;
         console.log("PaywallContext: User has access pass:", hasAccess);
