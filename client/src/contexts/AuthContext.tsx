@@ -368,6 +368,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
           // Provide more specific error message for common cases
           if (response.status === 401) {
+            console.log("updateProfile: 401 error, clearing user state");
+            setUser(null); // Clear user state on authentication error
             errorMessage = "Not authenticated. Please log in and try again.";
           } else if (response.status === 403) {
             errorMessage = "Permission denied.";
