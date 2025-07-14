@@ -1091,6 +1091,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         success: true,
         clientSecret: paymentIntent.client_secret,
         paymentId: payment.id,
+        amount: amountDollar,
+        isFirstReport,
       });
     } catch (error) {
       console.error("Error creating report unlock payment:", error);
