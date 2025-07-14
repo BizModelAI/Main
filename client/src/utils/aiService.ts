@@ -949,50 +949,26 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
       futureConsideration?: string;
     }[];
   }> {
-    const prompt = `
-You are an AI business coach. Based only on the quiz data and top 3 business matches, generate the following JSON output. This is for a full business analysis report. Do NOT include formatting or markdown. Be specific and use only known data.
+    const prompt = `Generate full report insights for user:
 
-Return exactly this structure:
+${userProfile}
 
+Top Matches:
+1. ${topPaths[0]?.name} (${topPaths[0]?.fitScore}%)
+2. ${topPaths[1]?.name ?? "N/A"} (${topPaths[1]?.fitScore ?? "N/A"}%)
+3. ${topPaths[2]?.name ?? "N/A"} (${topPaths[2]?.fitScore ?? "N/A"}%)
+
+Return JSON:
 {
-  "personalizedRecommendations": ["...", "...", "...", "...", "...", "..."],
-  "potentialChallenges": ["...", "...", "...", "..."],
-  "keyInsights": ["...", "...", "...", "..."],
-  "bestFitCharacteristics": ["...", "...", "...", "...", "...", "..."],
-  "top3Fits": [
-    {
-      "model": "${topPaths[0]?.name || "Business Model"}",
-      "reason": "One short paragraph explaining why this is a strong match"
-    },
-    {
-      "model": "${topPaths[1]?.name || "Business Model"}",
-      "reason": "One short paragraph explaining why this is a strong match"
-    },
-    {
-      "model": "${topPaths[2]?.name || "Business Model"}",
-      "reason": "One short paragraph explaining why this is a strong match"
-    }
-  ],
-  "bottom3Avoid": [
-    {
-      "model": "Example Business Model",
-      "reason": "Why this model doesn't align with current profile",
-      "futureConsideration": "How it could become viable in the future (optional)"
-    }
-  ]
+  "personalizedRecommendations": ["6 specific suggestions"],
+  "potentialChallenges": ["4 challenges with mitigation"],
+  "keyInsights": ["4 observations from profile"],
+  "bestFitCharacteristics": ["6 fit characteristics"],
+  "top3Fits": [{"model": "${topPaths[0]?.name}", "reason": "short explanation"}],
+  "bottom3Avoid": [{"model": "model name", "reason": "why avoid", "futureConsideration": "when viable"}]
 }
 
-CRITICAL RULES:
-- Use ONLY the following data:
-  - ${userProfile}
-  - Top matches:
-    1. ${topPaths[0]?.name} (${topPaths[0]?.fitScore}%)
-    2. ${topPaths[1]?.name ?? "N/A"} (${topPaths[1]?.fitScore ?? "N/A"}%)
-    3. ${topPaths[2]?.name ?? "N/A"} (${topPaths[2]?.fitScore ?? "N/A"}%)
-- DO NOT generate previewInsights or keySuccessIndicators (already created).
-- Use clean, specific, professional language only.
-- Do NOT invent numbers, ratings, or filler traits.
-    `;
+Use only provided data. No invented details.`;
 
     try {
       console.log(
@@ -1000,7 +976,16 @@ CRITICAL RULES:
         prompt.substring(0, 200) + "...",
       );
 
-      const response = await this.makeOpenAIRequest(prompt, 1000, 0.7);
+      const systemMessage =
+        "You are an AI business coach. Generate JSON responses only. Use professional, specific language. Base analysis strictly on provided user profile and business match data.";
+
+      const response = await this.makeOpenAIRequest(
+        prompt,
+        1000,
+        0.7,
+        3,
+        systemMessage,
+      );
 
       console.log("📥 Raw AI response:", response.substring(0, 300) + "...");
 
