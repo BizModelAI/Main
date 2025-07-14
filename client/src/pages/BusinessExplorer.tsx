@@ -87,14 +87,42 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     const fetchQuizData = async () => {
       if (!user || propQuizData) return; // If no user or already have quiz data, skip
 
+      console.log("BusinessExplorer: Fetching quiz data for user:", user.email);
       setIsLoadingQuizData(true);
+
+      // First test session health
+      try {
+        const sessionCheck = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+        console.log(
+          "BusinessExplorer: Session check status:",
+          sessionCheck.status,
+        );
+
+        if (sessionCheck.ok) {
+          const sessionUser = await sessionCheck.json();
+          console.log("BusinessExplorer: Session user:", {
+            id: sessionUser.id,
+            email: sessionUser.email,
+          });
+        }
+      } catch (error) {
+        console.error("BusinessExplorer: Session check failed:", error);
+      }
+
       try {
         const latestQuizData = await getLatestQuizData();
         if (latestQuizData) {
+          console.log("BusinessExplorer: Successfully loaded quiz data");
           setQuizData(latestQuizData);
+        } else {
+          console.log("BusinessExplorer: No quiz data found");
         }
       } catch (error) {
-        console.error("Error fetching quiz data:", error);
+        console.error("BusinessExplorer: Error fetching quiz data:", error);
       } finally {
         setIsLoadingQuizData(false);
       }
