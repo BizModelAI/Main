@@ -1034,13 +1034,6 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Check if user has access pass (they should for this endpoint)
-      if (!user.hasAccessPass) {
-        return res
-          .status(400)
-          .json({ error: "User must have access pass to unlock reports" });
-      }
-
       // Check if report is already unlocked
       const payments = await storage.getPaymentsByUser(userId);
       const existingPayment = payments.find(
@@ -1056,7 +1049,15 @@ export async function registerRoutes(app: Express): Promise<void> {
           .json({ error: "Report is already unlocked for this quiz attempt" });
       }
 
-      // Create Stripe Payment Intent for $4.99 report unlock
+      // Determine pricing: $9.99 for first report, $4.99 for subsequent reports
+      const completedPayments = payments.filter(
+        (p) => p.status === "completed",
+      );
+      const isFirstReport = completedPayments.length === 0;
+      const amount = isFirstReport ? 999 : 499; // $9.99 or $4.99 in cents
+      const amountDollar = isFirstReport ? "9.99" : "4.99";
+
+      // Create Stripe Payment Intent
       if (!stripe) {
         return res
           .status(500)
@@ -1064,20 +1065,21 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 499, // $4.99 in cents
+        amount,
         currency: "usd",
         metadata: {
           userId: userId.toString(),
           type: "report_unlock",
           quizAttemptId: quizAttemptId.toString(),
+          isFirstReport: isFirstReport.toString(),
         },
-        description: "BizModelAI Report Unlock - Full detailed analysis",
+        description: `BizModelAI Report Unlock - ${isFirstReport ? "First report" : "Additional report"}`,
       });
 
       // Create payment record in our database
       const payment = await storage.createPayment({
         userId,
-        amount: "4.99",
+        amount: amountDollar,
         currency: "usd",
         type: "report_unlock",
         status: "pending",
