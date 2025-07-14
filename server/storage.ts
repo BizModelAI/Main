@@ -552,18 +552,20 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(eq(users.id, userId));
-    return user ? user.quizRetakesRemaining > 0 : false;
+    // In the new pay-per-report system:
+    // - Users with access pass can take unlimited quizzes
+    // - First quiz is always free for everyone
+    return user
+      ? user.hasAccessPass || (await this.getQuizAttemptsCount(userId)) === 0
+      : false;
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
-    await this.ensureDb()
-      .update(users)
-      .set({
-        quizRetakesRemaining: sql`${users.quizRetakesRemaining} - 1`,
-        totalQuizRetakesUsed: sql`${users.totalQuizRetakesUsed} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+    // No longer needed in pay-per-report system
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      "decrementQuizRetakes called but no longer needed in pay-per-report system",
+    );
   }
 
   async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
