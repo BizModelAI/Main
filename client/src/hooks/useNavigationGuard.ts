@@ -97,33 +97,36 @@ export const useNavigationGuard = () => {
       localStorage.removeItem("currentQuizAttemptId");
       localStorage.removeItem("hasUnlockedAnalysis");
 
-      // For access pass holders, try to load their latest quiz attempt
-      if (user?.hasAccessPass) {
+      // For logged-in users, try to load their latest PAID quiz attempt
+      if (user) {
         try {
-          const response = await fetch("/api/auth/latest-quiz-data", {
+          const response = await fetch("/api/auth/latest-paid-quiz-data", {
             credentials: "include",
           });
 
           if (response.ok) {
-            const latestQuizData = await response.json();
-            if (latestQuizData.quizData) {
+            const latestPaidQuizData = await response.json();
+            if (latestPaidQuizData.quizData) {
               localStorage.setItem(
                 "quizData",
-                JSON.stringify(latestQuizData.quizData),
+                JSON.stringify(latestPaidQuizData.quizData),
               );
               localStorage.setItem("hasCompletedQuiz", "true");
-              // Set the quiz attempt ID so they can potentially unlock this specific report
-              if (latestQuizData.quizAttemptId) {
+              // Set the quiz attempt ID
+              if (latestPaidQuizData.quizAttemptId) {
                 localStorage.setItem(
                   "currentQuizAttemptId",
-                  latestQuizData.quizAttemptId.toString(),
+                  latestPaidQuizData.quizAttemptId.toString(),
                 );
               }
-              // Don't set hasUnlockedAnalysis - they'll need to pay per report
+              // If this was a paid report unlock or access pass user, mark as unlocked
+              if (latestPaidQuizData.isUnlocked) {
+                localStorage.setItem("hasUnlockedAnalysis", "true");
+              }
             }
           }
         } catch (error) {
-          console.error("Error loading latest quiz data:", error);
+          console.error("Error loading latest paid quiz data:", error);
         }
       }
 
