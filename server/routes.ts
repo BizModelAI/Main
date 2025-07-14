@@ -1238,15 +1238,15 @@ export async function registerRoutes(app: Express): Promise<void> {
           amount: purchaseUnit.amount?.value || "9.99",
           currency: "usd",
           type: paymentType,
-          retakesGranted: parseInt(retakesGranted) || 5,
           stripePaymentIntentId: orderID, // Using this field for PayPal order ID
         });
 
         // Complete the payment
-        await storage.completePayment(
-          payment.id,
-          parseInt(retakesGranted) || 5,
-        );
+        if (paymentType === "quiz_payment") {
+          await storage.completePayment(payment.id, 0);
+        } else {
+          await storage.completePayment(payment.id, 0);
+        }
 
         // Temporary data cleanup happens automatically via expiration
 
