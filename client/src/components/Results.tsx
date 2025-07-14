@@ -48,6 +48,8 @@ import { PaymentAccountModal } from "./PaymentAccountModal";
 import { usePaywall } from "../contexts/PaywallContext";
 import { useAuth } from "../contexts/AuthContext";
 import { renderMarkdownContent } from "../utils/markdownUtils";
+import { ReportUnlockPaywall } from "./ReportUnlockPaywall";
+import { useReportUnlock } from "../hooks/useReportUnlock";
 import EmailResultsModal from "./EmailResultsModal";
 
 // Helper function to generate 2-sentence descriptions for business models
