@@ -13,15 +13,35 @@ export function setupAuthRoutes(app: Express) {
   // Get current user session
   app.get("/api/auth/me", async (req, res) => {
     try {
+      console.log("Auth check: /api/auth/me called", {
+        sessionId: req.sessionID,
+        userId: req.session?.userId,
+        sessionExists: !!req.session,
+        hasUserAgent: !!req.headers["user-agent"],
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+      });
+
       if (!req.session.userId) {
+        console.log("Auth check: No userId in session");
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const user = await storage.getUser(req.session.userId);
       if (!user) {
+        console.log(
+          "Auth check: User not found for userId:",
+          req.session.userId,
+        );
         req.session.userId = undefined;
         return res.status(401).json({ error: "User not found" });
       }
+
+      console.log("Auth check: Success for user:", {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      });
 
       // Don't send password
       const { password, ...userWithoutPassword } = user;
