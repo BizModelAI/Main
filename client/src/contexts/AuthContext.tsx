@@ -50,20 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const checkExistingSession = async () => {
       try {
         let response: Response;
+
+        // Use XMLHttpRequest first to avoid FullStory interference
         try {
-          response = await fetch("/api/auth/me", {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-        } catch (fetchError) {
           console.log(
-            "Session check: Fetch failed, trying XMLHttpRequest fallback",
+            "Session check: Using XMLHttpRequest to avoid FullStory issues",
           );
 
-          // XMLHttpRequest fallback
           const xhr = new XMLHttpRequest();
           xhr.open("GET", "/api/auth/me", true);
           xhr.withCredentials = true;
@@ -71,14 +64,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
           response = await new Promise<Response>((resolve, reject) => {
             xhr.onload = () => {
+              const responseText = xhr.responseText;
               resolve({
                 ok: xhr.status >= 200 && xhr.status < 300,
                 status: xhr.status,
                 statusText: xhr.statusText,
-                json: () => Promise.resolve(JSON.parse(xhr.responseText)),
-                text: () => Promise.resolve(xhr.responseText),
+                json: () => {
+                  try {
+                    return Promise.resolve(JSON.parse(responseText));
+                  } catch (e) {
+                    return Promise.reject(new Error("Invalid JSON response"));
+                  }
+                },
+                text: () => Promise.resolve(responseText),
                 headers: new Headers(),
-                url: "",
+                url: "/api/auth/me",
                 redirected: false,
                 type: "basic",
                 clone: () => response,
@@ -89,9 +89,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 formData: () => Promise.resolve(new FormData()),
               } as Response);
             };
-            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.onerror = () =>
+              reject(new Error("XMLHttpRequest network error"));
+            xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+            xhr.timeout = 10000; // 10 second timeout
             xhr.send();
           });
+        } catch (xhrError) {
+          console.log(
+            "Session check: XMLHttpRequest failed, trying fetch fallback",
+          );
+
+          // Fallback to fetch
+          try {
+            response = await fetch("/api/auth/me", {
+              method: "GET",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+          } catch (fetchError) {
+            console.error(
+              "Session check: Both XMLHttpRequest and fetch failed:",
+              {
+                xhrError,
+                fetchError,
+              },
+            );
+            throw new Error("All request methods failed");
+          }
         }
 
         if (!isMounted) return; // Component unmounted, don't update state
