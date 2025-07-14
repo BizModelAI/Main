@@ -143,9 +143,9 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-xs text-gray-500 dark:text-gray-400">
             <p className="mb-1">
-              <strong>Pricing:</strong> Access Pass ($9.99) includes 5 retakes
+              <strong>Pricing:</strong> Access Pass ($9.99) includes 3 retakes
             </p>
-            <p>Additional retake bundles: $4.99 for 5 more attempts</p>
+            <p>Additional retake bundles: $4.99 for 3 more attempts</p>
           </div>
         </div>
       )}
