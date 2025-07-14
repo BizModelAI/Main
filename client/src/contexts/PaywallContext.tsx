@@ -87,7 +87,7 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
 
         // Update localStorage for consistency
         localStorage.setItem("hasCompletedQuiz", "true");
-        localStorage.setItem("hasUnlockedAnalysis", hasAccess.toString());
+        localStorage.setItem("hasUnlockedAnalysis", "false");
       } catch (error) {
         if (isMounted) {
           console.error("PaywallContext: Error checking user status:", error);
