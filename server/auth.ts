@@ -416,10 +416,16 @@ export function setupAuthRoutes(app: Express) {
   // Update profile
   app.put("/api/auth/profile", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+
+      if (!userId) {
         console.log(
-          "Profile update: Not authenticated, userId:",
-          req.session.userId,
+          "Profile update: Not authenticated, sessionUserId:",
+          req.session?.userId,
+          "cacheUserId:",
+          userId,
+          "sessionKey:",
+          getSessionKey(req),
         );
         return res.status(401).json({ error: "Not authenticated" });
       }
