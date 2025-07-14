@@ -143,7 +143,6 @@ export function setupAuthRoutes(app: Express) {
           userId: user.id,
           userEmail: user.email,
           sessionSaved: !!req.session.userId,
-          manualCookie: cookieString,
           headers: {
             setCookie: res.getHeaders()["set-cookie"],
             userAgent: req.headers["user-agent"]?.substring(0, 50),
