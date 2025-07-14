@@ -547,7 +547,7 @@ Return JSON format:
 
           console.log(
             "Paths for insights:",
-            pathsForInsights.map((p) => `${p.name} (${p.fitScore}%)`),
+            pathsForInsights.map((p: any) => `${p.name} (${p.fitScore}%)`),
           );
 
           // Make SINGLE comprehensive API call with error tracking
