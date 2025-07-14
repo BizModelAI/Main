@@ -1175,12 +1175,20 @@ export async function registerRoutes(app: Express): Promise<void> {
                 break;
               }
 
-              const { email, password, name } = tempData.quizData as {
-                email: string;
-                password: string;
-                name: string;
-                quizData?: any;
-              };
+              // Get signup data from tempData.quizData
+              const signupData = tempData.quizData as any;
+              const email = signupData.email || tempData.email;
+              const password = signupData.password;
+              const name = signupData.name;
+
+              if (!password) {
+                console.error(
+                  "Missing password in temporary user data for email:",
+                  email,
+                );
+                console.error("Available fields:", Object.keys(signupData));
+                break;
+              }
 
               // Check if payment has already been processed for this payment intent
               const existingPayments = await storage.getPaymentsByStripeId(
