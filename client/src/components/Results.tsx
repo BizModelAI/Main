@@ -1721,8 +1721,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             </div>
           </motion.div>
 
-          {/* Report Unlock Section for Access Pass Users - Now same flow as non-logged-in users */}
-          {user?.hasAccessPass && !isReportUnlocked && quizAttemptId && (
+          {/* Report Unlock Section for Logged Users */}
+          {user && !isReportUnlocked && quizAttemptId && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
