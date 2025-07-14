@@ -748,7 +748,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       console.log(`Latest paid quiz data: Fetching for user ${userId}`);
 
-      // Get user info to check if they have access pass
+      // Get user info
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
@@ -762,30 +762,17 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.json(null);
       }
 
-      // For access pass users: they have access to all their attempts
-      if (user.hasAccessPass) {
-        // Users with access pass have access to all their attempts
-        const latestAttempt = attempts[0]; // attempts are sorted by most recent
-        console.log(
-          `Latest paid quiz data: Access pass user, returning latest attempt ${latestAttempt.id}`,
-        );
-        return res.json({
-          quizData: latestAttempt.quizData,
-          quizAttemptId: latestAttempt.id,
-          isUnlocked: true,
-        });
-      } else {
-        // For non-access pass users: any saved attempt means they paid
-        const latestAttempt = attempts[0];
-        console.log(
-          `Latest paid quiz data: Returning latest attempt ${latestAttempt.id}`,
-        );
-        return res.json({
-          quizData: latestAttempt.quizData,
-          quizAttemptId: latestAttempt.id,
-          isUnlocked: true,
-        });
-      }
+      // In pure pay-per-report model: all logged-in users have access to their latest quiz data
+      // They just need to pay per report unlock if they want full reports
+      const latestAttempt = attempts[0]; // attempts are sorted by most recent
+      console.log(
+        `Latest paid quiz data: Returning latest attempt ${latestAttempt.id}`,
+      );
+      return res.json({
+        quizData: latestAttempt.quizData,
+        quizAttemptId: latestAttempt.id,
+        isUnlocked: true,
+      });
     } catch (error) {
       console.error("Error getting latest paid quiz data:", error);
       res.status(500).json({ error: "Internal server error" });
