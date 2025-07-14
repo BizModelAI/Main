@@ -1,5 +1,4 @@
 import { QuizData, BusinessPath } from "../types";
-import { BusinessPath, QuizData } from "../types";
 import { businessPaths } from "../data/businessPaths";
 import { apiPost } from "./apiClient";
 
