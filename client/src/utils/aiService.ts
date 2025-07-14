@@ -547,6 +547,12 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
 
   private getCachedInsights(cacheKey: string): any | null {
     try {
+      // TEMPORARILY DISABLE CACHING FOR DEBUGGING
+      console.log(
+        "🚫 Caching temporarily disabled for debugging AI personalization",
+      );
+      return null;
+
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const data = JSON.parse(cached);
