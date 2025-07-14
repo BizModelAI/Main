@@ -132,7 +132,7 @@ export class ReportViewManager {
     if (!alreadyViewed) {
       const newViewedReport: ViewedReport = {
         quizAttemptId,
-        userEmail,
+        userEmail: userEmail || undefined,
         viewedAt: Date.now(),
         quizDataHash: this.generateQuizDataHash(quizData),
       };
