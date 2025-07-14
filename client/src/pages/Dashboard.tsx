@@ -118,7 +118,7 @@ const Dashboard: React.FC = () => {
                   timeToProfit: "2-6 months",
                   potentialIncome: "$1K-50K/month",
                   difficulty: "Medium",
-                  icon: "🛒",
+                  icon: "����",
                 },
                 "virtual-assistant": {
                   id: "virtual-assistant",
@@ -549,7 +549,7 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="text-center">
                           <div className="text-xs text-gray-500">
                             Time to Profit
@@ -562,14 +562,6 @@ const Dashboard: React.FC = () => {
                           <div className="text-xs text-gray-500">Income</div>
                           <div className="font-semibold text-gray-900 text-sm">
                             {model.potentialIncome}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-xs text-gray-500">
-                            Difficulty
-                          </div>
-                          <div className="font-semibold text-gray-900 text-sm">
-                            {model.difficulty}
                           </div>
                         </div>
                       </div>
