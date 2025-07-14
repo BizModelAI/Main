@@ -141,41 +141,33 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
                     Access Pass Active
                   </h3>
                 </div>
-                <p className="text-green-800 dark:text-green-200 mb-2">
-                  You have {quizRetakesRemaining} quiz retakes remaining.
+                <div className="flex items-center gap-3 mb-4">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <h4 className="font-medium text-green-900 dark:text-green-100">
+                    Unlimited Quiz Access
+                  </h4>
+                </div>
+                <p className="text-green-800 dark:text-green-200 mb-4">
+                  With your Access Pass, you have unlimited quiz access. You can
+                  retake the quiz as many times as you'd like!
                 </p>
-
-                {quizRetakesRemaining === 0 && (
-                  <div className="mt-6 pt-6 border-t border-green-200 dark:border-green-800">
-                    <div className="flex items-center gap-3 mb-4">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <h4 className="font-medium text-green-900 dark:text-green-100">
-                        You can still take the quiz!
-                      </h4>
-                    </div>
-                    <p className="text-green-800 dark:text-green-200 mb-4">
-                      With your Access Pass, you have unlimited quiz access.
-                      Your retake counter will reset after taking the quiz.
-                    </p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={onClose}
-                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 font-medium"
-                      >
-                        <Play className="w-4 h-4" />
-                        Continue with Quiz
-                      </button>
-                      <button
-                        onClick={handlePurchaseRetakeBundle}
-                        disabled={isProcessing}
-                        className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-200 font-medium"
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        {isProcessing ? "Processing..." : "Buy More Retakes"}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <div className="flex gap-3">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 font-medium"
+                  >
+                    <Play className="w-4 h-4" />
+                    Continue with Quiz
+                  </button>
+                  <button
+                    onClick={handlePurchaseRetakeBundle}
+                    disabled={isProcessing}
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-200 font-medium"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {isProcessing ? "Processing..." : "Buy More Retakes"}
+                  </button>
+                </div>
               </div>
             )}
 
