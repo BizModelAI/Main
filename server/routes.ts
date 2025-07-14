@@ -517,38 +517,27 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
 
-      // Logic: Guests can take quiz unlimited times for free
-      // If they pay $9.99, they get 3 total attempts (limited)
-      // After 3 attempts, they pay $4.99 for 3 more attempts
+      // New pay-per-report system logic:
+      // - First quiz is always free for everyone
+      // - Users with access pass can take unlimited quizzes
+      // - Users without access pass can only take the first quiz for free
 
-      const isGuestUser =
-        !user.hasAccessPass && user.quizRetakesRemaining === 0;
       const hasAccessPass = user.hasAccessPass;
+      const isFirstQuiz = attemptsCount === 0;
+      const isGuestUser = !hasAccessPass && !isFirstQuiz;
 
       // Can retake if:
-      // 1. Guest user (unlimited free attempts)
+      // 1. First quiz (always free)
       // 2. User with access pass (unlimited retakes)
-      // 3. User without access pass but with remaining retakes
-      const canRetake =
-        isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
-
-      // Cap retakes at the new maximum of 3 for existing users
-      const cappedRetakes = Math.min(user.quizRetakesRemaining, 3);
-
-      // If user has more than 3 retakes, update their account to cap at 3
-      if (user.quizRetakesRemaining > 3) {
-        await storage.updateUser(userId, {
-          quizRetakesRemaining: 3,
-        });
-      }
+      const canRetake = isFirstQuiz || hasAccessPass;
 
       res.json({
         canRetake,
         attemptsCount,
         hasAccessPass,
-        quizRetakesRemaining: cappedRetakes,
-        totalQuizRetakesUsed: user.totalQuizRetakesUsed,
-        isFirstQuiz: attemptsCount === 0,
+        quizRetakesRemaining: hasAccessPass ? 999 : isFirstQuiz ? 1 : 0, // Show 999 for access pass users, 1 for first quiz, 0 otherwise
+        totalQuizRetakesUsed: 0, // Not used in new system, always 0
+        isFirstQuiz,
         isFreeQuizUsed: attemptsCount > 0,
         isGuestUser,
       });
