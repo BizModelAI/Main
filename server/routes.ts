@@ -2311,7 +2311,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.log("Before quiz attempt:", {
         userId: testUser.id,
         isPaid,
-        hasAccessPass: user.hasAccessPass,
+        hasAccessPass: false, // Access pass concept removed
         attemptsCount,
       });
 
