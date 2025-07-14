@@ -14,6 +14,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { QuizData, BusinessPath } from "../types";
+import { reportViewManager } from "../utils/reportViewManager";
 
 // Hook to detect mobile devices
 const useIsMobile = () => {
@@ -603,6 +604,21 @@ Return JSON format:
         // Clear the generation flag
         localStorage.removeItem("ai-generation-in-progress");
 
+        // Mark this report as viewed now that it's been fully loaded
+        const quizAttemptId = parseInt(
+          localStorage.getItem("currentQuizAttemptId") || "0",
+        );
+        if (quizAttemptId && quizData) {
+          reportViewManager.markReportAsViewed(
+            quizAttemptId,
+            quizData,
+            userEmail,
+          );
+          console.log(
+            `Report for quiz attempt ${quizAttemptId} marked as viewed after AI loading completion`,
+          );
+        }
+
         // Complete and pass data to parent
         onComplete({
           personalizedPaths: (currentResults as any).personalizedPaths || [],
@@ -628,6 +644,21 @@ Return JSON format:
 
         // Clear the generation flag even on error
         localStorage.removeItem("ai-generation-in-progress");
+
+        // Mark this report as viewed even on error (user saw the loading process)
+        const quizAttemptId = parseInt(
+          localStorage.getItem("currentQuizAttemptId") || "0",
+        );
+        if (quizAttemptId && quizData) {
+          reportViewManager.markReportAsViewed(
+            quizAttemptId,
+            quizData,
+            userEmail,
+          );
+          console.log(
+            `Report for quiz attempt ${quizAttemptId} marked as viewed after AI loading completion (with errors)`,
+          );
+        }
 
         // In case of error, still complete with current data
         onComplete({
