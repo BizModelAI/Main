@@ -144,6 +144,9 @@ export function setupAuthRoutes(app: Express) {
       // Set session
       req.session.userId = user.id;
 
+      // TEMPORARY FIX: Force save with explicit session management
+      // This ensures the userId is saved and available for subsequent requests
+
       console.log("Login: Before session save", {
         sessionId: req.sessionID,
         userId: user.id,
