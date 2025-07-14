@@ -361,13 +361,6 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
 
         {/* Business Models Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Debug info */}
-          {console.log("BusinessExplorer: Rendering cards with:", {
-            hasUnlockedAnalysis,
-            hasQuizData: !!quizData,
-            showFitBadge: !!(hasUnlockedAnalysis && quizData),
-            userEmail: user?.email,
-          })}
           {filteredModels.map((model) => (
             <BusinessModelCard
               key={model.id}
