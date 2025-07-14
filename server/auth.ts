@@ -128,26 +128,34 @@ export function setupAuthRoutes(app: Express) {
       // Set session
       req.session.userId = user.id;
 
-      console.log("Login: Session set", {
-        sessionId: req.sessionID,
-        userId: user.id,
-        userEmail: user.email,
-        sessionSaved: !!req.session.userId,
-        cookieSettings: {
-          secure: req.sessionStore?.options?.cookie?.secure,
-          httpOnly: req.sessionStore?.options?.cookie?.httpOnly,
-          sameSite: req.sessionStore?.options?.cookie?.sameSite,
-          domain: req.sessionStore?.options?.cookie?.domain,
-        },
-        headers: {
-          setCookie: req.res?.getHeaders?.()?.["set-cookie"],
-          userAgent: req.headers["user-agent"]?.substring(0, 50),
-        },
-      });
+      // Force session save before sending response
+      req.session.save((err) => {
+        if (err) {
+          console.error("Login: Failed to save session:", err);
+          return res.status(500).json({ error: "Session save failed" });
+        }
 
-      // Don't send password
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+        console.log("Login: Session saved successfully", {
+          sessionId: req.sessionID,
+          userId: user.id,
+          userEmail: user.email,
+          sessionSaved: !!req.session.userId,
+          cookieSettings: {
+            secure: req.sessionStore?.options?.cookie?.secure,
+            httpOnly: req.sessionStore?.options?.cookie?.httpOnly,
+            sameSite: req.sessionStore?.options?.cookie?.sameSite,
+            domain: req.sessionStore?.options?.cookie?.domain,
+          },
+          headers: {
+            setCookie: res.getHeaders?.()?.["set-cookie"],
+            userAgent: req.headers["user-agent"]?.substring(0, 50),
+          },
+        });
+
+        // Don't send password
+        const { password: _, ...userWithoutPassword } = user;
+        res.json(userWithoutPassword);
+      });
     } catch (error) {
       console.error("Error in /api/auth/login:", error);
       res.status(500).json({ error: "Internal server error" });
