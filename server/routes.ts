@@ -1409,14 +1409,13 @@ export async function registerRoutes(app: Express): Promise<void> {
                 }
               }
 
-              // Create payment record
+                            // Create payment record
               const payment = await storage.createPayment({
                 userId: user.id,
                 amount: (paymentIntent.amount / 100).toFixed(2), // Convert cents to dollars
                 currency: "usd",
                 type: type || "access_pass",
                 status: "pending",
-                retakesGranted: parseInt(retakesGranted) || 5,
                 stripePaymentIntentId: paymentIntent.id,
               });
 
@@ -1424,10 +1423,8 @@ export async function registerRoutes(app: Express): Promise<void> {
               if (type === "quiz_payment") {
                 await storage.completePayment(payment.id, 0);
               } else {
-                await storage.completePayment(
-                  payment.id,
-                  parseInt(retakesGranted) || 5,
-                );
+                await storage.completePayment(payment.id, 0);
+              }
               }
 
               // Clean up temporary data
