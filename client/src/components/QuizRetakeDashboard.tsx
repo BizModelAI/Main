@@ -106,7 +106,7 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{
-                width: `${Math.min((totalQuizRetakesUsed / 10) * 100, 100)}%`,
+                width: `${Math.min((totalQuizRetakesUsed / 6) * 100, 100)}%`,
               }}
             />
           </div>
