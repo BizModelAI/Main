@@ -83,23 +83,33 @@ export class AIScoringService {
 
       const prompt = this.buildAnalysisPrompt(quizData);
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert business consultant and psychologist specializing in entrepreneurial fit assessment. Analyze the user's quiz responses and provide detailed, accurate business model compatibility scores with reasoning.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
+      // Add timeout to prevent hanging
+      const response = (await Promise.race([
+        openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are an expert business consultant and psychologist specializing in entrepreneurial fit assessment. Analyze the user's quiz responses and provide detailed, accurate business model compatibility scores with reasoning.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+          max_tokens: 4000,
+        }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(new Error("OpenAI API call timed out after 25 seconds")),
+            25000,
+          ),
+        ),
+      ])) as OpenAI.Chat.Completions.ChatCompletion;
 
       const content = response.choices[0].message.content;
       if (!content) {
