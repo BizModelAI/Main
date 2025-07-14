@@ -147,7 +147,7 @@ export function setupAuthRoutes(app: Express) {
             domain: req.sessionStore?.options?.cookie?.domain,
           },
           headers: {
-            setCookie: res.getHeaders?.()?.["set-cookie"],
+            setCookie: res.getHeaders()["set-cookie"],
             userAgent: req.headers["user-agent"]?.substring(0, 50),
           },
         });
