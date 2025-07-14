@@ -292,6 +292,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return null;
     }
 
+    // Don't try to fetch quiz data for temporary users via API
+    if (user.id.startsWith("temp_")) {
+      console.log(
+        "getLatestQuizData: Temporary user detected, skipping API call",
+      );
+      return null;
+    }
+
     try {
       const url = "/api/auth/latest-quiz-data";
       console.log("getLatestQuizData: Making request to:", url);
