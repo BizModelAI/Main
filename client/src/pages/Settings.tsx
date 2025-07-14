@@ -60,12 +60,20 @@ const Settings: React.FC = () => {
       return;
     }
 
+    // Validate form data
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setSaveStatus("error");
+      console.error("Settings: First and last name are required");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+      return;
+    }
+
     setSaveStatus("saving");
     try {
       // Create clean server data with only valid User fields
       const serverData = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
+        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        email: formData.email.trim(),
       };
 
       console.log("Settings: Saving profile data:", {
