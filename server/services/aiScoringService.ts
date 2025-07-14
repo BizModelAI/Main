@@ -24,7 +24,17 @@ class RateLimiter {
     if (this.requests.length >= this.maxRequests) {
       // Wait until we can make another request
       const oldestRequest = Math.min(...this.requests);
-      const waitTime = this.windowMs - (now - oldestRequest) + 100; // Small buffer
+      const waitTime = Math.min(
+        this.windowMs - (now - oldestRequest) + 100,
+        10000,
+      ); // Cap wait at 10 seconds
+      console.log(`⏳ Rate limit hit, waiting ${waitTime}ms for slot`);
+
+      if (waitTime > 30000) {
+        // If we'd wait more than 30 seconds, just reject to avoid timeout
+        throw new Error("Rate limit exceeded - too many concurrent requests");
+      }
+
       await new Promise((resolve) => setTimeout(resolve, waitTime));
       return this.waitForSlot(); // Recursive check
     }
