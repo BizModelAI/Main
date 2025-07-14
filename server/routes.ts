@@ -952,7 +952,6 @@ export async function registerRoutes(app: Express): Promise<void> {
           currency: "usd",
           type: paymentType,
           status: "pending",
-          retakesGranted: parseInt(retakesGranted),
           stripePaymentIntentId: paymentIntent.id,
         });
         paymentId = payment.id;
