@@ -192,12 +192,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // Basic access is always available, but full reports require payment
   const canViewFullReport = user ? isReportUnlocked : true;
 
-  useEffect(() => {
+    useEffect(() => {
     console.log("Results component received quizData:", quizData);
 
-    // Clear AI cache for fresh quiz results
-    aiCacheManager.clearCacheForQuiz(quizData);
-    console.log("AI cache cleared for new quiz results");
+    // Clear ALL AI cache for fresh quiz results to prevent inconsistencies
+    aiCacheManager.clearAllCache();
+    localStorage.removeItem("quiz-completion-ai-insights");
+    console.log("All AI cache cleared for new quiz results");
 
     // Trigger confetti blast only on first visit to results page
     const confettiKey = `confetti_shown_${userEmail || "anonymous"}`;
@@ -401,14 +402,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           console.error("Error parsing cached AI data:", error);
         }
       } else {
-        console.log("❌ No cached AI data found in localStorage");
+              console.log("❌ No cached AI data found in localStorage");
       }
 
-      // Fallback if no valid cached data
+      // Fallback if no valid cached data - ensure consistency with actual business models
+      const topBusinessModel = personalizedPaths[0];
       console.log(
-        "🚀 Setting fallback AI content (no valid AI data from loading page)",
+        `🚀 Setting fallback AI content for ${topBusinessModel?.name || 'unknown business model'} (no valid AI data from loading page)",
       );
-      const fallbackInsights = generateFallbackInsights();
+            const fallbackInsights = generateFallbackInsights(personalizedPaths[0]);
       const fallbackAnalysis = generateFallbackAnalysis();
       setAiInsights(fallbackInsights);
       setAiAnalysis(fallbackAnalysis);
@@ -562,9 +564,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     };
   };
 
-  const generateFallbackInsights = (): AIInsights => {
-    const topPath = personalizedPaths[0];
-    if (!topPath) {
+    const generateFallbackInsights = (topPath?: BusinessPath): AIInsights => {
+    const actualTopPath = topPath || personalizedPaths[0];
+    if (!actualTopPath) {
       return {
         personalizedSummary:
           "Complete your quiz to receive a personalized business analysis.",
@@ -581,8 +583,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           "Start your entrepreneurial journey by completing our comprehensive business assessment!",
       };
     }
-    return {
-      personalizedSummary: `Based on your comprehensive assessment, ${topPath?.name || "your top business match"} achieves a ${topPath?.fitScore || 85}% compatibility score with your unique profile.`,
+        return {
+      personalizedSummary: `Based on your comprehensive assessment, ${actualTopPath?.name || "your top business match"} achieves a ${actualTopPath?.fitScore || 85}% compatibility score with your unique profile.`,
       customRecommendations: [
         "Start with free tools to validate your concept",
         "Focus on building one core skill deeply",
