@@ -365,13 +365,13 @@ async function setupApp() {
   }
 }
 
-// Add timeout for setup
+// Add timeout for setup (increased to 60 seconds)
 Promise.race([
   setupApp(),
   new Promise((_, reject) =>
     setTimeout(
-      () => reject(new Error("Server setup timeout after 30 seconds")),
-      30000,
+      () => reject(new Error("Server setup timeout after 60 seconds")),
+      60000,
     ),
   ),
 ])
