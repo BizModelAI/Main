@@ -743,6 +743,79 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Get latest PAID quiz data for authenticated user (for navigation guard)
+  app.get("/api/auth/latest-paid-quiz-data", async (req, res) => {
+    console.log("API: GET /api/auth/latest-paid-quiz-data", {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      console.log(`Latest paid quiz data: Fetching for user ${userId}`);
+
+      // Get user info to check if they have access pass
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const attempts = await storage.getQuizAttempts(userId);
+      console.log(`Latest paid quiz data: Found ${attempts.length} attempts`);
+
+      if (attempts.length === 0) {
+        console.log("Latest paid quiz data: No attempts found");
+        return res.json(null);
+      }
+
+      // For access pass users: find latest attempt that has report unlocked
+      if (user.hasAccessPass) {
+        // Check each attempt to see if it has been unlocked (paid for)
+        for (const attempt of attempts) {
+          const unlockStatus = await storage.checkReportUnlockStatus(
+            userId,
+            attempt.id,
+          );
+          if (unlockStatus.isUnlocked) {
+            console.log(
+              `Latest paid quiz data: Found unlocked attempt ${attempt.id}`,
+            );
+            return res.json({
+              quizData: attempt.quizData,
+              quizAttemptId: attempt.id,
+              isUnlocked: true,
+            });
+          }
+        }
+
+        // No unlocked attempts found for access pass user
+        console.log(
+          "Latest paid quiz data: No unlocked attempts found for access pass user",
+        );
+        return res.json(null);
+      } else {
+        // For non-access pass users: any saved attempt means they paid
+        const latestAttempt = attempts[0];
+        console.log(
+          `Latest paid quiz data: Returning latest attempt ${latestAttempt.id}`,
+        );
+        return res.json({
+          quizData: latestAttempt.quizData,
+          quizAttemptId: latestAttempt.id,
+          isUnlocked: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error getting latest paid quiz data:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Save quiz data for authenticated user (pay-per-quiz model)
   app.post("/api/auth/save-quiz-data", async (req, res) => {
     console.log("API: POST /api/auth/save-quiz-data", {
