@@ -312,10 +312,13 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // AI-powered business fit scoring endpoint
   app.post("/api/ai-business-fit-analysis", async (req, res) => {
+    console.log("📥 AI business fit analysis request received");
+
     try {
       // Rate limiting for concurrent quiz takers
       const clientIP = req.ip || req.connection.remoteAddress || "unknown";
       if (!openaiRateLimiter.canMakeRequest(clientIP)) {
+        console.log("❌ Rate limit exceeded for IP:", clientIP);
         return res.status(429).json({
           error: "Too many requests. Please wait a moment before trying again.",
         });
@@ -324,13 +327,27 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { quizData } = req.body;
 
       if (!quizData) {
+        console.log("❌ No quiz data provided");
         return res.status(400).json({ error: "Quiz data is required" });
       }
 
-      const analysis = await aiScoringService.analyzeBusinessFit(quizData);
+      // Add timeout to prevent hanging requests
+      const analysisPromise = aiScoringService.analyzeBusinessFit(quizData);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Analysis timed out after 30 seconds")),
+          30000,
+        ),
+      );
+
+      const analysis = await Promise.race([analysisPromise, timeoutPromise]);
+      console.log("✅ AI business fit analysis completed successfully");
       res.json(analysis);
     } catch (error) {
-      console.error("Error in AI business fit analysis:", error);
+      console.error("❌ Error in AI business fit analysis:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+      });
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       res.status(500).json({
