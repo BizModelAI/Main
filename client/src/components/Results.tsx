@@ -720,7 +720,6 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   const handlePaymentSuccess = () => {
     setShowPaymentModal(false);
-    setShowReportUnlockPaywall(false);
 
     // Refresh unlock status to reflect the new payment
     refreshUnlockStatus();
