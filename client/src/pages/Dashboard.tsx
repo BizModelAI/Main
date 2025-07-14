@@ -907,6 +907,18 @@ const Dashboard: React.FC = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Quiz History Section */}
+        {user && !authLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-12 mb-8"
+          >
+            <QuizAttemptHistory userId={parseInt(String(user.id))} />
+          </motion.div>
+        )}
       </div>
     </div>
   );
