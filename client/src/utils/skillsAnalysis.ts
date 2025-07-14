@@ -113,25 +113,28 @@ export class SkillsAnalysisService {
   }
 
   private createUserProfile(quizData: QuizData): string {
-    return `
-      Primary Motivation: ${quizData.mainMotivation}
-      Time Commitment: ${quizData.weeklyTimeCommitment} hours/week
-      Learning Style: ${quizData.learningPreference}
-      Tech Skills: ${quizData.techSkillsRating}/5
-      Tools Experience: ${quizData.familiarTools?.join(", ") || "None specified"}
-      Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
-      Self-Motivation: ${quizData.selfMotivationLevel}/5
-      Risk Tolerance: ${quizData.riskComfortLevel}/5
-      Organization Level: ${quizData.organizationLevel}/5
-      Brand Face Comfort: ${quizData.brandFaceComfort}/5
-      Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment}/5
-      Trial/Error Comfort: ${quizData.trialErrorComfort}/5
-      Tool Learning Willingness: ${quizData.toolLearningWillingness}
-      Work Preference: ${quizData.workCollaborationPreference}
-      Decision Making: ${quizData.decisionMakingStyle}
-      Consistency: ${quizData.longTermConsistency}/5
-      Resilience: ${quizData.discouragementResilience}/5
-    `;
+    const profile = {
+      motivation: quizData.mainMotivation,
+      timeCommitment: quizData.weeklyTimeCommitment,
+      learningStyle: quizData.learningPreference,
+      skills: {
+        tech: quizData.techSkillsRating || 3,
+        communication: quizData.directCommunicationEnjoyment || 3,
+        selfMotivation: quizData.selfMotivationLevel || 3,
+        creativity: quizData.creativeWorkEnjoyment || 3,
+        organization: quizData.organizationLevel || 3,
+        resilience: quizData.discouragementResilience || 3,
+      },
+      preferences: {
+        riskTolerance: quizData.riskComfortLevel || 3,
+        collaboration: quizData.workCollaborationPreference,
+        decisionStyle: quizData.decisionMakingStyle,
+        consistency: quizData.longTermConsistency || 3,
+      },
+      tools: quizData.familiarTools?.slice(0, 3) || [],
+    };
+
+    return JSON.stringify(profile);
   }
 
   private processSkillAssessments(
