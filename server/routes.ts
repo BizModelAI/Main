@@ -874,9 +874,9 @@ export async function registerRoutes(app: Express): Promise<void> {
         metadata: {
           userId: userId.toString(),
           type: "retake_bundle",
-          retakesGranted: "5",
+          retakesGranted: "3",
         },
-        description: "BizModelAI Retake Bundle - 5 additional quiz attempts",
+        description: "BizModelAI Retake Bundle - 3 additional quiz attempts",
       });
 
       // Create payment record in our database
