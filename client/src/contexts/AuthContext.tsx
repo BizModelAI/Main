@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const checkExistingSession = async () => {
       try {
-        let response;
+        let response: Response;
         try {
           response = await fetch("/api/auth/me", {
             method: "GET",
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           xhr.withCredentials = true;
           xhr.setRequestHeader("Content-Type", "application/json");
 
-          response = await new Promise((resolve, reject) => {
+          response = await new Promise<Response>((resolve, reject) => {
             xhr.onload = () => {
               resolve({
                 ok: xhr.status >= 200 && xhr.status < 300,
@@ -77,7 +77,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 statusText: xhr.statusText,
                 json: () => Promise.resolve(JSON.parse(xhr.responseText)),
                 text: () => Promise.resolve(xhr.responseText),
-              });
+                headers: new Headers(),
+                url: "",
+                redirected: false,
+                type: "basic",
+                clone: () => response,
+                body: null,
+                bodyUsed: false,
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+                blob: () => Promise.resolve(new Blob()),
+                formData: () => Promise.resolve(new FormData()),
+              } as Response);
             };
             xhr.onerror = () => reject(new Error("Network error"));
             xhr.send();
