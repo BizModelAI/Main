@@ -417,6 +417,12 @@ function App() {
               path="/quiz-payment-required"
               element={<QuizPaymentRequired />}
             />
+
+            {/* Save Results Payment */}
+            <Route
+              path="/save-results-payment"
+              element={<SaveResultsPayment />}
+            />
           </Routes>
 
           {/* Save Quiz Results Modal */}
