@@ -163,7 +163,6 @@ export function setupAuthRoutes(app: Express) {
         email: user.email,
         name: user.name,
         hasAccessPass: user.hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
       });
 
       // Don't send password
