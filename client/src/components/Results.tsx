@@ -1063,7 +1063,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   <div className="relative">
                     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
                       <div className="text-blue-50 leading-relaxed text-lg">
-                        {hasUnlockedAnalysis ? (
+                        {canViewFullReport ? (
                           // Full content when unlocked
                           <div>
                             {(() => {
