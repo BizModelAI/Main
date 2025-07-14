@@ -1032,8 +1032,9 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       if (!isTemporaryUser && userId) {
         const user = await storage.getUser(parseInt(userId));
-        if (user && user.hasAccessPass) {
-          // User has access but needs more retakes - $4.99
+        if (false) {
+          // Access pass logic removed
+          // Old logic removed
           amount = "4.99";
           retakesGranted = "2";
           paymentType = "retakes";
