@@ -25,6 +25,7 @@ interface ReportPaymentFormProps {
   onSuccess: () => void;
   onError: (error: string) => void;
   quizAttemptId: number;
+  onPricingUpdate: (amount: string, isFirstReport: boolean) => void;
 }
 
 const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
