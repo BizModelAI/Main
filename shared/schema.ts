@@ -18,7 +18,6 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name"), // User's full name
   email: text("email"), // Optional email for paid users
-  hasAccessPass: boolean("has_access_pass").default(false).notNull(),
   isUnsubscribed: boolean("is_unsubscribed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
