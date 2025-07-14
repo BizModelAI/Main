@@ -778,8 +778,16 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
           return this.getFallbackContent(prompt);
         }
 
-        // Wait before retrying (exponential backoff)
-        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+        // For timeout errors, wait longer before retry
+        const isTimeout =
+          error instanceof Error &&
+          (error.message.includes("timeout") ||
+            error.message.includes("timed out"));
+
+        // Exponential backoff with longer delays for timeouts
+        const baseDelay = isTimeout ? 5000 : 1000; // 5s for timeouts, 1s for other errors
+        const delay = Math.pow(2, attempt - 1) * baseDelay; // 5s, 10s, 20s for timeouts
+
         console.log(`⏳ Waiting ${delay}ms before retry...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
