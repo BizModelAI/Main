@@ -532,15 +532,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       const canRetake =
         isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
 
-      console.log(`DEBUG - User ${userId} retake status:`, {
-        attemptsCount,
-        hasAccessPass: user.hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
-        totalQuizRetakesUsed: user.totalQuizRetakesUsed,
-        isFirstQuiz: attemptsCount === 0,
-        isGuestUser,
-      });
-
       res.json({
         canRetake,
         attemptsCount,
