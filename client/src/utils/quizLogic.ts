@@ -8,76 +8,15 @@ export async function generateAIPersonalizedPaths(
   data: QuizData,
 ): Promise<BusinessPath[]> {
   try {
-    let response: Response;
+    console.log("generateAIPersonalizedPaths: Making AI analysis request");
 
-    // Use XMLHttpRequest first to avoid FullStory interference
-    try {
-      console.log(
-        "generateAIPersonalizedPaths: Using XMLHttpRequest to avoid FullStory issues",
-      );
-
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/ai-business-fit-analysis", true);
-      xhr.withCredentials = true;
-      xhr.setRequestHeader("Content-Type", "application/json");
-
-      response = await new Promise<Response>((resolve, reject) => {
-        xhr.onload = () => {
-          const responseText = xhr.responseText;
-          resolve({
-            ok: xhr.status >= 200 && xhr.status < 300,
-            status: xhr.status,
-            statusText: xhr.statusText,
-            json: () => {
-              try {
-                return Promise.resolve(JSON.parse(responseText));
-              } catch (e) {
-                return Promise.reject(new Error("Invalid JSON response"));
-              }
-            },
-            text: () => Promise.resolve(responseText),
-            headers: new Headers(),
-            url: "/api/ai-business-fit-analysis",
-            redirected: false,
-            type: "basic",
-            clone: () => response,
-            body: null,
-            bodyUsed: false,
-            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-            blob: () => Promise.resolve(new Blob()),
-            formData: () => Promise.resolve(new FormData()),
-          } as Response);
-        };
-        xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
-        xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
-        xhr.timeout = 30000; // 30 second timeout for AI analysis
-        xhr.send(JSON.stringify({ quizData: data }));
-      });
-    } catch (xhrError) {
-      console.log(
-        "generateAIPersonalizedPaths: XMLHttpRequest failed, trying fetch",
-      );
-
-      // Fallback to fetch
-      try {
-        response = await fetch("/api/ai-business-fit-analysis", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ quizData: data }),
-        });
-      } catch (fetchError) {
-        console.error(
-          "generateAIPersonalizedPaths: Both XMLHttpRequest and fetch failed:",
-          {
-            xhrError,
-            fetchError,
-          },
-        );
-        throw new Error("All request methods failed");
-      }
-    }
+    const response = await apiPost(
+      "/api/ai-business-fit-analysis",
+      { quizData: data },
+      {
+        timeout: 30000, // 30 second timeout for AI analysis
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
