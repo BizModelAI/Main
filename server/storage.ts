@@ -750,11 +750,12 @@ export class DatabaseStorage implements IStorage {
 
   async isPaidUser(userId: number): Promise<boolean> {
     try {
-      const [user] = await this.ensureDb()
+      const userPayments = await this.ensureDb()
         .select()
-        .from(users)
-        .where(eq(users.id, userId));
-      return user ? user.hasAccessPass : false;
+        .from(payments)
+        .where(eq(payments.userId, userId))
+        .where(eq(payments.status, "completed"));
+      return userPayments.length > 0;
     } catch (error) {
       console.error("Error checking if user is paid:", error);
       return false; // Default to unpaid if there's an error
