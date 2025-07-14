@@ -89,6 +89,25 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     };
   }, [step, user]);
 
+  // Auto-advance to payment step if user is already logged in
+  useEffect(() => {
+    if (isOpen && user && step === "account") {
+      // User is already logged in, skip to payment
+      const initializePayment = async () => {
+        try {
+          await fetchReportPricing();
+          setStep("payment");
+        } catch (error) {
+          console.error(
+            "Failed to initialize payment for logged-in user:",
+            error,
+          );
+        }
+      };
+      initializePayment();
+    }
+  }, [isOpen, user, step]);
+
   if (!isOpen) return null;
 
   const getContent = () => {
