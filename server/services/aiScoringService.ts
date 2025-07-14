@@ -111,8 +111,8 @@ export class AIScoringService {
         new Promise((_, reject) =>
           setTimeout(
             () =>
-              reject(new Error("OpenAI API call timed out after 25 seconds")),
-            25000,
+              reject(new Error("OpenAI API call timed out after 10 seconds")),
+            10000,
           ),
         ),
       ])) as OpenAI.Chat.Completions.ChatCompletion;
@@ -415,7 +415,7 @@ export class AIScoringService {
   private getIncomeGoalRange(value: number): string {
     if (value <= 500) return "Less than $500/month";
     if (value <= 1250) return "$500–$2,000/month";
-    if (value <= 3500) return "$2,000–$5,000/month";
+    if (value <= 3500) return "$2,000��$5,000/month";
     return "$5,000+/month";
   }
 
