@@ -51,6 +51,12 @@ app.use((req: any, res: any, next: any) => {
     userId: req.session?.userId,
     sessionExists: !!req.session,
     cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+    userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
+    referer: req.headers.referer || "none",
+    host: req.headers.host || "none",
+    origin: req.headers.origin || "none",
+    protocol: req.protocol,
+    secure: req.secure,
   });
   next();
 });
