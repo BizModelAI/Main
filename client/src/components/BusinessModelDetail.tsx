@@ -212,7 +212,11 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         console.error("Error generating model insights:", error);
         // Set fallback insights
         const fallbackInsights = {
-          modelFitReason: `${path.name} shows ${fitCategory.toLowerCase()} alignment with your profile based on your quiz responses.`,
+          modelFitReason: `${path.name} shows ${fitCategory.toLowerCase()} alignment with your profile based on your quiz responses. Your skills, available time, and personal preferences create a ${fitCategory === "Best Fit" || fitCategory === "Strong Fit" ? "strong foundation" : "challenging situation"} for success in this business model.
+
+Your goals and timeline expectations ${fitCategory === "Best Fit" || fitCategory === "Strong Fit" ? "align well" : "present some obstacles"} with what's typically required to build a profitable ${path.name} business. The resources you have available and your risk tolerance ${fitCategory === "Best Fit" || fitCategory === "Strong Fit" ? "support" : "may limit"} this entrepreneurial path.
+
+${fitCategory === "Best Fit" ? "This represents an excellent match for your current situation and offers high potential for success." : fitCategory === "Strong Fit" ? "While this is a good fit, there may be other options that align even better with your specific profile." : fitCategory === "Possible Fit" ? "With some adjustments and skill development, this could become more viable for you in the future." : "Other business models would likely offer better alignment with your current strengths and situation."}`,
           keyInsights: [
             "Your profile shows specific alignment indicators with this model",
             "Time commitment and goals factor into this assessment",
