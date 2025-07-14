@@ -2,7 +2,7 @@ import { QuizData } from "../types";
 
 interface ViewedReport {
   quizAttemptId: number;
-  userEmail?: string;
+  userEmail?: string | null;
   viewedAt: number;
   quizDataHash: string;
 }
