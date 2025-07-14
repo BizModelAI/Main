@@ -585,8 +585,14 @@ export async function registerRoutes(app: Express): Promise<void> {
         quizData,
       });
 
-      // Decrement retakes only for paid users
-      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
+      // Decrement retakes only for paid users, but not for their first quiz attempt
+      // The first quiz attempt after getting access pass should be free
+      if (
+        isPaid &&
+        hasAccessPass &&
+        user.quizRetakesRemaining > 0 &&
+        attemptsCount > 0
+      ) {
         await storage.decrementQuizRetakes(userId);
       }
 
