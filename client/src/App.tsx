@@ -410,6 +410,14 @@ function App() {
               element={<QuizPaymentRequired />}
             />
           </Routes>
+
+          {/* Save Quiz Results Modal */}
+          <SaveQuizResultsModal
+            isOpen={showSaveModal}
+            onClose={handleCloseModal}
+            onPayNow={handleSaveResults}
+            onLoseResults={handleLoseResults}
+          />
         </Router>
       </PaywallProvider>
     </AuthProvider>
