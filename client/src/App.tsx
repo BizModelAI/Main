@@ -232,8 +232,8 @@ function App() {
 
   return (
     <AuthProvider>
-      <PaywallProvider>
-                <Router>
+            <PaywallProvider>
+        <Router>
           <NavigationGuardWrapper>
             <Analytics />
             <SpeedInsights />
