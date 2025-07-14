@@ -743,7 +743,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Save quiz data for authenticated user after payment
+  // Save quiz data for authenticated user (pay-per-quiz model)
   app.post("/api/auth/save-quiz-data", async (req, res) => {
     console.log("API: POST /api/auth/save-quiz-data", {
       sessionId: req.sessionID,
@@ -770,10 +770,54 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const { quizData } = req.body;
+      const { quizData, paymentId } = req.body;
       if (!quizData) {
         console.log("Save quiz data: No quiz data provided");
         return res.status(400).json({ error: "Quiz data is required" });
+      }
+
+      // Check if this is the user's first quiz attempt
+      const existingAttempts = await storage.getQuizAttempts(userId);
+      const isFirstQuiz = existingAttempts.length === 0;
+      const user = await storage.getUser(userId);
+
+      console.log(
+        `Save quiz data: User ${userId}, first quiz: ${isFirstQuiz}, has access pass: ${user?.hasAccessPass}`,
+      );
+
+      // For additional quizzes (after the first), require payment unless user has access pass
+      if (!isFirstQuiz && !user?.hasAccessPass) {
+        if (!paymentId) {
+          return res.status(402).json({
+            error: "Payment required for additional quiz attempts",
+            requiresPayment: true,
+            amount: "4.99",
+          });
+        }
+
+        // Verify payment exists and is completed
+        const payments = await storage.getPaymentsByUser(userId);
+        const payment = payments.find(
+          (p) =>
+            p.id === paymentId &&
+            p.status === "completed" &&
+            p.type === "quiz_payment",
+        );
+
+        if (!payment) {
+          return res.status(402).json({
+            error: "Valid payment required for additional quiz attempts",
+            requiresPayment: true,
+            amount: "4.99",
+          });
+        }
+
+        // Check if payment is already linked to another quiz attempt
+        if (payment.quizAttemptId) {
+          return res.status(400).json({
+            error: "Payment has already been used for another quiz attempt",
+          });
+        }
       }
 
       console.log(`Save quiz data: Saving quiz data for user ${userId}`);
@@ -788,16 +832,12 @@ export async function registerRoutes(app: Express): Promise<void> {
         `Save quiz data: Quiz attempt recorded with ID ${attempt.id} for user ${userId}`,
       );
 
-      // Also decrement retakes for paid users with access pass
-      const user = await storage.getUser(userId);
-      const isPaid = await storage.isPaidUser(userId);
-      const hasAccessPass = user?.hasAccessPass;
-
-      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
+      // If this was a paid quiz attempt, link the payment to this attempt
+      if (!isFirstQuiz && !user?.hasAccessPass && paymentId) {
+        await storage.linkPaymentToQuizAttempt(paymentId, attempt.id);
         console.log(
-          `Save quiz data: Decrementing quiz retakes for paid user ${userId}`,
+          `Save quiz data: Linked payment ${paymentId} to quiz attempt ${attempt.id}`,
         );
-        await storage.decrementQuizRetakes(userId);
       }
 
       console.log(
@@ -808,6 +848,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         success: true,
         attemptId: attempt.id,
         message: "Quiz data saved successfully",
+        isFirstQuiz,
+        requiresPayment: !isFirstQuiz && !user?.hasAccessPass,
       });
     } catch (error) {
       console.error("Error saving quiz data:", error);
