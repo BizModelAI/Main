@@ -1894,7 +1894,11 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       }
 
       // Store the email and send results
-      await storage.storeUnpaidUserEmail(sessionId, email, quizData);
+      // Preserve any existing signup data when storing quiz results
+      await storage.storeUnpaidUserEmail(sessionId, email, {
+        email,
+        quizData,
+      });
       const success = await emailService.sendQuizResults(email, quizData);
 
       if (success) {
