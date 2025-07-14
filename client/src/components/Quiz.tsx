@@ -31,8 +31,6 @@ import {
 } from "lucide-react";
 import { QuizData } from "../types";
 import { quizSteps } from "../data/quizSteps";
-import { useQuizRetake } from "@/hooks/useQuizRetake";
-import { QuizRetakeModal } from "./QuizRetakeModal";
 import { useToast } from "@/hooks/use-toast";
 
 // Mobile-specific content for scale questions
