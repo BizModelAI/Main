@@ -314,30 +314,56 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     }
 
     // Handle access control and AI analysis generation
+    // In development mode, authenticated users get access
+    if (import.meta.env.MODE === "development" && user) {
+      console.log(
+        "BusinessModelDetail: Development mode - authenticated user gets access",
+      );
+      // Continue to generate analysis
+    }
     // For authenticated users with access pass, allow immediate access
-    if (user && user.hasAccessPass) {
+    else if (user && user.hasAccessPass) {
       console.log("BusinessModelDetail: User has access pass, allowing access");
+      // Continue to generate analysis
+    }
+    // For authenticated users, check if they can access business models
+    else if (user && canAccessBusinessModel(businessId)) {
+      console.log(
+        "BusinessModelDetail: User can access business model, allowing access",
+      );
+      // Continue to generate analysis
+    }
+    // For authenticated users who have completed the quiz, allow access
+    else if (user && hasCompletedQuiz) {
+      console.log(
+        "BusinessModelDetail: User has completed quiz, allowing access",
+      );
       // Continue to generate analysis
     }
     // For non-authenticated users, check if they've completed the quiz
     else if (!user && !hasCompletedQuiz) {
+      console.log(
+        "BusinessModelDetail: Non-authenticated user without quiz completion, showing payment modal",
+      );
       setShowPaymentModal(true);
       setAiAnalysis(null);
       setIsLoadingAnalysis(false);
       return;
     }
-    // For authenticated users without access pass, check permissions more thoroughly
-    else if (user && !user.hasAccessPass) {
-      // Check if they can access business models (may have completed quiz)
-      if (!canAccessBusinessModel(businessId) && !hasCompletedQuiz) {
-        setShowPaywallModal(true);
-        setAiAnalysis(null);
-        setIsLoadingAnalysis(false);
-        return;
-      }
+    // For authenticated users who don't meet the above criteria, show paywall
+    else if (user && !hasCompletedQuiz && !canAccessBusinessModel(businessId)) {
+      console.log(
+        "BusinessModelDetail: Authenticated user without access, showing paywall",
+      );
+      setShowPaywallModal(true);
+      setAiAnalysis(null);
+      setIsLoadingAnalysis(false);
+      return;
     }
-    // For all other authenticated users, assume they have access
-    // This handles cases where the PaywallContext might not be fully loaded yet
+
+    console.log(
+      "BusinessModelDetail: Access granted, proceeding to generate analysis",
+    );
 
     // User has paid access - generate AI analysis and skills analysis if quiz data is available
     if (quizData && path) {
