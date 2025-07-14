@@ -564,10 +564,7 @@ export class DatabaseStorage implements IStorage {
     return newPayment;
   }
 
-  async completePayment(
-    paymentId: number,
-    retakesGranted: number,
-  ): Promise<void> {
+  async completePayment(paymentId: number): Promise<void> {
     await this.ensureDb().transaction(async (tx) => {
       // Update payment status
       const [payment] = await tx
