@@ -63,8 +63,8 @@ function App() {
   // Custom save results handler that triggers payment
   const handleSaveResults = () => {
     guardHandleSaveResults();
-    // For now, redirect to a payment page - this could be enhanced to open a payment modal
-    navigate("/payment");
+    // Navigate to save results payment page
+    window.location.href = "/save-results-payment";
   };
 
   // Restore data from localStorage on app start
