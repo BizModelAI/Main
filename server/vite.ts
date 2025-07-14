@@ -1,7 +1,8 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { createServer as createViteServer, createLogger } from "vite";
+// Dynamic import for Vite to handle when it's not available
+let createViteServer: any, createLogger: any;
 import { type Server } from "http";
 import { nanoid } from "nanoid";
 
