@@ -125,17 +125,21 @@ export function setupAuthRoutes(app: Express) {
   // Get current user session
   app.get("/api/auth/me", async (req, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
+
       console.log("Auth check: /api/auth/me called", {
         sessionId: req.sessionID,
-        userId: req.session?.userId,
+        userIdFromSession: req.session?.userId,
+        userIdFromCache: userId,
         sessionExists: !!req.session,
         hasUserAgent: !!req.headers["user-agent"],
         origin: req.headers.origin,
         referer: req.headers.referer,
+        sessionKey: getSessionKey(req),
       });
 
-      if (!req.session.userId) {
-        console.log("Auth check: No userId in session");
+      if (!userId) {
+        console.log("Auth check: No userId found in session or cache");
         return res.status(401).json({ error: "Not authenticated" });
       }
 
