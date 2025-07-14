@@ -224,7 +224,6 @@ export class MemStorage implements IStorage {
       id,
       status: payment.status || "pending",
       currency: payment.currency || "usd",
-      retakesGranted: payment.retakesGranted || 0,
       stripePaymentIntentId: payment.stripePaymentIntentId || null,
       createdAt: new Date(),
       completedAt: null,
