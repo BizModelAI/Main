@@ -41,6 +41,10 @@ export interface IStorage {
   // Payment operations
   createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment>;
   completePayment(paymentId: number, retakesGranted: number): Promise<void>;
+  linkPaymentToQuizAttempt(
+    paymentId: number,
+    quizAttemptId: number,
+  ): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
   getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
   getPaymentById(paymentId: number): Promise<Payment | undefined>;
