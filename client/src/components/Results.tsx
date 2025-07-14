@@ -730,6 +730,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setShowPaymentModal(false);
     setShowReportUnlockPaywall(false);
 
+    // Refresh unlock status to reflect the new payment
+    refreshUnlockStatus();
+
     // Execute pending action if user paid for download/share
     if (pendingAction === "download") {
       executeDownloadAction();
