@@ -2297,11 +2297,5 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
           attemptsCount: finalAttemptsCount,
         },
       });
-    } catch (error) {
-      console.error("Error in test retake flow:", error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Routes registered successfully
+      // Routes registered successfully
 }
