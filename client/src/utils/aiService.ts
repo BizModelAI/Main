@@ -151,9 +151,9 @@ Be enthusiastic and confident about this being their perfect fit.`;
         return `${basePrompt}
 
 FIT TYPE: STRONG - Great fit but not their #1
-- modelFitReason: Explain why it's a great fit, but briefly note why it's not their absolute best match
-- keyInsights: Mostly strengths with 1 light drawback if relevant
-- successPredictors: Mostly positive traits, minor caveat if needed
+- modelFitReason: Write exactly 3 paragraphs explaining why it's a great fit. First paragraph: strong alignment aspects. Second paragraph: why it works well for their situation. Third paragraph: briefly note why it's not their absolute best match but still excellent.
+- keyInsights: Exactly 3 insights - mostly strengths with 1 light drawback if relevant
+- successPredictors: Exactly 3 traits - mostly positive traits, minor caveat if needed
 
 Be positive but acknowledge it's not their perfect match.`;
 
@@ -970,7 +970,7 @@ CRITICAL RULES:
 
     try {
       console.log(
-        "📤 Sending streamlined full report prompt to OpenAI:",
+        "��� Sending streamlined full report prompt to OpenAI:",
         prompt.substring(0, 200) + "...",
       );
 
