@@ -157,6 +157,8 @@ export function setupAuthRoutes(app: Express) {
         id: user.id,
         email: user.email,
         name: user.name,
+        hasAccessPass: user.hasAccessPass,
+        quizRetakesRemaining: user.quizRetakesRemaining,
       });
 
       // Don't send password
