@@ -762,7 +762,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.json(null);
       }
 
-            // For access pass users: they have access to all their attempts
+      // For access pass users: they have access to all their attempts
       if (user.hasAccessPass) {
         // Users with access pass have access to all their attempts
         const latestAttempt = attempts[0]; // attempts are sorted by most recent
@@ -773,8 +773,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           quizData: latestAttempt.quizData,
           quizAttemptId: latestAttempt.id,
           isUnlocked: true,
-            });
-                  });
+        });
       } else {
         // For non-access pass users: any saved attempt means they paid
         const latestAttempt = attempts[0];
