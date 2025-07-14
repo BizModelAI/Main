@@ -385,13 +385,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             const insightsMentionsModel =
               insights.personalizedSummary?.includes(currentTopModel || "");
 
+            console.log("🔍 Business model consistency check:");
+            console.log("Current top model:", currentTopModel);
+            console.log("Insights mention model:", insightsMentionsModel);
+            console.log(
+              "Insights preview:",
+              insights.personalizedSummary?.substring(0, 150) + "...",
+            );
+
             if (insightsMentionsModel) {
               console.log(
                 "✅ Using cached AI insights from loading page - matches current model",
-              );
-              console.log(
-                "Insights summary:",
-                insights.personalizedSummary?.substring(0, 100) + "...",
               );
               setAiInsights(insights);
             } else {
@@ -1381,7 +1385,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                   </div>
 
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">🚀</div>
+                                    <div className="text-3xl mt-1">���</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Step-by-Step Launch Guidance
