@@ -43,6 +43,17 @@ app.use(
   }),
 );
 
+// Add session debugging middleware
+app.use((req: any, res: any, next: any) => {
+  console.log(`Session Debug: ${req.method} ${req.path}`, {
+    sessionId: req.sessionID,
+    userId: req.session?.userId,
+    sessionExists: !!req.session,
+    cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+  });
+  next();
+});
+
 // Middleware to ensure all API routes return JSON
 app.use("/api/*", (req: any, res: any, next: any) => {
   // Override res.send for API routes to always return JSON
