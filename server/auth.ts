@@ -197,8 +197,8 @@ export function setupAuthRoutes(app: Express) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Set session
-      req.session.userId = user.id;
+      // Set session using helper (sets both session and cache)
+      setUserIdInRequest(req, user.id);
 
       // TEMPORARY FIX: Force save with explicit session management
       // This ensures the userId is saved and available for subsequent requests
