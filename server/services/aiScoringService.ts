@@ -72,6 +72,12 @@ export class AIScoringService {
   async analyzeBusinessFit(
     quizData: QuizData,
   ): Promise<ComprehensiveFitAnalysis> {
+    console.log("🎯 analyzeBusinessFit called", {
+      hasOpenAI: !!openai,
+      hasApiKey: !!process.env.OPENAI_API_KEY,
+      apiKeyLength: process.env.OPENAI_API_KEY?.length || 0,
+    });
+
     try {
       if (!openai) {
         console.error("OpenAI API key not configured, using fallback analysis");
