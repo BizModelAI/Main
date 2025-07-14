@@ -88,11 +88,6 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
             <p className="text-green-800 dark:text-green-200">
               {quizRetakesRemaining}/5 remaining
             </p>
-            {/* Debug info */}
-            <p className="text-xs text-gray-500 mt-1">
-              Debug: Attempts: {attemptsCount}, Used: {totalQuizRetakesUsed},
-              Remaining: {quizRetakesRemaining}
-            </p>
           </div>
         </div>
       )}
