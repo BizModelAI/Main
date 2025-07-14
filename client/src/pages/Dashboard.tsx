@@ -16,6 +16,8 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { calculateAllBusinessModelMatches } from "../utils/advancedScoringAlgorithm";
+import { QuizData } from "../types";
 import { Link, useNavigate } from "react-router-dom";
 import { businessPaths } from "../data/businessPaths";
 import { QuizRetakeDashboard } from "../components/QuizRetakeDashboard";
