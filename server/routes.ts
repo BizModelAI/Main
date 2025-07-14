@@ -164,17 +164,26 @@ export async function registerRoutes(app: Express): Promise<void> {
         requestBody.response_format = responseFormat;
       }
 
-      const openaiResponse = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
+      // Add timeout to OpenAI request
+      const openaiResponse = (await Promise.race([
+        fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           },
           body: JSON.stringify(requestBody),
-        },
-      );
+        }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error("OpenAI API request timed out after 30 seconds"),
+              ),
+            30000,
+          ),
+        ),
+      ])) as Response;
 
       if (!openaiResponse.ok) {
         const errorText = await openaiResponse.text();
