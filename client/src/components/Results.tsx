@@ -1850,7 +1850,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           )}
 
           {/* Dashboard Link Section - Show when user has paid */}
-          {hasUnlockedAnalysis && (
+          {canViewFullReport && (
             <motion.div
               className="bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
