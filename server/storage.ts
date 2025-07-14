@@ -753,8 +753,9 @@ export class DatabaseStorage implements IStorage {
       const userPayments = await this.ensureDb()
         .select()
         .from(payments)
-        .where(eq(payments.userId, userId))
-        .where(eq(payments.status, "completed"));
+        .where(
+          and(eq(payments.userId, userId), eq(payments.status, "completed")),
+        );
       return userPayments.length > 0;
     } catch (error) {
       console.error("Error checking if user is paid:", error);
