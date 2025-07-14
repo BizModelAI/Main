@@ -36,6 +36,7 @@ import {
   getPersonalityDescription,
 } from "../../../shared/personalityScoring";
 import { renderMarkdownContent } from "../utils/markdownUtils";
+import { reportViewManager } from "../utils/reportViewManager";
 
 // Helper functions to convert stored numbers back to original quiz ranges
 const getIncomeRangeLabel = (value: number): string => {
@@ -387,6 +388,17 @@ const FullReport: React.FC<FullReportProps> = ({
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo({ top: 0, behavior: "instant" });
+
+    // Mark this report as viewed when the full report is accessed
+    const quizAttemptId = parseInt(
+      localStorage.getItem("currentQuizAttemptId") || "0",
+    );
+    if (quizAttemptId && quizData) {
+      reportViewManager.markReportAsViewed(quizAttemptId, quizData, userEmail);
+      console.log(
+        `Report for quiz attempt ${quizAttemptId} marked as viewed via FullReport access`,
+      );
+    }
 
     // Trigger confetti animation only once per session
     const confettiKey = `confetti_shown_fullreport_${Date.now()}`;
