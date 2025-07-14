@@ -145,7 +145,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
       }));
     }
 
-    return businessModels.map((model) => {
+    const modelsWithScores = businessModels.map((model) => {
       // Find matching business path by name or similar logic
       const matchingPath = personalizedPaths.find(
         (path) =>
@@ -162,6 +162,13 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
         fitCategory,
       };
     });
+
+    // Sort by fit score when quiz data is available (highest to lowest)
+    if (quizData && hasUnlockedAnalysis) {
+      modelsWithScores.sort((a, b) => (b.fitScore || 0) - (a.fitScore || 0));
+    }
+
+    return modelsWithScores;
   }, [quizData, hasUnlockedAnalysis, personalizedPaths]);
 
   const filteredModels = businessModelsWithFitScores.filter((model) => {
@@ -429,7 +436,7 @@ const BusinessModelCard = ({
     >
       <div className="p-6 flex flex-col h-full">
         {/* Header */}
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-start mb-4 relative">
           <h3 className="text-xl font-bold text-gray-900 flex-1 mr-2 line-clamp-2">
             {model.title}
           </h3>
@@ -444,6 +451,17 @@ const BusinessModelCard = ({
               </div>
             )}
           </div>
+
+          {/* Fit indicator bubble in upper right corner */}
+          {showFitBadge && fitCategory && getFitCategoryColor && (
+            <div className="absolute -top-2 -right-2 z-10">
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-bold shadow-lg ${getFitCategoryColor(fitCategory)}`}
+              >
+                {fitCategory}
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-gray-600 mb-4 line-clamp-3">{model.description}</p>
