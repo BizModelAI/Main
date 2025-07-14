@@ -600,8 +600,23 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
   }> {
     const topBusinessModel = topBusinessPaths[0];
 
+    // ADD DETAILED DEBUGGING
+    console.log("🔍 DEBUGGING AI PERSONALIZATION:");
+    console.log("User Profile being sent to AI:", userProfile);
+    console.log(
+      "Top Business Model:",
+      topBusinessModel.name,
+      `(${topBusinessModel.fitScore}%)`,
+    );
+    console.log(
+      "All paths:",
+      topBusinessPaths.map((p) => `${p.name} (${p.fitScore}%)`),
+    );
+
     const comprehensivePrompt = `
 You are an expert business coach analyzing a user's entrepreneurial profile. Based on the user profile and their top business match, generate a comprehensive personalized business analysis.
+
+IMPORTANT: This response must be HIGHLY PERSONALIZED to the user's specific data below. Do NOT use generic responses.
 
 ${userProfile}
 
