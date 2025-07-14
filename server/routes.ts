@@ -657,7 +657,14 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Get latest quiz data for authenticated user (for business model pages)
   app.get("/api/auth/latest-quiz-data", async (req, res) => {
     try {
+      console.log("Latest quiz data: Starting request", {
+        sessionId: req.sessionID,
+        sessionUserId: req.session?.userId,
+        sessionKey: getSessionKey(req),
+      });
+
       const userId = getUserIdFromRequest(req);
+      console.log("Latest quiz data: getUserIdFromRequest returned", userId);
 
       if (!userId) {
         console.log("Latest quiz data: Not authenticated", {
