@@ -849,8 +849,9 @@ export async function registerRoutes(app: Express): Promise<void> {
         `Save quiz data: Quiz attempt recorded with ID ${attempt.id} for user ${userId}`,
       );
 
-      // If this was a paid quiz attempt, link the payment to this attempt
-      if (!isFirstQuiz && !user?.hasAccessPass && paymentId) {
+      // Payment linking disabled in pure pay-per-report model
+      if (false && paymentId) {
+        // This logic is disabled
         await storage.linkPaymentToQuizAttempt(paymentId, attempt.id);
         console.log(
           `Save quiz data: Linked payment ${paymentId} to quiz attempt ${attempt.id}`,
