@@ -757,7 +757,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           : "text-gray-700 hover:bg-gray-50 hover:scale-102"
                       }`}
                     >
-                      <span className="font-medium text-sm">{item.label}</span>
+                      <span className="font-medium text-sm ml-2">
+                        {item.label}
+                      </span>
                     </button>
                   ))}
                 </nav>
