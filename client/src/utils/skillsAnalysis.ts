@@ -1,8 +1,8 @@
-import { QuizData } from '../types';
+import { QuizData } from "../types";
 
 export interface SkillAssessment {
   skill: string;
-  status: 'have' | 'working-on' | 'need';
+  status: "have" | "working-on" | "need";
   confidence: number;
   reasoning: string;
 }
@@ -19,7 +19,7 @@ export class SkillsAnalysisService {
 
   private constructor() {
     // API key will be handled server-side for security
-    this.apiKey = '';
+    this.apiKey = "";
   }
 
   static getInstance(): SkillsAnalysisService {
@@ -29,24 +29,76 @@ export class SkillsAnalysisService {
     return SkillsAnalysisService.instance;
   }
 
-  async analyzeSkills(quizData: QuizData, requiredSkills: string[], businessModel: string): Promise<SkillsAnalysis> {
+  async analyzeSkills(
+    quizData: QuizData,
+    requiredSkills: string[],
+    businessModel: string,
+  ): Promise<SkillsAnalysis> {
     try {
       const userProfile = this.createUserProfile(quizData);
-      
+
       const payload = {
         quizData,
         requiredSkills,
         businessModel,
-        userProfile
+        userProfile,
       };
 
-      const response = await fetch('/api/analyze-skills', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      let response: Response;
+
+      // Use XMLHttpRequest first to avoid FullStory interference
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/analyze-skills", true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        response = await new Promise<Response>((resolve, reject) => {
+          xhr.onload = () => {
+            const responseText = xhr.responseText;
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              statusText: xhr.statusText,
+              json: () => {
+                try {
+                  return Promise.resolve(JSON.parse(responseText));
+                } catch (e) {
+                  return Promise.reject(new Error("Invalid JSON response"));
+                }
+              },
+              text: () => Promise.resolve(responseText),
+              headers: new Headers(),
+              url: "/api/analyze-skills",
+              redirected: false,
+              type: "basic",
+              clone: () => response,
+              body: null,
+              bodyUsed: false,
+              arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+              blob: () => Promise.resolve(new Blob()),
+              formData: () => Promise.resolve(new FormData()),
+            } as Response);
+          };
+          xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
+          xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+          xhr.timeout = 30000; // 30 second timeout for skills analysis
+          xhr.send(JSON.stringify(payload));
+        });
+      } catch (xhrError) {
+        console.log(
+          "skillsAnalysis: XMLHttpRequest failed, trying fetch fallback",
+        );
+
+        // Fallback to fetch
+        response = await fetch("/api/analyze-skills", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -55,7 +107,7 @@ export class SkillsAnalysisService {
       const result = await response.json();
       return this.processSkillAssessments(result.skillAssessments);
     } catch (error) {
-      console.error('Error analyzing skills:', error);
+      console.error("Error analyzing skills:", error);
       return this.getFallbackSkillsAnalysis(requiredSkills);
     }
   }
@@ -66,7 +118,7 @@ export class SkillsAnalysisService {
       Time Commitment: ${quizData.weeklyTimeCommitment} hours/week
       Learning Style: ${quizData.learningPreference}
       Tech Skills: ${quizData.techSkillsRating}/5
-      Tools Experience: ${quizData.familiarTools?.join(', ') || 'None specified'}
+      Tools Experience: ${quizData.familiarTools?.join(", ") || "None specified"}
       Communication Comfort: ${quizData.directCommunicationEnjoyment}/5
       Self-Motivation: ${quizData.selfMotivationLevel}/5
       Risk Tolerance: ${quizData.riskComfortLevel}/5
@@ -82,22 +134,24 @@ export class SkillsAnalysisService {
     `;
   }
 
-  private processSkillAssessments(assessments: SkillAssessment[]): SkillsAnalysis {
+  private processSkillAssessments(
+    assessments: SkillAssessment[],
+  ): SkillsAnalysis {
     const result: SkillsAnalysis = {
       have: [],
       workingOn: [],
-      need: []
+      need: [],
     };
 
-    assessments.forEach(assessment => {
+    assessments.forEach((assessment) => {
       switch (assessment.status) {
-        case 'have':
+        case "have":
           result.have.push(assessment);
           break;
-        case 'working-on':
+        case "working-on":
           result.workingOn.push(assessment);
           break;
-        case 'need':
+        case "need":
           result.need.push(assessment);
           break;
       }
@@ -109,26 +163,28 @@ export class SkillsAnalysisService {
   private getFallbackSkillsAnalysis(requiredSkills: string[]): SkillsAnalysis {
     // Distribute skills across categories for fallback
     const third = Math.ceil(requiredSkills.length / 3);
-    
+
     return {
-      have: requiredSkills.slice(0, third).map(skill => ({
+      have: requiredSkills.slice(0, third).map((skill) => ({
         skill,
-        status: 'have' as const,
+        status: "have" as const,
         confidence: 7,
-        reasoning: 'Based on your quiz responses, you show strong aptitude for this skill'
+        reasoning:
+          "Based on your quiz responses, you show strong aptitude for this skill",
       })),
-      workingOn: requiredSkills.slice(third, third * 2).map(skill => ({
+      workingOn: requiredSkills.slice(third, third * 2).map((skill) => ({
         skill,
-        status: 'working-on' as const,
+        status: "working-on" as const,
         confidence: 6,
-        reasoning: 'You have some experience but could benefit from further development'
+        reasoning:
+          "You have some experience but could benefit from further development",
       })),
-      need: requiredSkills.slice(third * 2).map(skill => ({
+      need: requiredSkills.slice(third * 2).map((skill) => ({
         skill,
-        status: 'need' as const,
+        status: "need" as const,
         confidence: 8,
-        reasoning: 'This skill would need to be developed for optimal success'
-      }))
+        reasoning: "This skill would need to be developed for optimal success",
+      })),
     };
   }
 }
