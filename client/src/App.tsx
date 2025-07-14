@@ -391,6 +391,12 @@ function App() {
 
             {/* Admin Page */}
             <Route path="/admin" element={<AdminPage />} />
+
+            {/* Quiz Payment Required */}
+            <Route
+              path="/quiz-payment-required"
+              element={<QuizPaymentRequired />}
+            />
           </Routes>
         </Router>
       </PaywallProvider>
