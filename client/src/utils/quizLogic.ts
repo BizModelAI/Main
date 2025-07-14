@@ -9,13 +9,16 @@ export async function generateAIPersonalizedPaths(
   try {
     console.log("generateAIPersonalizedPaths: Making AI analysis request");
 
-    const response = await apiPost(
-      "/api/ai-business-fit-analysis",
-      { quizData: data },
-      {
-        timeout: 15000, // 15 second timeout for AI analysis
+    // Direct fetch for AI analysis to avoid multiple retries
+    const response = await fetch("/api/ai-business-fit-analysis", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      credentials: "include",
+      body: JSON.stringify({ quizData: data }),
+      signal: AbortSignal.timeout(15000), // 15 second timeout
+    });
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
