@@ -999,7 +999,7 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
             <p className="text-yellow-800 text-sm leading-relaxed">
               Based on your quiz responses, you're particularly well-positioned
               to capitalize on trends in{" "}
-              {topThreePaths[0]?.category || "your top business area"}. Your{" "}
+              {topThreePaths[0]?.name || "your top business area"}. Your{" "}
               {quizData.learningPreference?.replace("-", " ")} learning style
               and {getTimeCommitmentRangeLabel(quizData.weeklyTimeCommitment)}{" "}
               availability make you ideal for capturing emerging opportunities
