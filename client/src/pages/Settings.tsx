@@ -60,10 +60,14 @@ const Settings: React.FC = () => {
       return;
     }
 
-    // Validate form data
-    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+    // Basic validation - allow saving even if names are empty (users can set them)
+    if (
+      !formData.firstName.trim() &&
+      !formData.lastName.trim() &&
+      !formData.email.trim()
+    ) {
       setSaveStatus("error");
-      console.error("Settings: First and last name are required");
+      console.error("Settings: At least one field must be provided");
       setTimeout(() => setSaveStatus("idle"), 3000);
       return;
     }
