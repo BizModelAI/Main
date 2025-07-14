@@ -552,7 +552,7 @@ export const BUSINESS_MODEL_PROFILES = {
 };
 
 // STEP 2: Normalize User Answers (Convert to 0-1 scale)
-export function normalizeUserResponses(data: QuizData): Record<string, number> {
+export function normalizeUserResponses(data: any): Record<string, number> {
   const normalized: Record<string, number> = {};
 
   const normalizeFivePointScale = (value: number) => (value - 1) / 4; // Converts 1-5 to 0-1
@@ -560,19 +560,29 @@ export function normalizeUserResponses(data: QuizData): Record<string, number> {
   // === Core Business Traits ===
 
   // incomeAmbition (Q3, Q7)
-  const numericalIncomeGoal = data.successIncomeGoal;
+  const numericalIncomeGoal = data.successIncomeGoal || data.incomeGoal || 5000;
   // Cap at a reasonable high for normalization, e.g., $15,000 (monthly for $5000+ category)
   const scaledIncome =
     Math.min(Math.max(numericalIncomeGoal, 0), 15000) / 15000;
 
+  // Handle both old and new field names for growth ambition
+  const businessGrowth =
+    data.businessGrowthAmbition ||
+    data.businessGrowthSize ||
+    "Full-time income";
   const growthAmbitionMapping: Record<string, number> = {
     "Just a side income": 0.2,
     "Full-time income": 0.5,
     "Multi-6-figure brand": 0.8,
     "A widely recognized company": 1.0,
+    // Legacy mappings
+    "side-income": 0.2,
+    "full-time": 0.5,
+    scaling: 0.8,
+    empire: 1.0,
   };
   normalized.incomeAmbition =
-    (scaledIncome + growthAmbitionMapping[data.businessGrowthAmbition]) / 2;
+    (scaledIncome + (growthAmbitionMapping[businessGrowth] || 0.5)) / 2;
 
   // speedToIncome (Q2)
   const firstIncomeMapping: Record<string, number> = {
@@ -580,142 +590,207 @@ export function normalizeUserResponses(data: QuizData): Record<string, number> {
     "1–3 months": 0.7,
     "3–6 months": 0.4,
     "No rush": 0.1,
+    // Legacy mappings
+    "1-2-weeks": 1.0,
+    "1-month": 0.8,
+    "3-6-months": 0.6,
+    "6-12-months": 0.4,
+    "1-2-years": 0.2,
+    "2-plus-years": 0.0,
   };
-  normalized.speedToIncome = firstIncomeMapping[data.firstIncomeTimeline];
+  normalized.speedToIncome =
+    firstIncomeMapping[data.firstIncomeTimeline || data.timeToFirstIncome] ||
+    0.5;
 
   // upfrontInvestmentTolerance (Q4)
-  const investmentMapping: Record<string, number> = {
-    $0: 0.0,
-    "Under $250": 0.25,
-    "$250–$1,000": 0.6,
-    "$1,000+": 1.0,
-  };
-  normalized.upfrontInvestmentTolerance =
-    investmentMapping[data.upfrontInvestment];
+  const investment = data.upfrontInvestment || data.startupBudget || 0;
+  let investmentScore = 0.5;
+
+  if (typeof investment === "string") {
+    const investmentMapping: Record<string, number> = {
+      $0: 0.0,
+      "Under $250": 0.25,
+      "$250–$1,000": 0.6,
+      "$1,000+": 1.0,
+    };
+    investmentScore = investmentMapping[investment] || 0.5;
+  } else if (typeof investment === "number") {
+    investmentScore = Math.min(investment / 1000, 1.0);
+  }
+  normalized.upfrontInvestmentTolerance = investmentScore;
 
   // passiveIncomePreference (Q8)
   normalized.passiveIncomePreference = normalizeFivePointScale(
-    data.passiveIncomeImportance,
+    data.passiveIncomeImportance || 3,
   );
 
   // businessExitStrategy (Q6)
+  const exitPlan =
+    data.sellOrExitBusiness || data.businessExitPlan || "Not sure";
   const exitMapping: Record<string, number> = {
     Yes: 1.0,
     No: 0.0,
     "Not sure": 0.5,
+    // Legacy mappings
+    "build-and-sell": 1.0,
+    "long-term": 0.0,
+    undecided: 0.5,
   };
-  normalized.businessExitStrategy = exitMapping[data.sellOrExitBusiness];
+  normalized.businessExitStrategy = exitMapping[exitPlan] || 0.5;
 
   // meaningfulContributionImportance (Q45)
   normalized.meaningfulContributionImportance = normalizeFivePointScale(
-    data.meaningfulContributionImportance,
+    data.meaningfulContributionImportance || 3,
   );
 
   // === Personal Work Style & Resilience ===
 
   // passionAlignment (Q5)
   normalized.passionAlignment = normalizeFivePointScale(
-    data.passionIdentityAlignment,
+    data.passionIdentityAlignment || 3,
   );
 
   // timeCommitment (Q9)
-  const hoursMapping: Record<string, number> = {
-    "Less than 5 hours": 0.1,
-    "5–10 hours": 0.4,
-    "10–25 hours": 0.7,
-    "25+ hours": 1.0,
-  };
-  normalized.timeCommitment = hoursMapping[data.hoursPerWeek];
+  const hours =
+    data.hoursPerWeek || data.weeklyTimeCommitment || data.timeCommitment || 20;
+  let timeScore = 0.5;
+
+  if (typeof hours === "string") {
+    const hoursMapping: Record<string, number> = {
+      "Less than 5 hours": 0.1,
+      "5–10 hours": 0.4,
+      "10–25 hours": 0.7,
+      "25+ hours": 1.0,
+    };
+    timeScore = hoursMapping[hours] || 0.5;
+  } else if (typeof hours === "number") {
+    timeScore = Math.min(hours / 25, 1.0);
+  }
+  normalized.timeCommitment = timeScore;
 
   // consistencyAndFollowThrough (Q10)
   normalized.consistencyAndFollowThrough = normalizeFivePointScale(
-    data.consistencyWithGoals,
+    data.consistencyWithGoals || data.longTermConsistency || 3,
   );
 
   // riskTolerance (Q11, Q14, Q32) - Combine these three for a holistic view
-  const trialErrorScale = normalizeFivePointScale(data.trialAndErrorComfort);
-  const discouragementScale = normalizeFivePointScale(
-    data.discouragementResilience,
+  const trialErrorScale = normalizeFivePointScale(
+    data.trialAndErrorComfort || data.trialErrorComfort || 3,
   );
-  const riskComfortScale = normalizeFivePointScale(data.riskComfort);
+  const discouragementScale = normalizeFivePointScale(
+    data.discouragementResilience || 3,
+  );
+  const riskComfortScale = normalizeFivePointScale(
+    data.riskComfort || data.riskComfortLevel || data.riskTolerance || 3,
+  );
   normalized.riskTolerance =
     (trialErrorScale + discouragementScale + riskComfortScale) / 3;
 
   // systemsThinking (Q13, Q16)
   normalized.systemsThinking =
-    (normalizeFivePointScale(data.systemsRoutinesEnjoyment) +
-      normalizeFivePointScale(data.organizationLevel)) /
+    (normalizeFivePointScale(data.systemsRoutinesEnjoyment || 3) +
+      normalizeFivePointScale(data.organizationLevel || 3)) /
     2;
 
   // toolLearning (Q15)
-  const toolWillingnessMapping: Record<string, number> = { Yes: 1.0, No: 0.0 };
-  normalized.toolLearning =
-    toolWillingnessMapping[data.toolLearningWillingness];
+  const toolWillingness = data.toolLearningWillingness || "Yes";
+  const toolWillingnessMapping: Record<string, number> = {
+    Yes: 1.0,
+    No: 0.0,
+    yes: 1.0,
+    no: 0.0,
+    maybe: 0.5,
+  };
+  normalized.toolLearning = toolWillingnessMapping[toolWillingness] || 1.0;
 
   // autonomyControl (Q17, Q35)
-  normalized.autonomyControl =
-    (normalizeFivePointScale(data.selfMotivation) +
-      normalizeFivePointScale(data.controlImportance)) /
-    2;
+  const selfMotivationScore = normalizeFivePointScale(
+    data.selfMotivation || data.selfMotivationLevel || 4,
+  );
+  const controlScore = normalizeFivePointScale(data.controlImportance || 4);
+  normalized.autonomyControl = (selfMotivationScore + controlScore) / 2;
 
   // structurePreference (Q18, Q25)
-  // Q18: 1=need clear (0 structure) -> 5=adapt easily (1 structure) (inverted for "structure preference")
   const uncertaintyHandlingNormalized =
-    1 - normalizeFivePointScale(data.uncertaintyHandling); // Invert: High uncertainty handling means low preference for clear steps
+    1 - normalizeFivePointScale(data.uncertaintyHandling || 3);
   const structurePrefMapping: Record<string, number> = {
     "Clear steps and order": 1.0,
     "Some structure": 0.7,
     "Mostly flexible": 0.4,
     "Total freedom": 0.1,
+    // Legacy mappings
+    "clear-steps": 1.0,
+    "some-structure": 0.7,
+    "mostly-flexible": 0.4,
+    "total-freedom": 0.1,
   };
   normalized.structurePreference =
     (uncertaintyHandlingNormalized +
-      structurePrefMapping[data.workStructurePreference]) /
+      (structurePrefMapping[data.workStructurePreference] || 0.5)) /
     2;
 
   // repetitionTolerance (Q19)
+  const repetitiveTask =
+    data.repetitiveTaskPreference ||
+    data.repetitiveTasksFeeling ||
+    "I don't mind them";
   const repetitiveMapping: Record<string, number> = {
     "I avoid them": 0.0,
     "I tolerate them": 0.3,
     "I don't mind them": 0.7,
     "I enjoy them": 1.0,
+    // Legacy mappings
+    avoid: 0.0,
+    tolerate: 0.3,
+    neutral: 0.7,
+    enjoy: 1.0,
   };
-  normalized.repetitionTolerance =
-    repetitiveMapping[data.repetitiveTaskPreference];
+  normalized.repetitionTolerance = repetitiveMapping[repetitiveTask] || 0.7;
 
   // adaptabilityToFeedback (Q33)
   normalized.adaptabilityToFeedback = normalizeFivePointScale(
-    data.negativeFeedbackResponse,
+    data.negativeFeedbackResponse || data.feedbackRejectionResponse || 3,
   );
 
   // originalityPreference (Q34)
+  const pathPref =
+    data.pathCreationPreference || data.pathPreference || "A mix";
   const originalityMapping: Record<string, number> = {
     "Proven paths": 0.0,
     "A mix": 0.5,
     "Mostly original": 0.8,
     "I want to build something new": 1.0,
+    // Legacy mappings
+    "teaching-focused": 1.0,
+    "both-equally": 0.5,
+    "problem-solving": 0.0,
   };
-  normalized.originalityPreference =
-    originalityMapping[data.pathCreationPreference];
+  normalized.originalityPreference = originalityMapping[pathPref] || 0.5;
 
   // === Interaction & Marketing Style ===
 
   // salesConfidence (Q24)
   normalized.salesConfidence = normalizeFivePointScale(
-    data.directCommunicationEnjoyment,
+    data.directCommunicationEnjoyment || 3,
   );
 
   // creativeInterest (Q23)
   normalized.creativeInterest = normalizeFivePointScale(
-    data.creativeWorkEnjoyment,
+    data.creativeWorkEnjoyment || 3,
   );
 
   // socialMediaComfort (Q21, Q36, Q40)
-  const brandFaceComfortScaled = normalizeFivePointScale(data.brandFaceComfort);
+  const brandFaceComfortScaled = normalizeFivePointScale(
+    data.brandFaceComfort || 3,
+  );
+  const faceVoiceOnlineComfort =
+    data.faceAndVoiceOnlineComfort || data.onlinePresenceComfort || "Yes";
   const faceVoiceOnlineComfortScaled =
-    data.faceAndVoiceOnlineComfort === "Yes" ? 1.0 : 0.0;
+    faceVoiceOnlineComfort === "Yes" || faceVoiceOnlineComfort === "yes"
+      ? 1.0
+      : 0.0;
   const socialMediaInterestScaled = normalizeFivePointScale(
-    data.socialMediaInterest,
+    data.socialMediaInterest || 3,
   );
   normalized.socialMediaComfort =
     (brandFaceComfortScaled +
@@ -724,52 +799,82 @@ export function normalizeUserResponses(data: QuizData): Record<string, number> {
     3;
 
   // productVsService (Q38, Q39)
+  const physicalShipping =
+    data.physicalProductShipping || data.physicalShippingOpenness || "No";
   const physicalProductPreference =
-    data.physicalProductShipping === "Yes" ? 1.0 : 0.0; // 1 for product-oriented, 0 for service-oriented
+    physicalShipping === "Yes" || physicalShipping === "yes" ? 1.0 : 0.0;
+  const workStyle =
+    data.createEarnWorkConsistently ||
+    data.workStylePreference ||
+    "Mix of both";
   const createEarnWorkConsistentlyMapping: Record<string, number> = {
-    "Create once, earn passively": 1.0, // Leans towards product/digital product
-    "Work consistently with people": 0.0, // Leans towards service
+    "Create once, earn passively": 1.0,
+    "Work consistently with people": 0.0,
     "Mix of both": 0.5,
+    // Legacy mappings
+    passive: 1.0,
+    active: 0.0,
+    hybrid: 0.5,
   };
   normalized.productVsService =
     (physicalProductPreference +
-      createEarnWorkConsistentlyMapping[data.createEarnWorkConsistently]) /
+      (createEarnWorkConsistentlyMapping[workStyle] || 0.5)) /
     2;
 
   // teachingVsSolving (Q44)
+  const teachSolve = data.teachOrSolve || data.teachVsSolvePreference || "Both";
   const teachSolveMapping: Record<string, number> = {
     Teach: 1.0,
     Solve: 0.0,
     Both: 0.5,
-    Neither: 0.25, // Slightly less engagement if neither
+    Neither: 0.25,
+    // Legacy mappings
+    teaching: 1.0,
+    solving: 0.0,
+    both: 0.5,
   };
-  normalized.teachingVsSolving = teachSolveMapping[data.teachOrSolve];
+  normalized.teachingVsSolving = teachSolveMapping[teachSolve] || 0.5;
 
   // platformEcosystemComfort (Q41)
+  const platformInterest =
+    data.platformEcosystemInterest || data.ecosystemParticipation || "Maybe";
   const platformInterestMapping: Record<string, number> = {
     Yes: 1.0,
     No: 0.0,
     Maybe: 0.5,
+    yes: 1.0,
+    no: 0.0,
+    maybe: 0.5,
   };
   normalized.platformEcosystemComfort =
-    platformInterestMapping[data.platformEcosystemInterest];
+    platformInterestMapping[platformInterest] || 0.5;
 
   // collaborationPreference (Q20)
+  const collab = data.workCollaborationPreference || "I like both";
   const collabMapping: Record<string, number> = {
     "Solo only": 1.0,
     "Mostly solo": 0.8,
     "I like both": 0.5,
     "Team-oriented": 0.2,
+    // Legacy mappings
+    solo: 1.0,
+    "mostly-solo": 0.8,
+    balanced: 0.5,
+    "mostly-team": 0.2,
+    "team-focused": 0.0,
   };
-  normalized.collaborationPreference =
-    collabMapping[data.workCollaborationPreference];
+  normalized.collaborationPreference = collabMapping[collab] || 0.5;
 
   // promoteOthersWillingness (Q43)
+  const promoteOthers =
+    data.promoteOthersProducts || data.promotingOthersOpenness || "No";
   normalized.promoteOthersWillingness =
-    data.promoteOthersProducts === "Yes" ? 1.0 : 0.0;
+    promoteOthers === "Yes" || promoteOthers === "yes" ? 1.0 : 0.0;
 
   // technicalComfort (Q26)
-  normalized.technicalComfort = normalizeFivePointScale(data.techSkillsRating);
+  normalized.technicalComfort = normalizeFivePointScale(
+    data.techSkillsRating || data.technologyComfort || 3,
+  );
 
   return normalized;
 }
