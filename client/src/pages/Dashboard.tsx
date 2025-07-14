@@ -40,6 +40,13 @@ const Dashboard: React.FC = () => {
         // Try to get quiz data from authenticated user first
         let quizData: QuizData | null = null;
 
+        // Wait for auth to complete loading before making API calls
+        if (authLoading) {
+          console.log("Dashboard: Waiting for auth to complete loading...");
+          setIsLoadingScores(false);
+          return;
+        }
+
         // Only call API for non-temporary users (temporary users have IDs like "temp_sessionId")
         if (user && !String(user.id).startsWith("temp_")) {
           try {
@@ -365,7 +372,7 @@ const Dashboard: React.FC = () => {
       timeToProfit: "2-8 weeks",
       potentialIncome: "$1K-12K/month",
       difficulty: "Medium",
-      icon: "🏠",
+      icon: "��",
     },
   ];
 
