@@ -135,17 +135,22 @@ export function setupAuthRoutes(app: Express) {
           return res.status(500).json({ error: "Session save failed" });
         }
 
+        // Manually ensure the session cookie is set
+        const cookieName = "connect.sid";
+        const cookieValue = `s%3A${req.sessionID}`;
+
+        // Build cookie string manually with development-friendly settings
+        let cookieString = `${cookieName}=${cookieValue}; Path=/; Max-Age=86400`;
+
+        // Set the cookie manually to ensure it's sent to browser
+        res.setHeader("Set-Cookie", cookieString);
+
         console.log("Login: Session saved successfully", {
           sessionId: req.sessionID,
           userId: user.id,
           userEmail: user.email,
           sessionSaved: !!req.session.userId,
-          cookieSettings: {
-            secure: req.sessionStore?.options?.cookie?.secure,
-            httpOnly: req.sessionStore?.options?.cookie?.httpOnly,
-            sameSite: req.sessionStore?.options?.cookie?.sameSite,
-            domain: req.sessionStore?.options?.cookie?.domain,
-          },
+          manualCookie: cookieString,
           headers: {
             setCookie: res.getHeaders()["set-cookie"],
             userAgent: req.headers["user-agent"]?.substring(0, 50),
