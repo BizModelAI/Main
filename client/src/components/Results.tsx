@@ -1642,12 +1642,12 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   canViewFullReport ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
-                {!hasUnlockedAnalysis && (
+                {!canViewFullReport && (
                   <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Download
                   className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
-                    hasUnlockedAnalysis ? "text-blue-600" : "text-gray-400"
+                    canViewFullReport ? "text-blue-600" : "text-gray-400"
                   }`}
                 />
                 <h4
