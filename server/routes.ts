@@ -2312,7 +2312,6 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
           hasAccessPass: false, // Access pass concept removed
           attemptsCount,
         },
-        shouldDecrement,
         after: {
           hasAccessPass: false, // Access pass concept removed
           attemptsCount: finalAttemptsCount,
