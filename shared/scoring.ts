@@ -731,10 +731,7 @@ export function normalizeUserResponses(data: QuizData): Record<string, number> {
     2;
 
   // repetitionTolerance (Q19)
-  const repetitiveTask =
-    data.repetitiveTaskPreference ||
-    data.repetitiveTasksFeeling ||
-    "I don't mind them";
+  const repetitiveTask = data.repetitiveTasksFeeling || "I don't mind them";
   const repetitiveMapping: Record<string, number> = {
     "I avoid them": 0.0,
     "I tolerate them": 0.3,
