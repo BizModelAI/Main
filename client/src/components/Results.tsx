@@ -713,17 +713,10 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setShowFullReport(true);
   };
 
-  // Payment handler that checks user status
+  // Payment handler for all users - PaymentAccountModal will auto-skip to payment for logged-in users
   const handlePaymentWithAccount = () => {
-    if (user) {
-      // User is logged in, use ReportUnlockPaywall for direct payment
-      setShowReportUnlockPaywall(true);
-      setShowUnlockModal(false);
-    } else {
-      // User not logged in, use PaymentAccountModal for account creation + payment
-      setShowPaymentModal(true);
-      setShowUnlockModal(false);
-    }
+    setShowPaymentModal(true);
+    setShowUnlockModal(false);
   };
 
   const handlePaymentSuccess = () => {
