@@ -532,12 +532,8 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(eq(users.id, userId));
-    // In the new pay-per-report system:
-    // - Users with access pass can take unlimited quizzes
-    // - First quiz is always free for everyone
-    return user
-      ? user.hasAccessPass || (await this.getQuizAttemptsCount(userId)) === 0
-      : false;
+    // In the pure pay-per-report system: everyone can take unlimited quizzes
+    return user ? true : false;
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
