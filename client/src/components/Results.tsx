@@ -136,6 +136,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   const [selectedPath, setSelectedPath] = useState<BusinessPath | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReportUnlockPaywall, setShowReportUnlockPaywall] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
   const [showAILoading, setShowAILoading] = useState(false);
   const [loadedReportData, setLoadedReportData] = useState<any>(null);
@@ -712,15 +713,22 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setShowFullReport(true);
   };
 
-  // New payment handler that forces account creation
+  // Payment handler that checks user status
   const handlePaymentWithAccount = () => {
-    // Use PaymentAccountModal for all users (both new and existing)
-    setShowPaymentModal(true);
-    setShowUnlockModal(false);
+    if (user) {
+      // User is logged in, use ReportUnlockPaywall for direct payment
+      setShowReportUnlockPaywall(true);
+      setShowUnlockModal(false);
+    } else {
+      // User not logged in, use PaymentAccountModal for account creation + payment
+      setShowPaymentModal(true);
+      setShowUnlockModal(false);
+    }
   };
 
   const handlePaymentSuccess = () => {
     setShowPaymentModal(false);
+    setShowReportUnlockPaywall(false);
 
     // Execute pending action if user paid for download/share
     if (pendingAction === "download") {
