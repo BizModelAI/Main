@@ -1223,8 +1223,9 @@ const BusinessGuide: React.FC<BusinessGuideProps> = ({ quizData }) => {
                           : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
-                      <item.icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-sm font-medium ml-2">
+                        {item.label}
+                      </span>
                     </button>
                   ))}
                 </nav>
