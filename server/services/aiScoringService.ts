@@ -133,9 +133,33 @@ export class AIScoringService {
         hasOpenAI: !!openai,
         hasApiKey: !!process.env.OPENAI_API_KEY,
       });
+
+      // Log specific error type for debugging
+      if (error instanceof Error) {
+        if (
+          error.message.includes("429") ||
+          error.message.includes("rate limit")
+        ) {
+          console.warn(
+            "🚫 Rate limited by OpenAI - falling back to algorithmic analysis",
+          );
+        } else if (
+          error.message.includes("timeout") ||
+          error.message.includes("timed out")
+        ) {
+          console.warn(
+            "⏰ OpenAI request timed out - falling back to algorithmic analysis",
+          );
+        } else {
+          console.warn(
+            "🔥 OpenAI request failed - falling back to algorithmic analysis",
+          );
+        }
+      }
+
       // Fallback to enhanced algorithmic scoring
       console.log(
-        "🔄 Falling back to algorithmic analysis due to OpenAI timeout/error",
+        "🔄 Falling back to algorithmic analysis due to OpenAI error",
       );
       const fallbackResult = this.fallbackAnalysis(quizData);
       console.log("✅ Fallback analysis completed successfully");
