@@ -1539,7 +1539,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       {/* Action Elements */}
                       <div className="space-y-2 md:space-y-3 mt-4 md:mt-auto">
                         {/* Primary CTA - Only show if card is not locked */}
-                        {!(index > 0 && !hasUnlockedAnalysis) && (
+                        {!(index > 0 && !canViewFullReport) && (
                           <button
                             onClick={() => handleViewFullReport(path)}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 md:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform group-hover:scale-[1.02] flex items-center justify-center text-sm md:text-base"
