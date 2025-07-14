@@ -354,17 +354,72 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
       try {
         console.log(`🔄 Making OpenAI request (attempt ${attempt}/${retries})`);
 
-        const response = await fetch("/api/openai-chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt,
-            maxTokens,
-            temperature,
-          }),
-        });
+        let response: Response;
+
+        // Use XMLHttpRequest first to avoid FullStory interference
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", "/api/openai-chat", true);
+          xhr.withCredentials = true;
+          xhr.setRequestHeader("Content-Type", "application/json");
+
+          response = await new Promise<Response>((resolve, reject) => {
+            xhr.onload = () => {
+              const responseText = xhr.responseText;
+              resolve({
+                ok: xhr.status >= 200 && xhr.status < 300,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                json: () => {
+                  try {
+                    return Promise.resolve(JSON.parse(responseText));
+                  } catch (e) {
+                    return Promise.reject(new Error("Invalid JSON response"));
+                  }
+                },
+                text: () => Promise.resolve(responseText),
+                headers: new Headers(),
+                url: "/api/openai-chat",
+                redirected: false,
+                type: "basic",
+                clone: () => response,
+                body: null,
+                bodyUsed: false,
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+                blob: () => Promise.resolve(new Blob()),
+                formData: () => Promise.resolve(new FormData()),
+              } as Response);
+            };
+            xhr.onerror = () =>
+              reject(new Error("XMLHttpRequest network error"));
+            xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+            xhr.timeout = 60000; // 60 second timeout for OpenAI calls
+            xhr.send(
+              JSON.stringify({
+                prompt,
+                maxTokens,
+                temperature,
+              }),
+            );
+          });
+        } catch (xhrError) {
+          console.log(
+            "aiService: XMLHttpRequest failed, trying fetch fallback",
+          );
+
+          // Fallback to fetch
+          response = await fetch("/api/openai-chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt,
+              maxTokens,
+              temperature,
+            }),
+          });
+        }
 
         if (!response.ok) {
           const errorText = await response.text().catch(() => "Unknown error");
