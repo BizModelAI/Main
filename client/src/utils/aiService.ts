@@ -773,6 +773,19 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
 
         if (!response.ok) {
           const errorText = await response.text().catch(() => "Unknown error");
+
+          // Handle rate limit (429) errors with exponential backoff
+          if (response.status === 429) {
+            if (attempt < retries) {
+              const waitTime = Math.pow(2, attempt) * 3000; // 6s, 12s, 24s
+              console.log(
+                `🚫 Rate limited. Waiting ${waitTime}ms before retry...`,
+              );
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
+              continue; // Retry immediately after waiting
+            }
+          }
+
           throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
 
