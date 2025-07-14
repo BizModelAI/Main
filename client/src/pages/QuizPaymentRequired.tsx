@@ -306,8 +306,8 @@ const QuizPaymentRequired: React.FC = () => {
                 <h3 className="text-xl font-bold">One-Time Payment</h3>
               </div>
               <p className="text-blue-100 mb-4">
-                Pay only $4.99 for this additional quiz attempt. No
-                subscriptions or hidden fees.
+                Pay $4.99 for each additional quiz attempt. No subscriptions or
+                hidden fees.
               </p>
               <div className="flex items-center text-blue-100">
                 <Clock className="w-4 h-4 mr-2" />
