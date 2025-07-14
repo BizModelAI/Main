@@ -40,8 +40,17 @@ const Dashboard: React.FC = () => {
         // Try to get quiz data from authenticated user first
         let quizData: QuizData | null = null;
 
-        if (user) {
-          quizData = await getLatestQuizData();
+        // Only call API for non-temporary users (temporary users have IDs like "temp_sessionId")
+        if (user && !user.id.startsWith("temp_")) {
+          try {
+            quizData = await getLatestQuizData();
+          } catch (error) {
+            console.log(
+              "Failed to get quiz data from API, falling back to localStorage:",
+              error,
+            );
+            // Silently continue to localStorage fallback
+          }
         }
 
         // Fallback to localStorage if no authenticated quiz data
