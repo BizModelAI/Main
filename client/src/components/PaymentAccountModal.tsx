@@ -377,6 +377,50 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     setError(errorMessage);
   };
 
+  const fetchReportPricing = async () => {
+    if (!user) return;
+
+    try {
+      // Determine if this is a temporary user
+      const isTemporaryUser =
+        user.isTemporary || user.id.toString().startsWith("temp_");
+
+      if (isTemporaryUser) {
+        // Anonymous users always pay $9.99
+        setAmount(9.99);
+        setIsFirstReport(true);
+      } else {
+        // Logged users get dynamic pricing from the API
+        const response = await fetch("/api/create-report-unlock-payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            userId: user.id,
+            quizAttemptId: localStorage.getItem("currentQuizAttemptId") || 0,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setAmount(parseFloat(data.amount) || 4.99);
+          setIsFirstReport(data.isFirstReport || false);
+        } else {
+          // Fallback to default pricing
+          setAmount(4.99);
+          setIsFirstReport(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching report pricing:", error);
+      // Fallback pricing
+      setAmount(9.99);
+      setIsFirstReport(true);
+    }
+  };
+
   const handleDevBypass = async () => {
     setIsProcessing(true);
     try {
