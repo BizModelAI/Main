@@ -260,50 +260,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getLatestQuizData = async (): Promise<QuizData | null> => {
-    if (!user) {
-      console.log("getLatestQuizData: No user available");
-      return null;
-    }
+    if (!user) return null;
 
     try {
-      const url = "/api/auth/latest-quiz-data";
-      console.log("getLatestQuizData: Making request to:", url);
-      console.log("getLatestQuizData: Current user:", {
-        id: user.id,
-        email: user.email,
-      });
-
-      const response = await fetch(url, {
-        method: "GET",
+      const response = await fetch("/api/auth/latest-quiz-data", {
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-
-      console.log("getLatestQuizData: Response status:", response.status);
-      console.log(
-        "getLatestQuizData: Response headers:",
-        Object.fromEntries(response.headers.entries()),
-      );
 
       if (response.ok) {
         const quizData = await response.json();
-        console.log(
-          "getLatestQuizData: Success, quiz data:",
-          quizData ? "Found" : "None",
-        );
         return quizData;
-      } else {
-        const errorText = await response.text();
-        console.error("getLatestQuizData: Request failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText,
-        });
       }
     } catch (error) {
-      console.error("getLatestQuizData: Network error:", error);
+      console.error("Error fetching quiz data:", error);
     }
 
     return null;
