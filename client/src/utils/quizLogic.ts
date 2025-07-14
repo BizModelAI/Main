@@ -9,22 +9,34 @@ export async function generateAIPersonalizedPaths(
   try {
     console.log("generateAIPersonalizedPaths: Making AI analysis request");
 
-    // Direct fetch for AI analysis to avoid multiple retries
-    const response = await fetch("/api/ai-business-fit-analysis", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ quizData: data }),
-      signal: AbortSignal.timeout(15000), // 15 second timeout
+    // Use XMLHttpRequest to avoid FullStory interference with fetch
+    const response = await new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/ai-business-fit-analysis", true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.timeout = 30000; // 30 second timeout
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            reject(new Error("Invalid JSON response"));
+          }
+        } else {
+          reject(new Error(`API error: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.ontimeout = () => reject(new Error("Request timeout"));
+
+      xhr.send(JSON.stringify({ quizData: data }));
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const analysis = await response.json();
+    const analysis = response;
 
     // Convert the AI analysis to BusinessPath format
     return analysis.topMatches.map((match: any) => ({
