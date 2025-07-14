@@ -119,6 +119,19 @@ interface AIInsights {
 
 const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   const navigate = useNavigate();
+
+  // Get quiz attempt ID from localStorage (set when quiz is saved)
+  const [quizAttemptId, setQuizAttemptId] = useState<number | null>(() => {
+    const stored = localStorage.getItem("currentQuizAttemptId");
+    return stored ? parseInt(stored) : null;
+  });
+
+  // Use the new report unlock hook
+  const {
+    isUnlocked: isReportUnlocked,
+    isLoading: isCheckingUnlock,
+    refresh: refreshUnlockStatus,
+  } = useReportUnlock(quizAttemptId);
   const [selectedPath, setSelectedPath] = useState<BusinessPath | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
