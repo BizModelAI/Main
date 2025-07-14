@@ -581,12 +581,14 @@ const QuizWithNavigation: React.FC<{
           ok: boolean;
           status: number;
           statusText: string;
+          text: string;
         }>((resolve, reject) => {
           xhr.onload = () => {
             resolve({
               ok: xhr.status >= 200 && xhr.status < 300,
               status: xhr.status,
               statusText: xhr.statusText,
+              text: xhr.responseText,
             });
           };
           xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
@@ -597,6 +599,22 @@ const QuizWithNavigation: React.FC<{
 
         if (response.ok) {
           console.log("Quiz data saved successfully for authenticated user");
+        } else if (response.status === 402) {
+          // Payment required for additional quiz
+          console.log("Payment required for additional quiz attempt");
+          try {
+            const responseData = JSON.parse(response.text);
+            // Store quiz data temporarily and redirect to payment
+            localStorage.setItem("pendingQuizData", JSON.stringify(data));
+            localStorage.setItem("requiresQuizPayment", "true");
+            navigate("/quiz-payment-required");
+            return;
+          } catch (parseError) {
+            console.error(
+              "Error parsing payment required response:",
+              parseError,
+            );
+          }
         } else {
           console.error(
             "Failed to save quiz data:",
