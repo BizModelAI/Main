@@ -798,12 +798,12 @@ export async function registerRoutes(app: Express): Promise<void> {
       const isFirstQuiz = existingAttempts.length === 0;
       const user = await storage.getUser(userId);
 
-      console.log(
-        `Save quiz data: User ${userId}, first quiz: ${isFirstQuiz}, has access pass: ${user?.hasAccessPass}`,
-      );
+      console.log(`Save quiz data: User ${userId}, first quiz: ${isFirstQuiz}`);
 
-      // For additional quizzes (after the first), require payment unless user has access pass
-      if (!isFirstQuiz && !user?.hasAccessPass) {
+      // In pure pay-per-report model, quiz attempts are always free
+      // Payment is only required for report unlocks
+      if (false) {
+        // This logic is disabled since quizzes are free
         if (!paymentId) {
           return res.status(402).json({
             error: "Payment required for additional quiz attempts",
