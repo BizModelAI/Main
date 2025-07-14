@@ -43,7 +43,7 @@ export function getUserIdFromRequest(req: any): number | undefined {
 }
 
 // Helper function to set user in session and cache
-function setUserIdInRequest(req: any, userId: number): void {
+export function setUserIdInRequest(req: any, userId: number): void {
   // Set in normal session
   req.session.userId = userId;
 
