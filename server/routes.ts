@@ -1409,7 +1409,7 @@ export async function registerRoutes(app: Express): Promise<void> {
                 }
               }
 
-                            // Create payment record
+              // Create payment record
               const payment = await storage.createPayment({
                 userId: user.id,
                 amount: (paymentIntent.amount / 100).toFixed(2), // Convert cents to dollars
@@ -1424,7 +1424,6 @@ export async function registerRoutes(app: Express): Promise<void> {
                 await storage.completePayment(payment.id, 0);
               } else {
                 await storage.completePayment(payment.id, 0);
-              }
               }
 
               // Clean up temporary data
