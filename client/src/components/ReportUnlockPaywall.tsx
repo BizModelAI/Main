@@ -69,8 +69,7 @@ const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
 
       const data = await response.json();
       setClientSecret(data.clientSecret);
-      setAmount(data.amount || "4.99");
-      setIsFirstReport(data.isFirstReport || false);
+      onPricingUpdate(data.amount || "4.99", data.isFirstReport || false);
     } catch (error) {
       console.error("Error creating report unlock payment:", error);
       onError(
