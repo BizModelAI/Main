@@ -28,18 +28,16 @@ export const useNavigationGuard = () => {
       localStorage.getItem("hasUnlockedAnalysis") === "true";
     const currentQuizAttemptId = localStorage.getItem("currentQuizAttemptId");
 
-    // User has pending results if:
-    // 1. They have quiz data
-    // 2. They've completed a quiz
-    // 3. They haven't unlocked full analysis
-    // 4. They're logged in
-    // 5. They don't have a saved quiz attempt ID (meaning it's not saved to their account)
+    // For access pass users: check if they have unsaved quiz results that haven't been paid for
+    // For non-access pass users: check if they have quiz data but haven't paid for access
     const hasPending = !!(
       quizData &&
       hasCompletedQuiz &&
-      !hasUnlockedAnalysis &&
       user &&
-      !currentQuizAttemptId
+      // Non-access pass users: need to pay for access pass
+      ((!user.hasAccessPass && !hasUnlockedAnalysis) ||
+        // Access pass users: need to save quiz attempt and optionally pay for report unlock
+        (user.hasAccessPass && !currentQuizAttemptId))
     );
 
     setGuardState((prev) => ({
