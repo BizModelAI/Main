@@ -700,7 +700,18 @@ export async function registerRoutes(app: Express): Promise<void> {
       const isPaid = await storage.isPaidUser(userId);
       const hasAccessPass = user.hasAccessPass;
 
+      console.log(`DEBUG - save-quiz-data retake check for user ${userId}:`, {
+        isPaid,
+        hasAccessPass,
+        quizRetakesRemaining: user.quizRetakesRemaining,
+        shouldDecrement:
+          isPaid && hasAccessPass && user.quizRetakesRemaining > 0,
+      });
+
       if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
+        console.log(
+          `DEBUG - Decrementing retakes for user ${userId} via save-quiz-data`,
+        );
         await storage.decrementQuizRetakes(userId);
       }
 
