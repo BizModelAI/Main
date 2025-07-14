@@ -1020,12 +1020,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Check if user already has access pass
-        if (user.hasAccessPass) {
-          return res
-            .status(400)
-            .json({ error: "User already has access pass" });
-        }
+        // Access pass concept removed - users pay per report instead
 
         userIdentifier = userId.toString();
       } else {
