@@ -117,6 +117,7 @@ export class AIScoringService {
         ),
       ])) as OpenAI.Chat.Completions.ChatCompletion;
 
+      console.log("✅ OpenAI API call completed successfully");
       const content = response.choices[0].message.content;
       if (!content) {
         console.error("No content in AI response, using fallback");
