@@ -918,10 +918,10 @@ const Dashboard: React.FC = () => {
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <QuizRetakeDashboard
-              userId={1}
+              userId={user ? parseInt(String(user.id)) : 1}
               onRetakeQuiz={() => handleNavigateWithScrollToTop("/quiz")}
             />
-            <QuizAttemptHistory userId={1} />
+            <QuizAttemptHistory userId={user ? parseInt(String(user.id)) : 1} />
           </div>
         </motion.div>
       </div>
