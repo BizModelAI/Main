@@ -373,14 +373,29 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           });
 
           if (isRecent && insights && complete && !error) {
-            console.log(
-              "✅ Using cached AI insights from loading page - no API calls needed",
-            );
-            console.log(
-              "Insights summary:",
-              insights.personalizedSummary?.substring(0, 100) + "...",
-            );
-            setAiInsights(insights);
+            // Verify cached insights match current top business model
+            const currentTopModel = personalizedPaths[0]?.name;
+            const insightsMentionsModel =
+              insights.personalizedSummary?.includes(currentTopModel || "");
+
+            if (insightsMentionsModel) {
+              console.log(
+                "✅ Using cached AI insights from loading page - matches current model",
+              );
+              console.log(
+                "Insights summary:",
+                insights.personalizedSummary?.substring(0, 100) + "...",
+              );
+              setAiInsights(insights);
+            } else {
+              console.log(
+                "❌ Cached insights don't match current top model, using fallback",
+              );
+              const fallbackInsights = generateFallbackInsights(
+                personalizedPaths[0],
+              );
+              setAiInsights(fallbackInsights);
+            }
 
             // If analysis is also cached, use it
             if (analysis) {
