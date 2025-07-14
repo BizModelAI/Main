@@ -233,10 +233,7 @@ export class MemStorage implements IStorage {
     return newPayment;
   }
 
-  async completePayment(
-    paymentId: number,
-    retakesGranted: number,
-  ): Promise<void> {
+  async completePayment(paymentId: number): Promise<void> {
     const payment = this.payments.get(paymentId);
     if (!payment) return;
 
