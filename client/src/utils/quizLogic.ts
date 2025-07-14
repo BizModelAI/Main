@@ -13,7 +13,7 @@ export async function generateAIPersonalizedPaths(
       "/api/ai-business-fit-analysis",
       { quizData: data },
       {
-        timeout: 30000, // 30 second timeout for AI analysis
+        timeout: 15000, // 15 second timeout for AI analysis
       },
     );
 
