@@ -204,8 +204,8 @@ export class MemStorage implements IStorage {
     // First quiz is free
     if (attemptCount === 0) return true;
 
-    // After first quiz, user needs access pass for unlimited retakes
-    return user.hasAccessPass;
+    // In pure pay-per-report model, everyone can take unlimited quizzes
+    return true;
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
