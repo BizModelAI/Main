@@ -84,6 +84,13 @@ export function setupAuthRoutes(app: Express) {
       // Set session
       req.session.userId = user.id;
 
+      console.log("Login: Session set", {
+        sessionId: req.sessionID,
+        userId: user.id,
+        userEmail: user.email,
+        sessionSaved: !!req.session.userId,
+      });
+
       // Don't send password
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
