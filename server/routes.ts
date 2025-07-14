@@ -2514,11 +2514,9 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       });
       console.log("Created test user:", testUser.id);
 
-      // Give them access pass and 5 retakes
+      // Give them access pass
       await storage.updateUser(testUser.id, {
         hasAccessPass: true,
-        quizRetakesRemaining: 5,
-        totalQuizRetakesUsed: 0,
       });
       console.log("Updated user with access pass and 3 retakes");
 
