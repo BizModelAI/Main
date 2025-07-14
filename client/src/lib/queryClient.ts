@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,9 +11,67 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Default fetcher function for React Query
+// Default fetcher function for React Query with FullStory compatibility
 const defaultFetcher = async (url: string) => {
-  const response = await fetch(url);
+  let response: Response;
+
+  // Use XMLHttpRequest first to avoid FullStory interference
+  try {
+    console.log("queryClient: Using XMLHttpRequest for", url);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    response = await new Promise<Response>((resolve, reject) => {
+      xhr.onload = () => {
+        const responseText = xhr.responseText;
+        resolve({
+          ok: xhr.status >= 200 && xhr.status < 300,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          json: () => {
+            try {
+              return Promise.resolve(JSON.parse(responseText));
+            } catch (e) {
+              return Promise.reject(new Error("Invalid JSON response"));
+            }
+          },
+          text: () => Promise.resolve(responseText),
+          headers: new Headers(),
+          url: url,
+          redirected: false,
+          type: "basic",
+          clone: () => response,
+          body: null,
+          bodyUsed: false,
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+          blob: () => Promise.resolve(new Blob()),
+          formData: () => Promise.resolve(new FormData()),
+        } as Response);
+      };
+      xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
+      xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+      xhr.timeout = 10000; // 10 second timeout
+      xhr.send();
+    });
+  } catch (xhrError) {
+    console.log("queryClient: XMLHttpRequest failed, trying fetch for", url);
+
+    // Fallback to fetch
+    try {
+      response = await fetch(url);
+    } catch (fetchError) {
+      console.error("queryClient: Both XMLHttpRequest and fetch failed:", {
+        url,
+        xhrError,
+        fetchError,
+      });
+      throw new Error(`Failed to fetch ${url}: All request methods failed`);
+    }
+  }
+
   if (!response.ok) {
     throw new Error(`${response.status}: ${response.statusText}`);
   }
@@ -22,23 +80,23 @@ const defaultFetcher = async (url: string) => {
 
 // API request helper function
 export const apiRequest = async (
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   url: string,
-  data?: any
+  data?: any,
 ) => {
   const options: RequestInit = {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   };
 
-  if (data && method !== 'GET') {
+  if (data && method !== "GET") {
     options.body = JSON.stringify(data);
   }
 
   const response = await fetch(url, options);
-  
+
   if (!response.ok) {
     throw new Error(`${response.status}: ${response.statusText}`);
   }
