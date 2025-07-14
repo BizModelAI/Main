@@ -403,15 +403,33 @@ Return JSON format:
       const aiGenerationInProgress = localStorage.getItem(
         "ai-generation-in-progress",
       );
-      if (aiGenerationInProgress === "true") {
+      const flagTimestamp = localStorage.getItem("ai-generation-timestamp");
+      const currentTime = Date.now();
+
+      // Clear flag if it's older than 2 minutes (stuck flag)
+      if (aiGenerationInProgress === "true" && flagTimestamp) {
+        const timeSinceFlag = currentTime - parseInt(flagTimestamp);
+        if (timeSinceFlag > 120000) {
+          // 2 minutes
+          console.log("🧹 Clearing stuck AI generation flag");
+          localStorage.removeItem("ai-generation-in-progress");
+          localStorage.removeItem("ai-generation-timestamp");
+        } else {
+          console.log(
+            "🔄 AI generation already in progress, skipping duplicate call",
+          );
+          return;
+        }
+      } else if (aiGenerationInProgress === "true") {
         console.log(
-          "🔄 AI generation already in progress, skipping duplicate call",
+          "🔄 AI generation already in progress (no timestamp), skipping duplicate call",
         );
         return;
       }
 
       // Set flag to prevent duplicate calls
       localStorage.setItem("ai-generation-in-progress", "true");
+      localStorage.setItem("ai-generation-timestamp", currentTime.toString());
 
       const startTime = Date.now();
       let currentResults = {};
