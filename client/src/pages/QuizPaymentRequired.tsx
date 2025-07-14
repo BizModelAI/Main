@@ -15,6 +15,85 @@ const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "",
 );
 
+interface SimplePaymentFormProps {
+  onSuccess: () => void;
+  onError: (error: string) => void;
+  paymentId: number;
+}
+
+const SimplePaymentForm: React.FC<SimplePaymentFormProps> = ({
+  onSuccess,
+  onError,
+  paymentId,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      onError("Card element not found");
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment("", {
+        payment_method: {
+          card: cardElement,
+        },
+      });
+
+      if (error) {
+        onError(error.message || "Payment failed");
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
+        onSuccess();
+      }
+    } catch (err) {
+      onError("Payment processing failed");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="p-4 border border-gray-200 rounded-xl">
+        <CardElement
+          options={{
+            style: {
+              base: {
+                fontSize: "16px",
+                color: "#424770",
+                "::placeholder": {
+                  color: "#aab7c4",
+                },
+              },
+            },
+          }}
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={!stripe || isProcessing}
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isProcessing ? "Processing..." : "Pay $4.99"}
+      </button>
+    </form>
+  );
+};
+
 const QuizPaymentRequired: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
