@@ -156,7 +156,7 @@ const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
         ) : (
           <>
             <Lock className="w-4 h-4" />
-            Unlock Full Report - $4.99
+            Unlock Full Report - ${amount}
           </>
         )}
       </button>
