@@ -531,19 +531,48 @@ Return JSON format:
         // Step 3: Generate AI insights (SINGLE API CALL)
         const step3Result = await executeStep(2, async () => {
           console.log("🔄 Starting AI insights generation (single call)");
+          console.log("Quiz data being used:", {
+            mainMotivation: activeQuizData.mainMotivation,
+            successIncomeGoal: activeQuizData.successIncomeGoal,
+            techSkillsRating: activeQuizData.techSkillsRating,
+            riskComfortLevel: activeQuizData.riskComfortLevel,
+            directCommunicationEnjoyment:
+              activeQuizData.directCommunicationEnjoyment,
+          });
+
           const { AIService } = await import("../utils/aiService");
           const aiService = AIService.getInstance();
           const pathsForInsights =
             (currentResults as any).personalizedPaths?.slice(0, 3) || [];
 
-          // Make SINGLE comprehensive API call
-          const insights = await aiService.generatePersonalizedInsights(
-            activeQuizData,
-            pathsForInsights,
+          console.log(
+            "Paths for insights:",
+            pathsForInsights.map((p) => `${p.name} (${p.fitScore}%)`),
           );
 
-          console.log("✅ AI insights generation completed successfully");
-          return { aiInsights: insights };
+          // Make SINGLE comprehensive API call with error tracking
+          try {
+            const insights = await aiService.generatePersonalizedInsights(
+              activeQuizData,
+              pathsForInsights,
+            );
+
+            console.log("✅ AI insights generation completed successfully");
+            console.log(
+              "Generated insights summary:",
+              insights.personalizedSummary?.substring(0, 100) + "...",
+            );
+            return { aiInsights: insights };
+          } catch (error) {
+            console.error("❌ AI insights generation failed:", error);
+            console.error(
+              "Error details:",
+              error instanceof Error ? error.message : "Unknown error",
+            );
+
+            // Return null to trigger fallback in Results component
+            return { aiInsights: null, aiGenerationError: error };
+          }
         });
         currentResults = { ...currentResults, ...step3Result };
 
