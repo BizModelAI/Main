@@ -947,11 +947,11 @@ export async function registerRoutes(app: Express): Promise<void> {
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Check if user already has access pass but needs retakes
-        if (user.hasAccessPass && user.quizRetakesRemaining > 0) {
+        // Check if user already has access pass
+        if (user.hasAccessPass) {
           return res
             .status(400)
-            .json({ error: "User already has access and retakes available" });
+            .json({ error: "User already has access pass" });
         }
 
         userIdentifier = userId.toString();
@@ -1232,11 +1232,11 @@ export async function registerRoutes(app: Express): Promise<void> {
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Check if user already has access pass but needs retakes
-        if (user.hasAccessPass && user.quizRetakesRemaining > 0) {
+        // Check if user already has access pass
+        if (user.hasAccessPass) {
           return res
             .status(400)
-            .json({ error: "User already has access and retakes available" });
+            .json({ error: "User already has access pass" });
         }
 
         userIdentifier = userId.toString();
