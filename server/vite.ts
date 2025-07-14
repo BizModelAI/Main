@@ -1,11 +1,12 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { createServer as createViteServer, createLogger } from "vite";
+// Dynamic import for Vite to handle when it's not available
+let createViteServer: any, createLogger: any;
 import { type Server } from "http";
 import { nanoid } from "nanoid";
 
-const viteLogger = createLogger();
+let viteLogger: any;
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -22,6 +23,12 @@ export async function setupVite(app: Express, server: Server) {
   console.log("Starting Vite development server...");
 
   try {
+    // Dynamic import of Vite
+    const viteModule = await import("vite");
+    createViteServer = viteModule.createServer;
+    createLogger = viteModule.createLogger;
+    viteLogger = createLogger();
+
     const serverOptions = {
       middlewareMode: true,
       hmr: { server },

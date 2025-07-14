@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { createServer } from "http";
+import path from "path";
 
 console.log("Starting server initialization...");
 
@@ -306,11 +307,22 @@ async function setupApp() {
     });
 
     // Setup Vite development server AFTER API routes
-    const { setupVite } = await import("./vite.js");
-    await setupVite(app, server);
-    console.log(
-      "✅ Server with all routes and Vite development server started successfully!",
-    );
+    try {
+      const { setupVite } = await import("./vite.js");
+      await setupVite(app, server);
+      console.log(
+        "✅ Server with all routes and Vite development server started successfully!",
+      );
+    } catch (viteError) {
+      console.log(
+        "⚠️ Vite setup failed, serving static fallback:",
+        viteError.message,
+      );
+      // Serve the client index.html as fallback
+      app.get("*", (req, res) => {
+        res.sendFile(path.resolve(process.cwd(), "client", "index.html"));
+      });
+    }
 
     return server;
   } catch (error) {
