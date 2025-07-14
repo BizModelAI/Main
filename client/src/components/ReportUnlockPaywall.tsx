@@ -37,6 +37,8 @@ const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>("");
+  const [amount, setAmount] = useState("4.99");
+  const [isFirstReport, setIsFirstReport] = useState(false);
 
   useEffect(() => {
     if (user) {
