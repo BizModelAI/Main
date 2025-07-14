@@ -263,7 +263,7 @@ export class MemStorage implements IStorage {
 
       if (payment.type === "access_pass") {
         updates.hasAccessPass = true;
-        updates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
+        updates.quizRetakesRemaining = 3; // Initial 3 retakes with access pass
       }
 
       await this.updateUser(payment.userId, updates);
