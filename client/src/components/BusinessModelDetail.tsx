@@ -359,8 +359,8 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         "BusinessModelDetail: Authenticated user without access, showing paywall",
       );
       setShowPaywallModal(true);
-      setAiAnalysis(null);
-      setIsLoadingAnalysis(false);
+      setModelInsights(null);
+      setIsLoadingModelInsights(false);
       return;
     }
 
