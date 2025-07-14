@@ -34,7 +34,7 @@ export const quizAttempts = pgTable("quiz_attempts", {
   completedAt: timestamp("completed_at").defaultNow().notNull(),
 });
 
-// Payments table to track quiz retake purchases
+// Payments table to track individual quiz payments
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -42,10 +42,12 @@ export const payments = pgTable("payments", {
     .notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency").default("usd").notNull(),
-  type: varchar("type").notNull(), // "access_pass" or "retake_bundle"
+  type: varchar("type").notNull(), // "access_pass" or "quiz_payment"
   stripePaymentIntentId: varchar("stripe_payment_intent_id"),
   status: varchar("status").default("pending").notNull(), // "pending", "completed", "failed"
-  retakesGranted: integer("retakes_granted").default(0).notNull(),
+  quizAttemptId: integer("quiz_attempt_id").references(() => quizAttempts.id, {
+    onDelete: "cascade",
+  }), // Links payment to specific quiz
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });
