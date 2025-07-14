@@ -1408,11 +1408,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
 
         // Complete the payment
-        if (paymentType === "quiz_payment") {
-          await storage.completePayment(payment.id, 0);
-        } else {
-          await storage.completePayment(payment.id, 0);
-        }
+        await storage.completePayment(payment.id);
 
         // Temporary data cleanup happens automatically via expiration
 
