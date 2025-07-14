@@ -295,11 +295,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         );
         return quizData;
       } else {
-        const errorText = await response.text();
+        // Clone response to avoid "body already read" error
+        const responseClone = response.clone();
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage =
+            errorData.error || errorData.message || "Unknown error";
+        } catch {
+          errorMessage = await responseClone.text();
+        }
         console.error("getLatestQuizData: Request failed:", {
           status: response.status,
           statusText: response.statusText,
-          error: errorText,
+          error: errorMessage,
         });
       }
     } catch (error) {
