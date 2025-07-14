@@ -59,7 +59,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  <strong>Step-by-Step Launch Plans</strong> ��� no fluff, just
                   execution
                 </>
               ),
@@ -393,7 +393,7 @@ export const LockedCardOverlay: React.FC<LockedCardOverlayProps> = ({
         onClick={onUnlock}
         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
       >
-        Unlock for $9.99
+        Unlock for {price}
       </button>
     </div>
   );
