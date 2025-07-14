@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
       }
 
-      const attemptsCount = await storage.getQuizAttemptsCount(userId);
+            const attemptsCount = await storage.getQuizAttemptsCount(userId);
       const isPaid = await storage.isPaidUser(userId);
       const hasAccessPass = user.hasAccessPass;
 
@@ -576,8 +576,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       if (!canTakeQuiz) {
         return res.status(403).json({
-          error:
-            "Access pass required to retake the quiz. Please purchase an access pass to continue.",
+          error: "Access pass required to retake the quiz. Please purchase an access pass to continue.",
         });
       }
 
@@ -1408,7 +1407,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         });
 
         // Complete the payment
-        await storage.completePayment(payment.id);
+                await storage.completePayment(payment.id);
 
         // Temporary data cleanup happens automatically via expiration
 
@@ -1430,9 +1429,8 @@ export async function registerRoutes(app: Express): Promise<void> {
           throw new Error("Payment record not found");
         }
 
-        // Complete the payment in our system
-        await storage.completePayment(
-          payment.id,
+                // Complete the payment in our system
+        await storage.completePayment(payment.id);
           parseInt(retakesGranted) || 5,
         );
 
