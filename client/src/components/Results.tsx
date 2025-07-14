@@ -43,6 +43,7 @@ import { AIService } from "../utils/aiService";
 import { aiCacheManager } from "../utils/aiCacheManager";
 import FullReport from "./FullReport";
 import AIReportLoading from "./AIReportLoading";
+import FullReportLoading from "./FullReportLoading";
 import { PaywallModal, LockedCardOverlay } from "./PaywallModals";
 import { PaymentAccountModal } from "./PaymentAccountModal";
 import { usePaywall } from "../contexts/PaywallContext";
