@@ -670,11 +670,13 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
 
   private cacheInsights(cacheKey: string, insights: any): void {
     try {
-      const cacheData = {
-        insights,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      if (typeof window !== "undefined") {
+        const cacheData = {
+          insights,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      }
     } catch (error) {
       console.error("Error caching insights:", error);
     }
