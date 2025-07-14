@@ -2386,7 +2386,6 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
         userId: testUser.id,
         isPaid,
         hasAccessPass: user.hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
         attemptsCount,
       });
 
