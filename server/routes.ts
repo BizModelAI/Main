@@ -532,11 +532,21 @@ export async function registerRoutes(app: Express): Promise<void> {
       const canRetake =
         isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
 
+      // Cap retakes at the new maximum of 3 for existing users
+      const cappedRetakes = Math.min(user.quizRetakesRemaining, 3);
+
+      // If user has more than 3 retakes, update their account to cap at 3
+      if (user.quizRetakesRemaining > 3) {
+        await storage.updateUser(userId, {
+          quizRetakesRemaining: 3,
+        });
+      }
+
       res.json({
         canRetake,
         attemptsCount,
         hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
+        quizRetakesRemaining: cappedRetakes,
         totalQuizRetakesUsed: user.totalQuizRetakesUsed,
         isFirstQuiz: attemptsCount === 0,
         isFreeQuizUsed: attemptsCount > 0,
