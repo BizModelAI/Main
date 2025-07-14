@@ -122,6 +122,32 @@ const Settings: React.FC = () => {
     }
   };
 
+  // Show login message if user is not authenticated
+  if (!user || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {isLoading ? "Loading..." : "Please Log In"}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {isLoading
+              ? "Checking your authentication status..."
+              : "You need to be logged in to access settings."}
+          </p>
+          {!isLoading && (
+            <a
+              href="/login"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Login
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
