@@ -10,6 +10,7 @@ import {
   Brain,
   CheckCircle,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface PaywallModalProps {
   isOpen: boolean;
