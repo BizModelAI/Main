@@ -6,7 +6,7 @@ const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
       maxRetries: 1, // Reduce retries for faster fallback
-      timeout: 15000, // 15 second timeout for faster fallback
+      timeout: 30000, // 30 second timeout to match race condition
     })
   : null;
 
