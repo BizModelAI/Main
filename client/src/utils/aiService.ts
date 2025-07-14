@@ -898,6 +898,81 @@ CRITICAL RULES:
     return validAvoid;
   }
 
+  // Backward compatibility method - redirects to new structure
+  async generatePersonalizedInsights(
+    quizData: QuizData,
+    topPaths: BusinessPath[],
+  ): Promise<{
+    personalizedSummary: string;
+    customRecommendations: string[];
+    potentialChallenges: string[];
+    successStrategies: string[];
+    personalizedActionPlan: {
+      week1: string[];
+      month1: string[];
+      month3: string[];
+      month6: string[];
+    };
+    motivationalMessage: string;
+  }> {
+    try {
+      // Get preview content from cache or generate it
+      const previewData = await this.generateResultsPreview(quizData, topPaths);
+
+      // Get the new streamlined insights
+      const fullReportInsights = await this.generateFullReportInsights(
+        quizData,
+        topPaths,
+        previewData.previewInsights,
+        previewData.keyInsights,
+      );
+
+      // Convert to old format for backward compatibility
+      return {
+        personalizedSummary: previewData.previewInsights, // Reuse from preview
+        customRecommendations: fullReportInsights.personalizedRecommendations,
+        potentialChallenges: fullReportInsights.potentialChallenges,
+        successStrategies: previewData.keyInsights, // Reuse from preview (renamed)
+        personalizedActionPlan: this.getFallbackActionPlan(), // Hardcoded now
+        motivationalMessage:
+          "Your unique combination of skills and drive positions you perfectly for entrepreneurial success. Trust in your abilities and take that first step.",
+      };
+    } catch (error) {
+      console.error("Error in backward compatibility method:", error);
+      return this.generateFallbackInsights(quizData, topPaths);
+    }
+  }
+
+  // Fallback method for backward compatibility
+  private generateFallbackInsights(
+    quizData: QuizData,
+    topPaths: BusinessPath[],
+  ): {
+    personalizedSummary: string;
+    customRecommendations: string[];
+    potentialChallenges: string[];
+    successStrategies: string[];
+    personalizedActionPlan: {
+      week1: string[];
+      month1: string[];
+      month3: string[];
+      month6: string[];
+    };
+    motivationalMessage: string;
+  } {
+    const topPath = topPaths[0];
+
+    return {
+      personalizedSummary: `Based on your comprehensive assessment, ${topPath?.name || "your chosen business"} achieves a ${topPath?.fitScore || 75}% compatibility score with your unique profile. Your goals, personality traits, and available resources align well with this business model's requirements and potential outcomes.`,
+      customRecommendations: this.getFallbackRecommendations(),
+      potentialChallenges: this.getFallbackChallenges(),
+      successStrategies: this.getFallbackStrategies(),
+      personalizedActionPlan: this.getFallbackActionPlan(),
+      motivationalMessage:
+        "Your unique combination of skills, motivation, and strategic thinking creates a strong foundation for entrepreneurial success. Trust in your abilities, stay consistent with your efforts, and remember that every successful entrepreneur started exactly where you are now.",
+    };
+  }
+
   private createUserProfile(quizData: QuizData): string {
     return `
 User Profile:
@@ -1440,7 +1515,7 @@ CRITICAL: Use ONLY the actual data provided in the user profile. Do NOT make up 
   private getFallbackContent(prompt: string): string {
     // Provide meaningful fallback content based on the prompt type
     if (prompt.includes("action plan") || prompt.includes("actionable steps")) {
-      return `Week 1:\n• Research your target market and competition\n• Set up basic business infrastructure\n• Define your value proposition\n\nMonth 1:\n• Launch your minimum viable product/service\n• Start building your customer base\n• Establish your online presence\n\nMonth 3:\n• Optimize based on customer feedback\n• Scale your marketing efforts\n• Build strategic partnerships\n\nMonth 6:\n• Expand your offerings\n• Consider hiring or outsourcing\n• Plan for next growth phase`;
+      return `Week 1:\n• Research your target market and competition\n• Set up basic business infrastructure\n• Define your value proposition\n\nMonth 1:\n��� Launch your minimum viable product/service\n• Start building your customer base\n• Establish your online presence\n\nMonth 3:\n• Optimize based on customer feedback\n• Scale your marketing efforts\n• Build strategic partnerships\n\nMonth 6:\n• Expand your offerings\n• Consider hiring or outsourcing\n• Plan for next growth phase`;
     }
 
     if (prompt.includes("avoid") || prompt.includes("poor fit")) {
