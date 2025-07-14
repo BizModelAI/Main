@@ -92,16 +92,12 @@ export interface QuizData {
   authorityComfort?: number;
   technologyComfort?: number;
 
-  // New structure fields (for future compatibility)
+  // New structure fields (for future compatibility) - with different names to avoid conflicts
   sellOrExitBusiness?: string;
   businessGrowthAmbition?: string;
   hoursPerWeek?: string;
   consistencyWithGoals?: number;
   trialAndErrorComfort?: number;
-  toolLearningWillingness?: string;
-  selfMotivation?: number;
-  uncertaintyHandling?: number;
-  repetitiveTaskPreference?: string;
   competitiveness?: number;
   consistentWorkspace?: string;
   personalSupportSystem?: string;
