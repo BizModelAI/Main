@@ -574,16 +574,8 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                          <span
-                            className={`text-sm font-medium ${fitCategory.textColor}`}
-                          >
-                            {fitCategory.label}
-                          </span>
-                        </div>
-                        <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
+                      <div className="flex items-center">
+                        <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
                           Select This Model
                         </button>
                       </div>
