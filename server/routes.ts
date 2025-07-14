@@ -1613,7 +1613,7 @@ export async function registerRoutes(app: Express): Promise<void> {
               payment.type === "quiz_payment" ||
               payment.type === "report_unlock"
             ) {
-              await storage.completePayment(payment.id, 0);
+              await storage.completePayment(payment.id);
             } else {
               await storage.completePayment(
                 payment.id,
