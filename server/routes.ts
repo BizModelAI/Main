@@ -532,15 +532,6 @@ export async function registerRoutes(app: Express): Promise<void> {
       const canRetake =
         isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
 
-      console.log(`DEBUG - Retake status for user ${userId}:`, {
-        attemptsCount,
-        hasAccessPass: user.hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
-        totalQuizRetakesUsed: user.totalQuizRetakesUsed,
-        isFirstQuiz: attemptsCount === 0,
-        isGuestUser,
-      });
-
       res.json({
         canRetake,
         attemptsCount,
@@ -709,18 +700,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       const isPaid = await storage.isPaidUser(userId);
       const hasAccessPass = user.hasAccessPass;
 
-      console.log(`DEBUG - save-quiz-data retake check for user ${userId}:`, {
-        isPaid,
-        hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
-        shouldDecrement:
-          isPaid && hasAccessPass && user.quizRetakesRemaining > 0,
-      });
-
       if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
-        console.log(
-          `DEBUG - Decrementing retakes for user ${userId} via save-quiz-data`,
-        );
         await storage.decrementQuizRetakes(userId);
       }
 
@@ -2212,10 +2192,10 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       console.error("Error getting data retention status:", error);
       res.status(500).json({ error: "Internal server error" });
     }
-    });
+  });
 
-  // Routes registered successfully
-}
+  // Test endpoint for debugging retake issue
+  app.post("/api/test-retake-flow", async (req, res) => {
     try {
       console.log("=== Testing retake flow ===");
 
@@ -2297,5 +2277,11 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
           attemptsCount: finalAttemptsCount,
         },
       });
-      // Routes registered successfully
+    } catch (error) {
+      console.error("Error in test retake flow:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Routes registered successfully
 }
