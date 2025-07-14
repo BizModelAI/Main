@@ -231,8 +231,8 @@ const QuizPaymentRequired: React.FC = () => {
             Additional Quiz Payment
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            To take another quiz and get personalized recommendations, a small
-            fee of $4.99 is required.
+            Each additional quiz requires a $4.99 payment to generate new
+            personalized recommendations.
           </p>
         </motion.div>
 
