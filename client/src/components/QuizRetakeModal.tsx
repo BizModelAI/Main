@@ -69,7 +69,7 @@ export const QuizRetakeModal: React.FC<QuizRetakeModalProps> = ({
       if (response.success) {
         toast({
           title: "Retake Bundle Purchased!",
-          description: "You now have 5 additional quiz retakes available.",
+          description: "You now have 3 additional quiz retakes available.",
         });
         onPaymentSuccess();
         onClose();
