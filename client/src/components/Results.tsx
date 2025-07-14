@@ -863,13 +863,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "full-report") {
-        // Show the AI loading page first to generate all OpenAI content
-        setShowAILoading(true);
+        // Show the FULL REPORT loading page to generate comprehensive OpenAI content
+        setShowFullReportLoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: "instant" });
       } else {
-        // Default fallback to AI loading page
-        setShowAILoading(true);
+        // Default fallback to full report loading page
+        setShowFullReportLoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: "instant" });
       }
