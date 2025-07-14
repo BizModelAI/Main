@@ -1802,13 +1802,13 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                 </div>
 
                 <div className="mb-6">
-                  <p
-                    className="text-blue-100 text-lg leading-relaxed"
-                    dangerouslySetInnerHTML={renderMarkdownContent(
-                      aiInsights?.motivationalMessage ||
-                        "Your unique combination of skills and drive positions you perfectly for entrepreneurial success.",
-                    )}
-                  />
+                  <p className="text-blue-100 text-lg leading-relaxed">
+                    You've got the mindset and traits to make this work—now it's
+                    about execution. Start small, stay consistent, and lean into
+                    your strengths. Every step you take builds momentum. Trust
+                    your process, adapt as you go, and remember: clarity comes
+                    through action.
+                  </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
