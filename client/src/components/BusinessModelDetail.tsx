@@ -325,10 +325,11 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       return;
     }
 
-    // In development mode, if user is logged in, assume they have access
+    // Check if user has access - handle both normal flow and authentication failures
     const hasAccess =
       canAccessBusinessModel(businessId) ||
-      (import.meta.env.MODE === "development" && user);
+      (import.meta.env.MODE === "development" && user) ||
+      (user && user.hasAccessPass); // Production fallback: if user object exists and has access pass
 
     if (!hasAccess) {
       if (!user) {
