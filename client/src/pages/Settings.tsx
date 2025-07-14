@@ -31,6 +31,17 @@ const Settings: React.FC = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Sync form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user?.name?.split(" ")[0] || "",
+        lastName: user?.name?.split(" ").slice(1).join(" ") || "",
+        email: user?.email || "",
+      });
+    }
+  }, [user]);
+
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
