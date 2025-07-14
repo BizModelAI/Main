@@ -171,9 +171,9 @@ Be honest about the challenges while remaining constructive.`;
         return `${basePrompt}
 
 FIT TYPE: POOR - Clearly misaligned
-- modelFitReason: Clearly explain why ${modelName} is misaligned with their profile. End with future-oriented line about what would need to change.
-- keyInsights: Clear mismatches between their profile and this model
-- successPredictors: Traits that would make success unlikely
+- modelFitReason: Write exactly 3 paragraphs. First paragraph: clearly explain the fundamental misalignment with their profile. Second paragraph: specific reasons why this would be challenging for them. Third paragraph: future-oriented - what would need to change for this to become viable.
+- keyInsights: Exactly 3 insights showing clear mismatches between their profile and this model
+- successPredictors: Exactly 3 traits that would make success unlikely
 
 Be direct about the poor fit while offering hope for the future.`;
 
