@@ -550,9 +550,12 @@ Return JSON format:
             pathsForInsights.map((p: any) => `${p.name} (${p.fitScore}%)`),
           );
 
-          // Make SINGLE comprehensive API call with error tracking
+          // Make PREVIEW-ONLY API call for quiz loading phase
           try {
-            const insights = await aiService.generatePersonalizedInsights(
+            console.log(
+              "📊 Generating preview insights only during quiz loading phase",
+            );
+            const insights = await aiService.generatePreviewInsightsOnly(
               activeQuizData,
               pathsForInsights,
             );
