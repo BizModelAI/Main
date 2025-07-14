@@ -14,9 +14,46 @@ export async function apiRequest(
   const { method = "GET", headers = {}, body, timeout = 30000 } = options;
 
   let response: Response;
+  let lastError: Error | null = null;
 
-  // Use XMLHttpRequest first to avoid FullStory interference
-  try {
+  // Retry up to 3 times with exponential backoff
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      // Use XMLHttpRequest first to avoid FullStory interference
+      response = await attemptXMLHttpRequest(url, method, headers, body, timeout);
+      return response; // Success, return immediately
+    } catch (xhrError) {
+      console.log(`apiClient: XMLHttpRequest attempt ${attempt} failed for ${url}, trying fetch fallback`);
+
+      try {
+        // Fallback to fetch
+        response = await attemptFetch(url, method, headers, body);
+        return response; // Success, return immediately
+      } catch (fetchError) {
+        lastError = new Error(`Attempt ${attempt} failed - XHR: ${(xhrError as Error).message}, Fetch: ${(fetchError as Error).message}`);
+
+        if (attempt < 3) {
+          // Wait before retry with exponential backoff
+          const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+          console.log(`apiClient: Attempt ${attempt} failed, retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+  }
+
+  // All attempts failed
+  console.error(`apiClient: All attempts failed for ${url}:`, lastError);
+  throw new Error(`Failed to ${method} ${url}: All request methods failed after 3 attempts`);
+}
+
+async function attemptXMLHttpRequest(
+  url: string,
+  method: string,
+  headers: Record<string, string>,
+  body: any,
+  timeout: number
+): Promise<Response> {
     const xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
     xhr.withCredentials = true;
