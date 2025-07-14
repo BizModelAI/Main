@@ -284,25 +284,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (!response.ok) {
         let errorMessage = "Profile update failed";
+        let responseText = "";
+
         try {
-          const data = await response.json();
-          errorMessage = data.error || errorMessage;
-          console.error("updateProfile: Server error response:", {
+          responseText = await response.text();
+          console.log("updateProfile: Raw response text:", responseText);
+
+          if (responseText) {
+            try {
+              const data = JSON.parse(responseText);
+              errorMessage = data.error || errorMessage;
+              console.error("updateProfile: Server error response:", {
+                status: response.status,
+                statusText: response.statusText,
+                data: data,
+                updates: updates,
+              });
+            } catch (jsonError) {
+              console.error("updateProfile: Response is not valid JSON:", {
+                status: response.status,
+                statusText: response.statusText,
+                responseText: responseText,
+                jsonError: jsonError,
+                updates: updates,
+              });
+              errorMessage =
+                responseText || response.statusText || errorMessage;
+            }
+          } else {
+            console.error("updateProfile: Empty response:", {
+              status: response.status,
+              statusText: response.statusText,
+              updates: updates,
+            });
+            errorMessage = response.statusText || errorMessage;
+          }
+        } catch (readError) {
+          console.error("updateProfile: Failed to read response:", {
             status: response.status,
             statusText: response.statusText,
-            data: data,
+            readError: readError,
             updates: updates,
           });
-        } catch (parseError) {
-          // If JSON parsing fails, use the response status text or default message
           errorMessage = response.statusText || errorMessage;
-          console.error("updateProfile: Failed to parse error response:", {
-            status: response.status,
-            statusText: response.statusText,
-            parseError: parseError,
-            updates: updates,
-          });
         }
+
         throw new Error(errorMessage);
       }
 
