@@ -134,7 +134,12 @@ export class AIScoringService {
         hasApiKey: !!process.env.OPENAI_API_KEY,
       });
       // Fallback to enhanced algorithmic scoring
-      return this.fallbackAnalysis(quizData);
+      console.log(
+        "🔄 Falling back to algorithmic analysis due to OpenAI timeout/error",
+      );
+      const fallbackResult = this.fallbackAnalysis(quizData);
+      console.log("✅ Fallback analysis completed successfully");
+      return fallbackResult;
     }
   }
 
