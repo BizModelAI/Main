@@ -564,7 +564,7 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
           </div>
         </section>
 
-        {/* AI Personalized Analysis */}
+        {/* AI Personalized Analysis - Uses cached AI data from full report */}
         <section className="mb-12 page-break">
           <h2 className="text-3xl font-bold mb-8 flex items-center">
             <Brain className="h-8 w-8 mr-3 text-purple-600" />
