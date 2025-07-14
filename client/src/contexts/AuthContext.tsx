@@ -309,11 +309,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         } catch {
           // If can't read body, use status text
         }
-        console.error("getLatestQuizData: Request failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorMessage,
-        });
+        console.error(
+          "getLatestQuizData: Request failed:",
+          `Status: ${response.status}, StatusText: ${response.statusText}, Error: ${errorMessage}`,
+        );
       }
     } catch (error) {
       console.error("getLatestQuizData: Network error:", error);
