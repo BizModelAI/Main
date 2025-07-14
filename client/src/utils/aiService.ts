@@ -28,6 +28,103 @@ export class AIService {
     }
   }
 
+  async generateResultsPreview(
+    quizData: QuizData,
+    topPaths: BusinessPath[],
+  ): Promise<{
+    previewInsights: string;
+    keyInsights: string[];
+    successPredictors: string[];
+  }> {
+    try {
+      const cacheKey = `preview_${this.createCacheKey(quizData, topPaths)}`;
+      const cached = this.getCachedInsights(cacheKey);
+      if (cached) {
+        console.log("✅ Using cached preview insights");
+        return cached;
+      }
+
+      const userProfile = this.createUserProfile(quizData);
+      const topBusinessModel = topPaths[0];
+
+      const prompt = `
+You are an expert business coach. Based on this user's quiz profile and top business model match, generate the following in JSON format:
+
+1. "previewInsights": Exactly 3 paragraphs introducing the user's entrepreneurial potential and business alignment. Use a professional, supportive tone that feels personalized. Focus on motivation, alignment, strengths, and readiness.
+
+2. "keyInsights": 4 bullet points summarizing important themes from their quiz (e.g., structure preference, creativity, motivation, tech skills, risk tolerance, etc.)
+
+3. "successPredictors": 4 bullet points predicting success based on their profile traits. These should reference specific quiz data (e.g., high motivation, tech skills, time commitment).
+
+Return the result as a valid JSON object like:
+{
+  "previewInsights": "...",
+  "keyInsights": ["...", "...", "...", "..."],
+  "successPredictors": ["...", "...", "...", "..."]
+}
+
+CRITICAL RULES:
+- Use only the data below.
+- Do NOT make up numbers, goals, or experience.
+- Do NOT include HTML or markdown.
+- Do NOT include introductory text—only output the JSON object.
+
+USER PROFILE:
+${userProfile}
+
+Top Business Match:
+${topBusinessModel.name} (${topBusinessModel.fitScore}% match)
+Description: ${topBusinessModel.description}
+`;
+
+      const raw = await this.makeOpenAIRequest(prompt, 600, 0.7);
+
+      let clean = raw;
+      if (clean.includes("```json")) {
+        clean = clean.replace(/```json\n?/, "").replace(/```$/, "");
+      }
+
+      const parsed = JSON.parse(clean);
+
+      const result = {
+        previewInsights:
+          parsed.previewInsights ||
+          "Your entrepreneurial potential is strong and well-aligned with your goals.",
+        keyInsights: this.validateArray(
+          parsed.keyInsights,
+          4,
+          "You bring strong personal alignment to business.",
+        ),
+        successPredictors: this.validateArray(
+          parsed.successPredictors,
+          4,
+          "Your traits support long-term success.",
+        ),
+      };
+
+      this.cacheInsights(cacheKey, result);
+      return result;
+    } catch (err) {
+      console.error("❌ Error generating preview insights:", err);
+      return {
+        previewInsights:
+          "Your profile shows promising alignment with entrepreneurial success. Your traits suggest you're capable of building something meaningful. The combination of your skills, motivation, and available resources creates a strong foundation for your chosen business path.",
+        keyInsights: [
+          "You value structure and clarity in your work.",
+          "You're willing to commit time and energy to your goals.",
+          "You show high potential for creative problem solving.",
+          "Your comfort with risk gives you an advantage in uncertain environments.",
+        ],
+        successPredictors: [
+          "Strong self-motivation and long-term thinking",
+          "Ability to learn new tools and systems quickly",
+          "Clear sense of purpose and mission alignment",
+          "Sustainable time commitment and consistency",
+        ],
+      };
+    }
+  }
+
   async generatePersonalizedInsights(
     quizData: QuizData,
     topPaths: BusinessPath[],
