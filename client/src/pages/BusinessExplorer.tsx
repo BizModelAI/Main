@@ -108,6 +108,14 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
             id: sessionUser.id,
             email: sessionUser.email,
           });
+        } else {
+          console.log(
+            "BusinessExplorer: Session check failed with status:",
+            sessionCheck.status,
+          );
+          if (sessionCheck.status === 401) {
+            console.log("BusinessExplorer: User not authenticated - 401 error");
+          }
         }
       } catch (error) {
         console.error("BusinessExplorer: Session check failed:", error);
