@@ -563,9 +563,41 @@ const QuizWithNavigation: React.FC<{
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleQuizComplete = (data: QuizData) => {
+  const handleQuizComplete = async (data: QuizData) => {
     console.log("Quiz completed, navigating to quiz loading page");
     setQuizData(data);
+
+    // For authenticated users, save quiz data to database immediately
+    if (user && !String(user.id).startsWith("temp_")) {
+      console.log("Saving quiz data for authenticated user:", user.email);
+      try {
+        const response = await fetch("/api/auth/save-quiz-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ quizData: data }),
+        });
+
+        if (response.ok) {
+          console.log("Quiz data saved successfully for authenticated user");
+        } else {
+          console.error(
+            "Failed to save quiz data:",
+            response.status,
+            response.statusText,
+          );
+        }
+      } catch (error) {
+        console.error("Error saving quiz data for authenticated user:", error);
+      }
+    } else {
+      console.log(
+        "User not authenticated or temporary user - quiz data will be saved on payment",
+      );
+    }
+
     // Reset congratulations tracking for this new quiz completion
     setCongratulationsShown(false);
     localStorage.setItem("congratulationsShown", "false");
