@@ -344,6 +344,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const data = await response.json();
       setUser(data);
     } catch (error) {
+      // Handle network errors and other fetch failures
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.error("updateProfile: Network error:", error);
+        throw new Error(
+          "Network error. Please check your connection and try again.",
+        );
+      }
       throw error;
     } finally {
       setIsLoading(false);
