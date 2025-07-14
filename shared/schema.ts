@@ -94,6 +94,7 @@ export const refunds = pgTable("refunds", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  name: true,
 });
 
 export const insertQuizAttemptSchema = createInsertSchema(quizAttempts);
