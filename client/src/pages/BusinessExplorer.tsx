@@ -238,10 +238,10 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   };
 
   const handleLearnMore = (businessId: string) => {
-    // For logged-in users with access pass, allow direct access
-    if (user && user.hasAccessPass) {
+    // For logged-in users, allow direct access to basic features
+    if (user) {
       console.log(
-        "BusinessExplorer: User has access pass, navigating directly to business model",
+        "BusinessExplorer: Logged user, navigating directly to business model",
       );
       navigate(`/business/${businessId}`);
       return;
