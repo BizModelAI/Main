@@ -38,6 +38,7 @@ app.use(
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: "lax", // Allow same-site requests
       path: "/", // Ensure cookie is available for all paths
+      domain: undefined, // Don't set domain explicitly for cloud environment
     },
     rolling: false, // Don't change session ID on each request
     name: "connect.sid",
