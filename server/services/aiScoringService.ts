@@ -5,8 +5,8 @@ import { businessPaths } from "../../shared/businessPaths.js";
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      maxRetries: 3, // Retry failed requests
-      timeout: 30000, // 30 second timeout
+      maxRetries: 1, // Reduce retries for faster fallback
+      timeout: 15000, // 15 second timeout for faster fallback
     })
   : null;
 
