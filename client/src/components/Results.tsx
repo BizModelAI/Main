@@ -1405,8 +1405,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       </div>
                     </div>
 
-                    {/* Paywall Section - Show for both logged and non-logged users who haven't unlocked */}
-                    {(!hasUnlockedAnalysis || (user && !isReportUnlocked)) && (
+                    {/* Paywall Section - Show for users who haven't unlocked */}
+                    {!canViewFullReport && (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1751,8 +1751,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             </div>
           </motion.div>
 
-          {/* Unlock Premium Section - Show for all users who haven't unlocked */}
-          {(!hasUnlockedAnalysis || (user && !isReportUnlocked)) && (
+          {/* Unlock Premium Section - Show for users who haven't unlocked */}
+          {!canViewFullReport && (
             <motion.div
               className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
