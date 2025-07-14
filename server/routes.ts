@@ -1100,70 +1100,7 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Create payment for individual quiz attempt ($4.99 per additional quiz)
-  app.post("/api/create-quiz-payment", async (req, res) => {
-    try {
-      const { userId } = req.body;
-
-      if (!userId) {
-        return res.status(400).json({ error: "Missing userId" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      // Check if user already has access pass (they get unlimited quiz attempts)
-      if (user.hasAccessPass) {
-        return res.status(400).json({
-          error: "User with access pass can take unlimited quizzes for free",
-        });
-      }
-
-      // Check if this is their first quiz (should be free)
-      const existingAttempts = await storage.getQuizAttempts(userId);
-      if (existingAttempts.length === 0) {
-        return res.status(400).json({ error: "First quiz attempt is free" });
-      }
-
-      // Create Stripe Payment Intent for $4.99 quiz payment
-      if (!stripe) {
-        return res
-          .status(500)
-          .json({ error: "Payment processing not configured" });
-      }
-
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 499, // $4.99 in cents
-        currency: "usd",
-        metadata: {
-          userId: userId.toString(),
-          type: "quiz_payment",
-        },
-        description: "BizModelAI Quiz Attempt - Additional quiz",
-      });
-
-      // Create payment record in our database
-      const payment = await storage.createPayment({
-        userId,
-        amount: "4.99",
-        currency: "usd",
-        type: "quiz_payment",
-        status: "pending",
-        stripePaymentIntentId: paymentIntent.id,
-      });
-
-      res.json({
-        success: true,
-        clientSecret: paymentIntent.client_secret,
-        paymentId: payment.id,
-      });
-    } catch (error) {
-      console.error("Error creating quiz payment:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
+  // Quiz attempts are now free for everyone - no payment needed
 
   // Check if report is unlocked for a specific quiz attempt
   app.get(
