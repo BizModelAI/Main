@@ -190,6 +190,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       );
 
       console.log("PaymentAccountModal: Signup successful, moving to payment");
+      await fetchReportPricing();
       setStep("payment");
     } catch (err: any) {
       console.log("PaymentAccountModal: Signup error caught:", {
