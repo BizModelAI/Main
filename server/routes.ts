@@ -968,6 +968,84 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Create payment for unlocking full report ($4.99 per report)
+  app.post("/api/create-report-unlock-payment", async (req, res) => {
+    try {
+      const { userId, quizAttemptId } = req.body;
+
+      if (!userId || !quizAttemptId) {
+        return res
+          .status(400)
+          .json({ error: "Missing userId or quizAttemptId" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if user has access pass (they should for this endpoint)
+      if (!user.hasAccessPass) {
+        return res
+          .status(400)
+          .json({ error: "User must have access pass to unlock reports" });
+      }
+
+      // Check if report is already unlocked
+      const payments = await storage.getPaymentsByUser(userId);
+      const existingPayment = payments.find(
+        (p) =>
+          p.quizAttemptId === quizAttemptId &&
+          p.type === "report_unlock" &&
+          p.status === "completed",
+      );
+
+      if (existingPayment) {
+        return res
+          .status(400)
+          .json({ error: "Report is already unlocked for this quiz attempt" });
+      }
+
+      // Create Stripe Payment Intent for $4.99 report unlock
+      if (!stripe) {
+        return res
+          .status(500)
+          .json({ error: "Payment processing not configured" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 499, // $4.99 in cents
+        currency: "usd",
+        metadata: {
+          userId: userId.toString(),
+          type: "report_unlock",
+          quizAttemptId: quizAttemptId.toString(),
+        },
+        description: "BizModelAI Report Unlock - Full detailed analysis",
+      });
+
+      // Create payment record in our database
+      const payment = await storage.createPayment({
+        userId,
+        amount: "4.99",
+        currency: "usd",
+        type: "report_unlock",
+        status: "pending",
+        quizAttemptId: quizAttemptId,
+        stripePaymentIntentId: paymentIntent.id,
+      });
+
+      res.json({
+        success: true,
+        clientSecret: paymentIntent.client_secret,
+        paymentId: payment.id,
+      });
+    } catch (error) {
+      console.error("Error creating report unlock payment:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Create payment for individual quiz attempt ($4.99 per additional quiz)
   app.post("/api/create-quiz-payment", async (req, res) => {
     try {
