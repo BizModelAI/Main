@@ -49,13 +49,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const checkExistingSession = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        let response;
+        try {
+          response = await fetch("/api/auth/me", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        } catch (fetchError) {
+          console.log(
+            "Session check: Fetch failed, trying XMLHttpRequest fallback",
+          );
+
+          // XMLHttpRequest fallback
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", "/api/auth/me", true);
+          xhr.withCredentials = true;
+          xhr.setRequestHeader("Content-Type", "application/json");
+
+          response = await new Promise((resolve, reject) => {
+            xhr.onload = () => {
+              resolve({
+                ok: xhr.status >= 200 && xhr.status < 300,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                json: () => Promise.resolve(JSON.parse(xhr.responseText)),
+                text: () => Promise.resolve(xhr.responseText),
+              });
+            };
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send();
+          });
+        }
 
         if (!isMounted) return; // Component unmounted, don't update state
 
