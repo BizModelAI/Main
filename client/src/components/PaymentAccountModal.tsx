@@ -179,7 +179,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       await signup(
         formData.email,
         formData.password,
-        formData.name,
+        `${formData.firstName} ${formData.lastName}`.trim(),
         parsedQuizData,
       );
 
