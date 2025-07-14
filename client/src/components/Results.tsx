@@ -1423,7 +1423,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   whileHover={{ y: -5 }}
                 >
                   {/* Locked overlay for cards 2 and 3 when not unlocked */}
-                  {index > 0 && !hasUnlockedAnalysis && (
+                  {index > 0 && !canViewFullReport && (
                     <LockedCardOverlay
                       onUnlock={() => {
                         setPaywallType("business-model");
