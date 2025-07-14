@@ -160,7 +160,7 @@ export const SaveQuizResultsModal: React.FC<SaveQuizResultsModalProps> = ({
                   <p className="text-red-800 text-sm text-center">
                     <strong>Warning:</strong> Your current quiz results will be
                     lost permanently.
-                    {user?.hasAccessPass
+                    {user
                       ? " You'll see your most recent quiz attempt from your dashboard."
                       : " You'll see basic results only."}
                   </p>
