@@ -3,6 +3,63 @@ import { storage } from "./storage.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 
+// Temporary session cache as fallback for cookie issues
+const tempSessionCache = new Map<
+  string,
+  { userId: number; timestamp: number }
+>();
+
+// Helper function to get session key from request
+export function getSessionKey(req: any): string {
+  // Use a combination of IP and User-Agent as session key
+  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  const userAgent = req.headers["user-agent"] || "unknown";
+  return `${ip}-${userAgent}`;
+}
+
+// Helper function to get user from session or cache
+export function getUserIdFromRequest(req: any): number | undefined {
+  // First try normal session
+  if (req.session?.userId) {
+    return req.session.userId;
+  }
+
+  // Fallback to temporary cache
+  const sessionKey = getSessionKey(req);
+  const cachedSession = tempSessionCache.get(sessionKey);
+
+  if (cachedSession) {
+    // Check if session is still valid (24 hours)
+    const now = Date.now();
+    if (now - cachedSession.timestamp < 24 * 60 * 60 * 1000) {
+      // Found user in cache, restore to session for consistency
+      req.session.userId = cachedSession.userId;
+      console.log(
+        `Session restored from cache: userId ${cachedSession.userId} for sessionKey ${sessionKey}`,
+      );
+      return cachedSession.userId;
+    } else {
+      // Cleanup expired session
+      tempSessionCache.delete(sessionKey);
+    }
+  }
+
+  return undefined;
+}
+
+// Helper function to set user in session and cache
+export function setUserIdInRequest(req: any, userId: number): void {
+  // Set in normal session
+  req.session.userId = userId;
+
+  // Also set in cache as fallback
+  const sessionKey = getSessionKey(req);
+  tempSessionCache.set(sessionKey, {
+    userId: userId,
+    timestamp: Date.now(),
+  });
+}
+
 declare module "express-session" {
   interface SessionData {
     userId?: number;
@@ -10,11 +67,27 @@ declare module "express-session" {
 }
 
 export function setupAuthRoutes(app: Express) {
+  // Cookie test endpoint - sets a test value and returns session info
+  app.get("/api/auth/cookie-test", async (req, res) => {
+    const testValue = `test-${Date.now()}`;
+    (req.session as any).testValue = testValue;
+
+    res.json({
+      sessionId: req.sessionID,
+      testValue: testValue,
+      sessionExists: !!req.session,
+      cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+      userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
+      setCookieHeader: res.getHeaders()["set-cookie"] || "none",
+    });
+  });
+
   // Debug endpoint to check session state
   app.get("/api/auth/session-debug", async (req, res) => {
     res.json({
       sessionId: req.sessionID,
       userId: req.session?.userId,
+      testValue: (req.session as any)?.testValue || "none",
       sessionExists: !!req.session,
       cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
       userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
@@ -25,7 +98,7 @@ export function setupAuthRoutes(app: Express) {
   app.post("/api/auth/session-test", async (req, res) => {
     try {
       const testValue = `test-${Date.now()}`;
-      req.session.testValue = testValue;
+      (req.session as any).testValue = testValue;
 
       console.log("Session test: Setting test value", {
         sessionId: req.sessionID,
@@ -48,7 +121,7 @@ export function setupAuthRoutes(app: Express) {
   app.get("/api/auth/session-test", async (req, res) => {
     res.json({
       sessionId: req.sessionID,
-      testValue: req.session?.testValue || null,
+      testValue: (req.session as any)?.testValue || null,
       sessionExists: !!req.session,
       cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
     });
@@ -57,27 +130,31 @@ export function setupAuthRoutes(app: Express) {
   // Get current user session
   app.get("/api/auth/me", async (req, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
+
       console.log("Auth check: /api/auth/me called", {
         sessionId: req.sessionID,
-        userId: req.session?.userId,
+        userIdFromSession: req.session?.userId,
+        userIdFromCache: userId,
         sessionExists: !!req.session,
         hasUserAgent: !!req.headers["user-agent"],
         origin: req.headers.origin,
         referer: req.headers.referer,
+        sessionKey: getSessionKey(req),
       });
 
-      if (!req.session.userId) {
-        console.log("Auth check: No userId in session");
+      if (!userId) {
+        console.log("Auth check: No userId found in session or cache");
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(userId);
       if (!user) {
-        console.log(
-          "Auth check: User not found for userId:",
-          req.session.userId,
-        );
+        console.log("Auth check: User not found for userId:", userId);
         req.session.userId = undefined;
+        // Also clear from cache
+        const sessionKey = getSessionKey(req);
+        tempSessionCache.delete(sessionKey);
         return res.status(401).json({ error: "User not found" });
       }
 
@@ -125,29 +202,44 @@ export function setupAuthRoutes(app: Express) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Set session
-      req.session.userId = user.id;
+      // Set session using helper (sets both session and cache)
+      setUserIdInRequest(req, user.id);
 
-      console.log("Login: Session set", {
+      // TEMPORARY FIX: Force save with explicit session management
+      // This ensures the userId is saved and available for subsequent requests
+
+      console.log("Login: Before session save", {
         sessionId: req.sessionID,
         userId: user.id,
         userEmail: user.email,
-        sessionSaved: !!req.session.userId,
-        cookieSettings: {
-          secure: req.sessionStore?.options?.cookie?.secure,
-          httpOnly: req.sessionStore?.options?.cookie?.httpOnly,
-          sameSite: req.sessionStore?.options?.cookie?.sameSite,
-          domain: req.sessionStore?.options?.cookie?.domain,
-        },
-        headers: {
-          setCookie: req.res?.getHeaders?.()?.["set-cookie"],
-          userAgent: req.headers["user-agent"]?.substring(0, 50),
-        },
+        sessionData: req.session,
       });
 
-      // Don't send password
-      const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      // Force session save before sending response
+      req.session.save((err) => {
+        if (err) {
+          console.error("Login: Failed to save session:", err);
+          return res.status(500).json({ error: "Session save failed" });
+        }
+
+        // Let express-session handle the cookie setting - don't override
+        // The session.save() should automatically set the cookie
+
+        console.log("Login: Session saved successfully", {
+          sessionId: req.sessionID,
+          userId: user.id,
+          userEmail: user.email,
+          sessionSaved: !!req.session.userId,
+          headers: {
+            setCookie: res.getHeaders()["set-cookie"],
+            userAgent: req.headers["user-agent"]?.substring(0, 50),
+          },
+        });
+
+        // Don't send password
+        const { password: _, ...userWithoutPassword } = user;
+        res.json(userWithoutPassword);
+      });
     } catch (error) {
       console.error("Error in /api/auth/login:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -276,8 +368,6 @@ export function setupAuthRoutes(app: Express) {
         username: email,
         email: email,
         name: name,
-        hasAccessPass: false,
-        quizRetakesRemaining: 0,
         isTemporary: true,
       });
     } catch (error) {
@@ -329,10 +419,16 @@ export function setupAuthRoutes(app: Express) {
   // Update profile
   app.put("/api/auth/profile", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+
+      if (!userId) {
         console.log(
-          "Profile update: Not authenticated, userId:",
-          req.session.userId,
+          "Profile update: Not authenticated, sessionUserId:",
+          req.session?.userId,
+          "cacheUserId:",
+          userId,
+          "sessionKey:",
+          getSessionKey(req),
         );
         return res.status(401).json({ error: "Not authenticated" });
       }
@@ -340,12 +436,12 @@ export function setupAuthRoutes(app: Express) {
       const updates = req.body;
       console.log(
         "Profile update: Received updates for userId",
-        req.session.userId,
+        userId,
         ":",
         updates,
       );
 
-      const user = await storage.updateUser(req.session.userId, updates);
+      const user = await storage.updateUser(userId, updates);
       console.log("Profile update: Updated user:", {
         id: user.id,
         name: user.name,

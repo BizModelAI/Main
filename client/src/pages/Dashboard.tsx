@@ -20,7 +20,6 @@ import { calculateAllBusinessModelMatches } from "../utils/advancedScoringAlgori
 import { QuizData } from "../types";
 import { Link, useNavigate } from "react-router-dom";
 import { businessPaths } from "../data/businessPaths";
-import { QuizRetakeDashboard } from "../components/QuizRetakeDashboard";
 import { QuizAttemptHistory } from "../components/QuizAttemptHistory";
 
 const Dashboard: React.FC = () => {
@@ -119,7 +118,7 @@ const Dashboard: React.FC = () => {
                   timeToProfit: "2-6 months",
                   potentialIncome: "$1K-50K/month",
                   difficulty: "Medium",
-                  icon: "🛒",
+                  icon: "����",
                 },
                 "virtual-assistant": {
                   id: "virtual-assistant",
@@ -550,7 +549,7 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="text-center">
                           <div className="text-xs text-gray-500">
                             Time to Profit
@@ -565,26 +564,10 @@ const Dashboard: React.FC = () => {
                             {model.potentialIncome}
                           </div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-xs text-gray-500">
-                            Difficulty
-                          </div>
-                          <div className="font-semibold text-gray-900 text-sm">
-                            {model.difficulty}
-                          </div>
-                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                          <span
-                            className={`text-sm font-medium ${fitCategory.textColor}`}
-                          >
-                            {fitCategory.label}
-                          </span>
-                        </div>
-                        <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
+                      <div className="flex items-center">
+                        <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all text-sm">
                           Select This Model
                         </button>
                       </div>
@@ -909,7 +892,7 @@ const Dashboard: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Quiz Status and History Section */}
+        {/* Quiz History Section */}
         {user && !authLoading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -917,13 +900,7 @@ const Dashboard: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="mt-12 mb-8"
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <QuizRetakeDashboard
-                userId={parseInt(String(user.id))}
-                onRetakeQuiz={() => handleNavigateWithScrollToTop("/quiz")}
-              />
-              <QuizAttemptHistory userId={parseInt(String(user.id))} />
-            </div>
+            <QuizAttemptHistory userId={parseInt(String(user.id))} />
           </motion.div>
         )}
       </div>

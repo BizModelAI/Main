@@ -19,36 +19,44 @@ app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "10mb" })); // Increased limit for quiz data
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// Session configuration with improved concurrency support
+// Session configuration that ensures cookies work in all environments
 app.use(
   session({
-    secret: "debug-secret-key",
-    resave: true, // Force save for debugging
-    saveUninitialized: true, // Save uninitialized sessions
+    secret:
+      process.env.SESSION_SECRET ||
+      "development-secret-key-change-in-production",
+    resave: false, // Don't force session save on every request
+    saveUninitialized: false, // Don't save empty sessions
     store: new MemoryStoreSession({
       checkPeriod: 86400000,
       max: 10000,
       ttl: 86400000,
     }),
     cookie: {
-      secure: false,
-      httpOnly: false, // Disable httpOnly for debugging
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: false, // Disable sameSite for debugging
+      secure: false, // HTTP in development
+      httpOnly: true, // Secure cookie, browser manages it
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: "lax", // Allow same-site requests
+      path: "/", // Ensure cookie is available for all paths
     },
-    rolling: false, // Disable rolling for debugging
-    name: "connect.sid", // Use default name
+    rolling: false, // Don't change session ID on each request
+    name: "connect.sid",
   }),
 );
 
 // Add session debugging middleware
 app.use((req: any, res: any, next: any) => {
-  console.log(`Session Debug: ${req.method} ${req.path}`, {
-    sessionId: req.sessionID,
-    userId: req.session?.userId,
-    sessionExists: !!req.session,
-    cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
-  });
+  const isApiRequest = req.path.startsWith("/api/");
+
+  // Only log API requests to reduce noise
+  if (isApiRequest) {
+    console.log(`API: ${req.method} ${req.path}`, {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+  }
+
   next();
 });
 
@@ -339,13 +347,13 @@ async function setupApp() {
   }
 }
 
-// Add timeout for setup
+// Add timeout for setup (increased to 60 seconds)
 Promise.race([
   setupApp(),
   new Promise((_, reject) =>
     setTimeout(
-      () => reject(new Error("Server setup timeout after 30 seconds")),
-      30000,
+      () => reject(new Error("Server setup timeout after 60 seconds")),
+      60000,
     ),
   ),
 ])

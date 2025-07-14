@@ -36,6 +36,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const [error, setError] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
   const [isRetakePayment, setIsRetakePayment] = useState(false);
+  const [amount, setAmount] = useState(9.99);
+  const [isFirstReport, setIsFirstReport] = useState(true);
 
   // Account form data
   const [formData, setFormData] = useState({
@@ -87,15 +89,34 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
     };
   }, [step, user]);
 
+  // Auto-advance to payment step if user is already logged in
+  useEffect(() => {
+    if (isOpen && user && step === "account") {
+      // User is already logged in, skip to payment
+      const initializePayment = async () => {
+        try {
+          await fetchReportPricing();
+          setStep("payment");
+        } catch (error) {
+          console.error(
+            "Failed to initialize payment for logged-in user:",
+            error,
+          );
+        }
+      };
+      initializePayment();
+    }
+  }, [isOpen, user, step]);
+
   if (!isOpen) return null;
 
   const getContent = () => {
     // If this is a retake payment, show different messaging
     if (isRetakePayment) {
       return {
-        title: "Get 4 More Quiz Attempts",
+        title: "Get 2 More Quiz Attempts",
         subtitle:
-          "Continue exploring your personality with 4 additional attempts for $4.99",
+          "Continue exploring your personality with 2 additional attempts for $4.99",
       };
     }
 
@@ -103,8 +124,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       case "business-model":
         return {
           title: "Unlock Your Full Business Blueprint",
-          subtitle:
-            "Create your account and unlock personalized insights for $9.99",
+          subtitle: `Create your account and unlock personalized insights for ${user ? "$4.99" : "$9.99"}`,
         };
       case "learn-more":
         return {
@@ -188,6 +208,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       );
 
       console.log("PaymentAccountModal: Signup successful, moving to payment");
+      await fetchReportPricing();
       setStep("payment");
     } catch (err: any) {
       console.log("PaymentAccountModal: Signup error caught:", {
@@ -273,48 +294,48 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       // Update auth context
       await login(loginEmail, formData.password);
 
-      // Check if user already has access AND retakes available
-      // Only bypass payment if they have both access AND retakes remaining
-      if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
-        setHasUnlockedAnalysis(true);
-        localStorage.setItem("hasAnyPayment", "true");
+      // Save quiz data for logged-in users (they can take unlimited quizzes if they have access pass)
+      const savedQuizData = localStorage.getItem("quizData");
+      if (savedQuizData) {
+        try {
+          const quizData = JSON.parse(savedQuizData);
+          const saveResponse = await fetch("/api/auth/save-quiz-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ quizData }),
+          });
 
-        // Save quiz data if available (this enables access to new quiz results)
-        const savedQuizData = localStorage.getItem("quizData");
-        if (savedQuizData) {
-          try {
-            const quizData = JSON.parse(savedQuizData);
-            await fetch("/api/auth/save-quiz-data", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({ quizData }),
-            });
-            // Set quiz completion flag so user can access features
+          if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            // Store the quiz attempt ID for potential report unlock
+            if (saveData.quizAttemptId) {
+              localStorage.setItem(
+                "currentQuizAttemptId",
+                saveData.quizAttemptId.toString(),
+              );
+            }
+
+            // Set quiz completion flag
             setHasCompletedQuiz(true);
             localStorage.setItem("hasCompletedQuiz", "true");
-          } catch (error) {
-            console.error("Error saving quiz data:", error);
+          } else if (saveResponse.status === 402) {
+            // User needs to pay for this quiz attempt (non-access pass users)
+            const errorData = await saveResponse.json();
+            setIsRetakePayment(true);
+            setStep("payment");
+            return;
           }
+        } catch (error) {
+          console.error("Error saving quiz data:", error);
         }
-
-        onSuccess(); // Close modal and grant access
-        return;
       }
 
-      // If user has access but no retakes, they need to pay for additional retakes
-      if (userData.hasAccessPass && userData.quizRetakesRemaining <= 0) {
-        // Set a flag to indicate this is a retake payment, not initial access
-        // Don't save quiz data yet - only after payment
-        setIsRetakePayment(true);
-        setStep("payment");
-        return;
-      }
-
-      // If user doesn't have access at all, proceed to payment
-      setIsRetakePayment(false); // This is initial access payment
+      // In the new pay-per-report model, logged-in users proceed to payment for report unlock
+      setIsRetakePayment(false);
+      await fetchReportPricing(); // Get the correct pricing for this user
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -326,13 +347,14 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const handlePaymentSuccess = async () => {
     setHasUnlockedAnalysis(true);
     localStorage.setItem("hasAnyPayment", "true");
+    localStorage.setItem("hasUnlockedAnalysis", "true");
 
     // Save quiz data from localStorage to user's account
     const savedQuizData = localStorage.getItem("quizData");
     if (savedQuizData) {
       try {
         const quizData = JSON.parse(savedQuizData);
-        await fetch("/api/auth/save-quiz-data", {
+        const response = await fetch("/api/auth/save-quiz-data", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -340,6 +362,16 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
           credentials: "include",
           body: JSON.stringify({ quizData }),
         });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.quizAttemptId) {
+            localStorage.setItem(
+              "currentQuizAttemptId",
+              data.quizAttemptId.toString(),
+            );
+          }
+        }
 
         // Set quiz completion flag so user can access features
         setHasCompletedQuiz(true);
@@ -351,11 +383,61 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       }
     }
 
+    // Close the modal and trigger success handler
     onSuccess();
+
+    // Force a reload to ensure the site updates with latest quiz and full access
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   const handlePaymentError = (errorMessage: string) => {
     setError(errorMessage);
+  };
+
+  const fetchReportPricing = async () => {
+    if (!user) return;
+
+    try {
+      // Determine if this is a temporary user
+      const isTemporaryUser =
+        user.isTemporary || user.id.toString().startsWith("temp_");
+
+      if (isTemporaryUser) {
+        // Anonymous users always pay $9.99
+        setAmount(9.99);
+        setIsFirstReport(true);
+      } else {
+        // Logged users get dynamic pricing from the API
+        const response = await fetch("/api/create-report-unlock-payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            userId: user.id,
+            quizAttemptId: localStorage.getItem("currentQuizAttemptId") || 0,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setAmount(parseFloat(data.amount) || 4.99);
+          setIsFirstReport(data.isFirstReport || false);
+        } else {
+          // Fallback to default pricing
+          setAmount(4.99);
+          setIsFirstReport(false);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching report pricing:", error);
+      // Fallback pricing
+      setAmount(9.99);
+      setIsFirstReport(true);
+    }
   };
 
   const handleDevBypass = async () => {
@@ -745,6 +827,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                   onError={handlePaymentError}
                   isProcessing={isProcessing}
                   setIsProcessing={setIsProcessing}
+                  amount={amount}
+                  isFirstReport={isFirstReport}
                 />
 
                 {/* Dev Bypass Button for payment step too */}

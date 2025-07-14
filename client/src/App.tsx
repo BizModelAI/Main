@@ -32,6 +32,9 @@ import UnsubscribePage from "./pages/UnsubscribePage";
 import AdminPage from "./pages/Admin";
 import AIReportLoading from "./components/AIReportLoading";
 import QuizCompletionLoading from "./components/QuizCompletionLoading";
+import QuizPaymentRequired from "./pages/QuizPaymentRequired";
+import SaveResultsPayment from "./pages/SaveResultsPayment";
+import { NavigationGuardWrapper } from "./components/NavigationGuardWrapper";
 
 // Alias for loading page component
 const LoadingPage = AIReportLoading;
@@ -229,168 +232,182 @@ function App() {
     <AuthProvider>
       <PaywallProvider>
         <Router>
-          <Analytics />
-          <SpeedInsights />
-          <Routes>
-            {/* Public routes with layout */}
-            <Route
-              path="/"
-              element={
-                <Layout>
-                  <Index />
-                </Layout>
-              }
-            />
+          <NavigationGuardWrapper>
+            <Analytics />
+            <SpeedInsights />
+            <Routes>
+              {/* Public routes with layout */}
+              <Route
+                path="/"
+                element={
+                  <Layout>
+                    <Index />
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/explore"
-              element={
-                <Layout>
-                  <BusinessExplorer quizData={quizData} />
-                </Layout>
-              }
-            />
+              <Route
+                path="/explore"
+                element={
+                  <Layout>
+                    <BusinessExplorer quizData={quizData} />
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/contact"
-              element={
-                <Layout>
-                  <ContactUs />
-                </Layout>
-              }
-            />
+              <Route
+                path="/contact"
+                element={
+                  <Layout>
+                    <ContactUs />
+                  </Layout>
+                }
+              />
 
-            {/* Auth routes (no layout) */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+              {/* Auth routes (no layout) */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Protected routes with layout */}
-            <Route
-              path="/dashboard"
-              element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                </Layout>
-              }
-            />
+              {/* Protected routes with layout */}
+              <Route
+                path="/dashboard"
+                element={
+                  <Layout>
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/settings"
-              element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                </Layout>
-              }
-            />
+              <Route
+                path="/settings"
+                element={
+                  <Layout>
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  </Layout>
+                }
+              />
 
-            {/* Quiz without layout (has its own design) */}
-            <Route
-              path="/quiz"
-              element={
-                <QuizWithNavigation
-                  quizData={quizData}
-                  setQuizData={setQuizData}
-                  showEmailCapture={showEmailCapture}
-                  setShowEmailCapture={setShowEmailCapture}
-                  userEmail={userEmail}
-                  setUserEmail={setUserEmail}
-                  generateMockQuizData={generateMockQuizData}
-                  showAILoading={showAILoading}
-                  setShowAILoading={setShowAILoading}
-                  loadedReportData={loadedReportData}
-                  setLoadedReportData={setLoadedReportData}
-                  showCongratulations={showCongratulations}
-                  setShowCongratulations={setShowCongratulations}
-                  congratulationsShown={congratulationsShown}
-                  setCongratulationsShown={setCongratulationsShown}
-                  handleAILoadingComplete={handleAILoadingComplete}
-                />
-              }
-            />
-
-            {/* Quiz completion loading page - NOW uses AIReportLoading */}
-            <Route
-              path="/quiz-loading"
-              element={
-                <AIReportLoadingWrapper
-                  quizData={quizData}
-                  setShowCongratulations={setShowCongratulations}
-                />
-              }
-            />
-
-            {/* Loading page - NOW uses QuizCompletionLoading */}
-            <Route
-              path="/loading"
-              element={
-                <QuizCompletionLoadingWrapper
-                  quizData={quizData}
-                  userEmail={userEmail}
-                  showCongratulations={showCongratulations}
-                  setUserEmail={setUserEmail}
-                  setShowCongratulations={setShowCongratulations}
-                  loadedReportData={loadedReportData}
-                  handleAILoadingComplete={handleAILoadingComplete}
-                />
-              }
-            />
-
-            {/* Results with layout */}
-            <Route
-              path="/results"
-              element={
-                <Layout>
-                  <ResultsWrapperWithReset
+              {/* Quiz without layout (has its own design) */}
+              <Route
+                path="/quiz"
+                element={
+                  <QuizWithNavigation
                     quizData={quizData}
+                    setQuizData={setQuizData}
+                    showEmailCapture={showEmailCapture}
+                    setShowEmailCapture={setShowEmailCapture}
                     userEmail={userEmail}
-                    onBack={() => window.history.back()}
+                    setUserEmail={setUserEmail}
+                    generateMockQuizData={generateMockQuizData}
+                    showAILoading={showAILoading}
+                    setShowAILoading={setShowAILoading}
                     loadedReportData={loadedReportData}
+                    setLoadedReportData={setLoadedReportData}
+                    showCongratulations={showCongratulations}
+                    setShowCongratulations={setShowCongratulations}
+                    congratulationsShown={congratulationsShown}
+                    setCongratulationsShown={setCongratulationsShown}
+                    handleAILoadingComplete={handleAILoadingComplete}
+                  />
+                }
+              />
+
+              {/* Quiz completion loading page - NOW uses AIReportLoading */}
+              <Route
+                path="/quiz-loading"
+                element={
+                  <AIReportLoadingWrapper
+                    quizData={quizData}
                     setShowCongratulations={setShowCongratulations}
                   />
-                </Layout>
-              }
-            />
+                }
+              />
 
-            {/* Business Model Detail Page */}
-            <Route
-              path="/business/:businessId"
-              element={
-                <Layout>
-                  <BusinessModelDetail quizData={quizData} />
-                </Layout>
-              }
-            />
+              {/* Loading page - NOW uses QuizCompletionLoading */}
+              <Route
+                path="/loading"
+                element={
+                  <QuizCompletionLoadingWrapper
+                    quizData={quizData}
+                    userEmail={userEmail}
+                    showCongratulations={showCongratulations}
+                    setUserEmail={setUserEmail}
+                    setShowCongratulations={setShowCongratulations}
+                    loadedReportData={loadedReportData}
+                    handleAILoadingComplete={handleAILoadingComplete}
+                  />
+                }
+              />
 
-            {/* Business Guide Page */}
-            <Route
-              path="/guide/:businessId"
-              element={
-                <Layout>
-                  <BusinessGuide quizData={quizData} />
-                </Layout>
-              }
-            />
+              {/* Results with layout */}
+              <Route
+                path="/results"
+                element={
+                  <Layout>
+                    <ResultsWrapperWithReset
+                      quizData={quizData}
+                      userEmail={userEmail}
+                      onBack={() => window.history.back()}
+                      loadedReportData={loadedReportData}
+                      setShowCongratulations={setShowCongratulations}
+                    />
+                  </Layout>
+                }
+              />
 
-            {/* Download Report Page */}
-            <Route path="/report" element={<DownloadReportPage />} />
+              {/* Business Model Detail Page */}
+              <Route
+                path="/business/:businessId"
+                element={
+                  <Layout>
+                    <BusinessModelDetail quizData={quizData} />
+                  </Layout>
+                }
+              />
 
-            {/* PDF Report Page (no layout) */}
-            <Route path="/pdf-report" element={<PDFReportPage />} />
+              {/* Business Guide Page */}
+              <Route
+                path="/guide/:businessId"
+                element={
+                  <Layout>
+                    <BusinessGuide quizData={quizData} />
+                  </Layout>
+                }
+              />
 
-            {/* Privacy Policy */}
-            <Route path="/privacy" element={<PrivacyPolicy />} />
+              {/* Download Report Page */}
+              <Route path="/report" element={<DownloadReportPage />} />
 
-            {/* Unsubscribe Page */}
-            <Route path="/unsubscribe" element={<UnsubscribePage />} />
+              {/* PDF Report Page (no layout) */}
+              <Route path="/pdf-report" element={<PDFReportPage />} />
 
-            {/* Admin Page */}
-            <Route path="/admin" element={<AdminPage />} />
-          </Routes>
+              {/* Privacy Policy */}
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+
+              {/* Unsubscribe Page */}
+              <Route path="/unsubscribe" element={<UnsubscribePage />} />
+
+              {/* Admin Page */}
+              <Route path="/admin" element={<AdminPage />} />
+
+              {/* Quiz Payment Required */}
+              <Route
+                path="/quiz-payment-required"
+                element={<QuizPaymentRequired />}
+              />
+
+              {/* Save Results Payment */}
+              <Route
+                path="/save-results-payment"
+                element={<SaveResultsPayment />}
+              />
+            </Routes>
+          </NavigationGuardWrapper>
         </Router>
       </PaywallProvider>
     </AuthProvider>
@@ -563,9 +580,86 @@ const QuizWithNavigation: React.FC<{
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleQuizComplete = (data: QuizData) => {
+  const handleQuizComplete = async (data: QuizData) => {
     console.log("Quiz completed, navigating to quiz loading page");
     setQuizData(data);
+
+    // For authenticated users, save quiz data to database immediately
+    if (user && !String(user.id).startsWith("temp_")) {
+      console.log("Saving quiz data for authenticated user:", user.email);
+      try {
+        // Use XMLHttpRequest to avoid FullStory interference
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/auth/save-quiz-data", true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        const response = await new Promise<{
+          ok: boolean;
+          status: number;
+          statusText: string;
+          text: string;
+        }>((resolve, reject) => {
+          xhr.onload = () => {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              statusText: xhr.statusText,
+              text: xhr.responseText,
+            });
+          };
+          xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
+          xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+          xhr.timeout = 10000; // 10 second timeout
+          xhr.send(JSON.stringify({ quizData: data }));
+        });
+
+        if (response.ok) {
+          console.log("Quiz data saved successfully for authenticated user");
+          // Store quiz attempt ID for report unlock functionality
+          try {
+            const responseData = JSON.parse(response.text);
+            if (responseData.quizAttemptId) {
+              localStorage.setItem(
+                "currentQuizAttemptId",
+                responseData.quizAttemptId.toString(),
+              );
+            }
+          } catch (parseError) {
+            console.error("Error parsing save response:", parseError);
+          }
+        } else if (response.status === 402) {
+          // Payment required for additional quiz
+          console.log("Payment required for additional quiz attempt");
+          try {
+            const responseData = JSON.parse(response.text);
+            // Store quiz data temporarily and redirect to payment
+            localStorage.setItem("pendingQuizData", JSON.stringify(data));
+            localStorage.setItem("requiresQuizPayment", "true");
+            navigate("/quiz-payment-required");
+            return;
+          } catch (parseError) {
+            console.error(
+              "Error parsing payment required response:",
+              parseError,
+            );
+          }
+        } else {
+          console.error(
+            "Failed to save quiz data:",
+            response.status,
+            response.statusText,
+          );
+        }
+      } catch (error) {
+        console.error("Error saving quiz data for authenticated user:", error);
+      }
+    } else {
+      console.log(
+        "User not authenticated or temporary user - quiz data will be saved on payment",
+      );
+    }
+
     // Reset congratulations tracking for this new quiz completion
     setCongratulationsShown(false);
     localStorage.setItem("congratulationsShown", "false");

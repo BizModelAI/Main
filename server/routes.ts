@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
+import { getUserIdFromRequest, getSessionKey } from "./auth.js";
 import { generateBusinessResources } from "./services/resourceService.js";
 import { pdfService } from "./services/pdfService.js";
 import { emailService } from "./services/emailService.js";
@@ -137,23 +138,35 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const {
         prompt,
-        maxTokens = 200,
+        maxTokens = 1200,
         temperature = 0.7,
         responseFormat = null,
+        systemMessage,
       } = req.body;
 
       if (!prompt) {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
+      const messages = [];
+
+      // Add system message if provided
+      if (systemMessage) {
+        messages.push({
+          role: "system",
+          content: systemMessage,
+        });
+      }
+
+      // Add user prompt
+      messages.push({
+        role: "user",
+        content: prompt,
+      });
+
       const requestBody: any = {
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+        messages,
         max_tokens: maxTokens,
         temperature: temperature,
       };
@@ -163,17 +176,26 @@ export async function registerRoutes(app: Express): Promise<void> {
         requestBody.response_format = responseFormat;
       }
 
-      const openaiResponse = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
+      // Add timeout to OpenAI request
+      const openaiResponse = (await Promise.race([
+        fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           },
           body: JSON.stringify(requestBody),
-        },
-      );
+        }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error("OpenAI API request timed out after 30 seconds"),
+              ),
+            30000,
+          ),
+        ),
+      ])) as Response;
 
       if (!openaiResponse.ok) {
         const errorText = await openaiResponse.text();
@@ -189,10 +211,21 @@ export async function registerRoutes(app: Express): Promise<void> {
       console.error("Error in OpenAI chat:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      res.status(500).json({
-        error: "OpenAI API request failed",
-        details: errorMessage,
-      });
+
+      // Handle rate limit errors specifically
+      if (error instanceof Error && error.message.includes("429")) {
+        console.warn("🚫 Rate limited by OpenAI");
+        res.status(429).json({
+          error: "Rate limited by OpenAI",
+          details: "Please try again in a few seconds",
+          retry: true,
+        });
+      } else {
+        res.status(500).json({
+          error: "OpenAI API request failed",
+          details: errorMessage,
+        });
+      }
     }
   });
 
@@ -311,10 +344,13 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // AI-powered business fit scoring endpoint
   app.post("/api/ai-business-fit-analysis", async (req, res) => {
+    console.log("📥 AI business fit analysis request received");
+
     try {
       // Rate limiting for concurrent quiz takers
       const clientIP = req.ip || req.connection.remoteAddress || "unknown";
       if (!openaiRateLimiter.canMakeRequest(clientIP)) {
+        console.log("❌ Rate limit exceeded for IP:", clientIP);
         return res.status(429).json({
           error: "Too many requests. Please wait a moment before trying again.",
         });
@@ -323,13 +359,27 @@ export async function registerRoutes(app: Express): Promise<void> {
       const { quizData } = req.body;
 
       if (!quizData) {
+        console.log("❌ No quiz data provided");
         return res.status(400).json({ error: "Quiz data is required" });
       }
 
-      const analysis = await aiScoringService.analyzeBusinessFit(quizData);
+      // Add timeout to prevent hanging requests
+      const analysisPromise = aiScoringService.analyzeBusinessFit(quizData);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Analysis timed out after 35 seconds")),
+          35000,
+        ),
+      );
+
+      const analysis = await Promise.race([analysisPromise, timeoutPromise]);
+      console.log("✅ AI business fit analysis completed successfully");
       res.json(analysis);
     } catch (error) {
-      console.error("Error in AI business fit analysis:", error);
+      console.error("❌ Error in AI business fit analysis:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+      });
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       res.status(500).json({
@@ -516,30 +566,21 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
 
-      // Logic: Guests can take quiz unlimited times for free
-      // If they pay $9.99, they get 5 total attempts (limited)
-      // After 5 attempts, they pay $4.99 for 5 more attempts
+      // Pure pay-per-report system logic:
+      // - Everyone can take unlimited quiz attempts for free
+      // - They pay per report unlock
 
-      const isGuestUser =
-        !user.hasAccessPass && user.quizRetakesRemaining === 0;
-      const hasAccessPass = user.hasAccessPass;
-
-      // Can retake if:
-      // 1. Guest user (unlimited free attempts)
-      // 2. User with access pass (unlimited retakes)
-      // 3. User without access pass but with remaining retakes
-      const canRetake =
-        isGuestUser || hasAccessPass || user.quizRetakesRemaining > 0;
+      const isFirstQuiz = attemptsCount === 0;
 
       res.json({
-        canRetake,
+        canRetake: true, // Everyone can always retake
         attemptsCount,
-        hasAccessPass,
-        quizRetakesRemaining: user.quizRetakesRemaining,
-        totalQuizRetakesUsed: user.totalQuizRetakesUsed,
-        isFirstQuiz: attemptsCount === 0,
+        hasAccessPass: false, // No longer used
+        quizRetakesRemaining: 999, // Unlimited for everyone
+        totalQuizRetakesUsed: 0, // Not used in new system, always 0
+        isFirstQuiz,
         isFreeQuizUsed: attemptsCount > 0,
-        isGuestUser,
+        isGuestUser: false, // No longer relevant since everyone can take quizzes
       });
     } catch (error) {
       console.error("Error getting quiz retake status:", error);
@@ -565,29 +606,19 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
       const isPaid = await storage.isPaidUser(userId);
-      const hasAccessPass = user.hasAccessPass;
 
-      // For paid users: Store every quiz attempt permanently
-      // For unpaid users: Allow unlimited attempts but data will be cleaned up after 24h
-      const canTakeQuiz = isPaid || !isPaid; // Everyone can take quiz
+      // Pure pay-per-report system logic:
+      // - Everyone can take unlimited quiz attempts for free
+      // - They pay per report unlock when they want full reports
 
-      if (isPaid && hasAccessPass && user.quizRetakesRemaining <= 0) {
-        return res.status(403).json({
-          error:
-            "No quiz retakes remaining. Purchase more retakes to continue.",
-        });
-      }
-
-      // Record the quiz attempt - stored permanently for paid users
+      // Record the quiz attempt - stored permanently for all users now
       const attempt = await storage.recordQuizAttempt({
         userId,
         quizData,
       });
 
-      // Decrement retakes only for paid users
-      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
-        await storage.decrementQuizRetakes(userId);
-      }
+      // No retake decrements in the new system
+      console.log("Pay-per-quiz model - no retakes to decrement");
 
       res.json({
         success: true,
@@ -608,14 +639,20 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.get("/api/quiz-attempts/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      const currentUserId = getUserIdFromRequest(req);
 
       // Check if user is authenticated
-      if (!req.session.userId) {
+      if (!currentUserId) {
+        console.log("Quiz attempts: Not authenticated", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: currentUserId,
+          sessionKey: getSessionKey(req),
+        });
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       // Check if user is requesting their own data
-      if (req.session.userId !== userId) {
+      if (currentUserId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -629,6 +666,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const attempts = await storage.getQuizAttempts(userId);
+      console.log(
+        `Quiz attempts for user ${userId}: Found ${attempts.length} attempts`,
+      );
+      if (attempts.length > 0) {
+        console.log(
+          `Latest attempt: ID ${attempts[0].id}, completed at ${attempts[0].completedAt}`,
+        );
+      }
       res.json(attempts);
     } catch (error) {
       console.error("Error getting quiz attempts:", error);
@@ -638,15 +683,77 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Get latest quiz data for authenticated user (for business model pages)
   app.get("/api/auth/latest-quiz-data", async (req, res) => {
+    console.log("LATEST QUIZ DATA: Endpoint called!");
+    console.log("API: GET /api/auth/latest-quiz-data", {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+
     try {
-      if (!req.session.userId) {
+      // Debug session information before calling getUserIdFromRequest
+      const sessionKey = getSessionKey(req);
+      console.log("Latest quiz data: Session debug", {
+        sessionUserId: req.session?.userId,
+        sessionKey: sessionKey,
+        userAgent: req.headers["user-agent"]?.substring(0, 50) + "...",
+        ip: req.ip || req.connection.remoteAddress,
+      });
+
+      const userId = getUserIdFromRequest(req);
+      console.log("Latest quiz data: getUserIdFromRequest returned", userId);
+
+      if (!userId) {
+        console.log(
+          "Latest quiz data: No userId found via getUserIdFromRequest",
+        );
+
+        // Debug: Check user 5 specifically to see if quiz data exists
+        const attemptForUser5 = await storage.getQuizAttempts(5);
+        console.log(
+          `Latest quiz data: User 5 has ${attemptForUser5.length} quiz attempts`,
+        );
+        if (attemptForUser5.length > 0) {
+          console.log(
+            `Latest quiz data: User 5 latest attempt: ID ${attemptForUser5[0].id}, completed at ${attemptForUser5[0].completedAt}`,
+          );
+
+          // For development: if user 5 has quiz data and we know this is probably them, return it
+          if (process.env.NODE_ENV === "development") {
+            console.log(
+              "Latest quiz data: Development mode - returning user 5 data",
+            );
+            return res.json(attemptForUser5[0].quizData);
+          }
+        }
+
+        console.log("Latest quiz data: Not authenticated - returning 401", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: userId,
+          sessionKey: getSessionKey(req),
+        });
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const attempts = await storage.getQuizAttempts(req.session.userId);
+      console.log(
+        `Latest quiz data: Authenticated user ${userId}, fetching attempts`,
+      );
+
+      console.log(`Latest quiz data: Fetching attempts for user ${userId}`);
+      const attempts = await storage.getQuizAttempts(userId);
+      console.log(
+        `Latest quiz data: Found ${attempts.length} attempts for user ${userId}`,
+      );
+
       if (attempts.length > 0) {
+        console.log(
+          `Latest quiz data: Returning quiz data for user ${userId}, attempt ${attempts[0].id}`,
+        );
         res.json(attempts[0].quizData); // Most recent attempt
       } else {
+        console.log(
+          `Latest quiz data: No attempts found for user ${userId}, returning null`,
+        );
         res.json(null);
       }
     } catch (error) {
@@ -655,95 +762,176 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Save quiz data for authenticated user after payment
-  app.post("/api/auth/save-quiz-data", async (req, res) => {
+  // Get latest PAID quiz data for authenticated user (for navigation guard)
+  app.get("/api/auth/latest-paid-quiz-data", async (req, res) => {
+    console.log("API: GET /api/auth/latest-paid-quiz-data", {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const { quizData } = req.body;
+      console.log(`Latest paid quiz data: Fetching for user ${userId}`);
+
+      // Get user info
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const attempts = await storage.getQuizAttempts(userId);
+      console.log(`Latest paid quiz data: Found ${attempts.length} attempts`);
+
+      if (attempts.length === 0) {
+        console.log("Latest paid quiz data: No attempts found");
+        return res.json(null);
+      }
+
+      // In pure pay-per-report model: all logged-in users have access to their latest quiz data
+      // They just need to pay per report unlock if they want full reports
+      const latestAttempt = attempts[0]; // attempts are sorted by most recent
+      console.log(
+        `Latest paid quiz data: Returning latest attempt ${latestAttempt.id}`,
+      );
+      return res.json({
+        quizData: latestAttempt.quizData,
+        quizAttemptId: latestAttempt.id,
+        isUnlocked: true,
+      });
+    } catch (error) {
+      console.error("Error getting latest paid quiz data:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Save quiz data for authenticated user (pay-per-quiz model)
+  app.post("/api/auth/save-quiz-data", async (req, res) => {
+    console.log("API: POST /api/auth/save-quiz-data", {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+
+    try {
+      const sessionKey = getSessionKey(req);
+      console.log("Save quiz data: Session debug", {
+        sessionUserId: req.session?.userId,
+        sessionKey: sessionKey,
+      });
+
+      const userId = getUserIdFromRequest(req);
+      console.log("Save quiz data: getUserIdFromRequest returned", userId);
+
+      if (!userId) {
+        console.log("Save quiz data: Not authenticated - returning 401", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: userId,
+          sessionKey: getSessionKey(req),
+        });
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { quizData, paymentId } = req.body;
       if (!quizData) {
+        console.log("Save quiz data: No quiz data provided");
         return res.status(400).json({ error: "Quiz data is required" });
       }
 
+      // Check if this is the user's first quiz attempt
+      const existingAttempts = await storage.getQuizAttempts(userId);
+      const isFirstQuiz = existingAttempts.length === 0;
+      const user = await storage.getUser(userId);
+
+      console.log(`Save quiz data: User ${userId}, first quiz: ${isFirstQuiz}`);
+
+      // In pure pay-per-report model, quiz attempts are always free
+      // Payment is only required for report unlocks
+      // Quiz payment verification removed - all quizzes are now free
+
+      console.log(`Save quiz data: Saving quiz data for user ${userId}`);
+
       // Save quiz data to user's account
       const attempt = await storage.recordQuizAttempt({
-        userId: req.session.userId,
+        userId: userId,
         quizData,
       });
 
-      res.json({ success: true, attemptId: attempt.id });
+      console.log(
+        `Save quiz data: Quiz attempt recorded with ID ${attempt.id} for user ${userId}`,
+      );
+
+      // Payment linking disabled in pure pay-per-report model
+      if (false && paymentId) {
+        // This logic is disabled
+        await storage.linkPaymentToQuizAttempt(paymentId, attempt.id);
+        console.log(
+          `Save quiz data: Linked payment ${paymentId} to quiz attempt ${attempt.id}`,
+        );
+      }
+
+      console.log(
+        `Save quiz data: Successfully saved quiz data for user ${userId}`,
+      );
+
+      res.json({
+        success: true,
+        attemptId: attempt.id,
+        message: "Quiz data saved successfully",
+        isFirstQuiz,
+        requiresPayment: false, // Always false in pay-per-report model
+        quizAttemptId: attempt.id,
+      });
     } catch (error) {
       console.error("Error saving quiz data:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  app.post("/api/create-access-pass-payment", async (req, res) => {
+  // Access pass concept removed - use report unlock payments instead
+
+  // Create payment for unlocking full report ($9.99 first, $4.99 subsequent for logged users)
+  app.post("/api/create-report-unlock-payment", async (req, res) => {
     try {
-      const { userId, sessionId } = req.body;
+      const { userId, quizAttemptId } = req.body;
 
-      // Handle temporary users (sessionId provided) vs permanent users (userId provided)
-      let userIdentifier;
-      let isTemporaryUser = false;
-
-      if (sessionId) {
-        // This is a temporary user
-        isTemporaryUser = true;
-        userIdentifier = sessionId;
-
-        // Verify temporary user data exists
-        const tempData = await storage.getUnpaidUserEmail(sessionId);
-        if (!tempData) {
-          return res
-            .status(404)
-            .json({ error: "Temporary account data not found or expired" });
-        }
-      } else if (userId) {
-        // This is a permanent user
-        const user = await storage.getUser(parseInt(userId));
-        if (!user) {
-          return res.status(404).json({ error: "User not found" });
-        }
-
-        // Check if user already has access pass but needs retakes
-        if (user.hasAccessPass && user.quizRetakesRemaining > 0) {
-          return res
-            .status(400)
-            .json({ error: "User already has access and retakes available" });
-        }
-
-        userIdentifier = userId.toString();
-      } else {
-        return res.status(400).json({ error: "Missing userId or sessionId" });
+      if (!userId || !quizAttemptId) {
+        return res
+          .status(400)
+          .json({ error: "Missing userId or quizAttemptId" });
       }
 
-      // Determine payment amount and type
-      let amount, retakesGranted, paymentType, description;
-
-      if (!isTemporaryUser && userId) {
-        const user = await storage.getUser(parseInt(userId));
-        if (user && user.hasAccessPass) {
-          // User has access but needs more retakes - $4.99
-          amount = 499; // $4.99 in cents
-          retakesGranted = "4";
-          paymentType = "retakes";
-          description = "BizModelAI Quiz Retakes - 4 additional attempts";
-        } else {
-          // New user needs full access - $9.99
-          amount = 999; // $9.99 in cents
-          retakesGranted = "5";
-          paymentType = "access_pass";
-          description = "BizModelAI Access Pass - Unlock all features";
-        }
-      } else {
-        // Temporary user always gets full access - $9.99
-        amount = 999; // $9.99 in cents
-        retakesGranted = "5";
-        paymentType = "access_pass";
-        description = "BizModelAI Access Pass - Unlock all features";
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
       }
+
+      // Check if report is already unlocked
+      const payments = await storage.getPaymentsByUser(userId);
+      const existingPayment = payments.find(
+        (p) =>
+          p.quizAttemptId === quizAttemptId &&
+          p.type === "report_unlock" &&
+          p.status === "completed",
+      );
+
+      if (existingPayment) {
+        return res
+          .status(400)
+          .json({ error: "Report is already unlocked for this quiz attempt" });
+      }
+
+      // Determine pricing: $9.99 for first report, $4.99 for subsequent reports
+      const completedPayments = payments.filter(
+        (p) => p.status === "completed",
+      );
+      const isFirstReport = completedPayments.length === 0;
+      const amount = isFirstReport ? 999 : 499; // $9.99 or $4.99 in cents
+      const amountDollar = isFirstReport ? "9.99" : "4.99";
 
       // Create Stripe Payment Intent
       if (!stripe) {
@@ -756,88 +944,22 @@ export async function registerRoutes(app: Express): Promise<void> {
         amount,
         currency: "usd",
         metadata: {
-          userIdentifier,
-          type: paymentType,
-          retakesGranted,
-          isTemporaryUser: isTemporaryUser.toString(),
-          sessionId: sessionId || "",
-        },
-        description,
-      });
-
-      // For temporary users, we don't create a payment record yet
-      // For permanent users, create payment record
-      let paymentId = null;
-      if (!isTemporaryUser) {
-        const payment = await storage.createPayment({
-          userId: parseInt(userId),
-          amount: (amount / 100).toFixed(2), // Convert cents to dollars
-          currency: "usd",
-          type: paymentType,
-          status: "pending",
-          retakesGranted: parseInt(retakesGranted),
-          stripePaymentIntentId: paymentIntent.id,
-        });
-        paymentId = payment.id;
-      }
-
-      res.json({
-        success: true,
-        clientSecret: paymentIntent.client_secret,
-        paymentId,
-      });
-    } catch (error) {
-      console.error("Error creating access pass payment:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.post("/api/create-retake-bundle-payment", async (req, res) => {
-    try {
-      const { userId } = req.body;
-
-      if (!userId) {
-        return res.status(400).json({ error: "Missing userId" });
-      }
-
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      // Check if user has access pass
-      if (!user.hasAccessPass) {
-        return res
-          .status(400)
-          .json({ error: "User must have access pass first" });
-      }
-
-      // Create Stripe Payment Intent for $4.99 retake bundle
-      if (!stripe) {
-        return res
-          .status(500)
-          .json({ error: "Payment processing not configured" });
-      }
-
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 499, // $4.99 in cents
-        currency: "usd",
-        metadata: {
           userId: userId.toString(),
-          type: "retake_bundle",
-          retakesGranted: "5",
+          type: "report_unlock",
+          quizAttemptId: quizAttemptId.toString(),
+          isFirstReport: isFirstReport.toString(),
         },
-        description: "BizModelAI Retake Bundle - 5 additional quiz attempts",
+        description: `BizModelAI Report Unlock - ${isFirstReport ? "First report" : "Additional report"}`,
       });
 
       // Create payment record in our database
       const payment = await storage.createPayment({
         userId,
-        amount: "4.99",
+        amount: amountDollar,
         currency: "usd",
-        type: "retake_bundle",
+        type: "report_unlock",
         status: "pending",
-        retakesGranted: 5,
+        quizAttemptId: quizAttemptId,
         stripePaymentIntentId: paymentIntent.id,
       });
 
@@ -845,12 +967,95 @@ export async function registerRoutes(app: Express): Promise<void> {
         success: true,
         clientSecret: paymentIntent.client_secret,
         paymentId: payment.id,
+        amount: amountDollar,
+        isFirstReport,
       });
     } catch (error) {
-      console.error("Error creating retake bundle payment:", error);
+      console.error("Error creating report unlock payment:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
+
+  // Create payment for anonymous users unlocking full report (always $9.99)
+  app.post("/api/create-anonymous-report-unlock-payment", async (req, res) => {
+    try {
+      const { sessionId, email } = req.body;
+
+      if (!sessionId) {
+        return res
+          .status(400)
+          .json({ error: "Missing sessionId for anonymous user" });
+      }
+
+      // Verify temporary user data exists
+      const tempData = await storage.getUnpaidUserEmail(sessionId);
+      if (!tempData) {
+        return res
+          .status(404)
+          .json({ error: "Temporary account data not found or expired" });
+      }
+
+      // Anonymous users always pay $9.99 (first-time pricing)
+      const amount = 999; // $9.99 in cents
+      const amountDollar = "9.99";
+
+      // Create Stripe Payment Intent
+      if (!stripe) {
+        return res
+          .status(500)
+          .json({ error: "Payment processing not configured" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: "usd",
+        metadata: {
+          sessionId,
+          type: "anonymous_report_unlock",
+          email: email || tempData.email,
+        },
+        description: "BizModelAI Anonymous Report Unlock - First time $9.99",
+      });
+
+      res.json({
+        success: true,
+        clientSecret: paymentIntent.client_secret,
+        amount: amountDollar,
+        isFirstReport: true, // Always true for anonymous users
+      });
+    } catch (error) {
+      console.error("Error creating anonymous report unlock payment:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Quiz attempts are now free for everyone - no payment needed
+
+  // Check if report is unlocked for a specific quiz attempt
+  app.get(
+    "/api/report-unlock-status/:userId/:quizAttemptId",
+    async (req, res) => {
+      try {
+        const { userId, quizAttemptId } = req.params;
+
+        const payments = await storage.getPaymentsByUser(parseInt(userId));
+        const unlockPayment = payments.find(
+          (p) =>
+            p.quizAttemptId === parseInt(quizAttemptId) &&
+            p.type === "report_unlock" &&
+            p.status === "completed",
+        );
+
+        res.json({
+          isUnlocked: !!unlockPayment,
+          paymentId: unlockPayment?.id || null,
+        });
+      } catch (error) {
+        console.error("Error checking report unlock status:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    },
+  );
 
   // PayPal payment creation endpoint
   app.post("/api/create-paypal-payment", async (req, res) => {
@@ -884,12 +1089,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Check if user already has access pass but needs retakes
-        if (user.hasAccessPass && user.quizRetakesRemaining > 0) {
-          return res
-            .status(400)
-            .json({ error: "User already has access and retakes available" });
-        }
+        // Access pass concept removed - users pay per report instead
 
         userIdentifier = userId.toString();
       } else {
@@ -901,23 +1101,24 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       if (!isTemporaryUser && userId) {
         const user = await storage.getUser(parseInt(userId));
-        if (user && user.hasAccessPass) {
-          // User has access but needs more retakes - $4.99
+        if (false) {
+          // Access pass logic removed
+          // Old logic removed
           amount = "4.99";
-          retakesGranted = "4";
+          retakesGranted = "2";
           paymentType = "retakes";
-          description = "BizModelAI Quiz Retakes - 4 additional attempts";
+          description = "BizModelAI Quiz Retakes - 2 additional attempts";
         } else {
           // New user needs full access - $9.99
           amount = "9.99";
-          retakesGranted = "5";
+          retakesGranted = "3";
           paymentType = "access_pass";
           description = "BizModelAI Access Pass - Unlock all features";
         }
       } else {
         // Temporary user always gets full access - $9.99
         amount = "9.99";
-        retakesGranted = "5";
+        retakesGranted = "3";
         paymentType = "access_pass";
         description = "BizModelAI Access Pass - Unlock all features";
       }
@@ -965,7 +1166,6 @@ export async function registerRoutes(app: Express): Promise<void> {
           currency: "usd",
           type: paymentType,
           status: "pending",
-          retakesGranted: parseInt(retakesGranted),
           stripePaymentIntentId: order.result.id, // Using this field for PayPal order ID
         });
         paymentId = payment.id;
@@ -1047,8 +1247,6 @@ export async function registerRoutes(app: Express): Promise<void> {
         // Update the user with additional fields
         await storage.updateUser(user.id, {
           email: tempData.email,
-          quizRetakesRemaining: parseInt(retakesGranted) || 5,
-          hasAccessPass: true,
         });
 
         // Create payment record
@@ -1057,15 +1255,11 @@ export async function registerRoutes(app: Express): Promise<void> {
           amount: purchaseUnit.amount?.value || "9.99",
           currency: "usd",
           type: paymentType,
-          retakesGranted: parseInt(retakesGranted) || 5,
           stripePaymentIntentId: orderID, // Using this field for PayPal order ID
         });
 
         // Complete the payment
-        await storage.completePayment(
-          payment.id,
-          parseInt(retakesGranted) || 5,
-        );
+        await storage.completePayment(payment.id);
 
         // Temporary data cleanup happens automatically via expiration
 
@@ -1088,10 +1282,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         }
 
         // Complete the payment in our system
-        await storage.completePayment(
-          payment.id,
-          parseInt(retakesGranted) || 5,
-        );
+        await storage.completePayment(payment.id);
 
         console.log(
           `PayPal payment completed: ${paymentType} for user ${userId}`,
@@ -1235,15 +1426,11 @@ export async function registerRoutes(app: Express): Promise<void> {
                 currency: "usd",
                 type: type || "access_pass",
                 status: "pending",
-                retakesGranted: parseInt(retakesGranted) || 5,
                 stripePaymentIntentId: paymentIntent.id,
               });
 
               // Complete the payment
-              await storage.completePayment(
-                payment.id,
-                parseInt(retakesGranted) || 5,
-              );
+              await storage.completePayment(payment.id);
 
               // Clean up temporary data
               await storage.cleanupExpiredUnpaidEmails();
@@ -1273,10 +1460,14 @@ export async function registerRoutes(app: Express): Promise<void> {
             }
 
             // Complete the payment in our system
-            await storage.completePayment(
-              payment.id,
-              parseInt(retakesGranted) || 5,
-            );
+            if (
+              payment.type === "quiz_payment" ||
+              payment.type === "report_unlock"
+            ) {
+              await storage.completePayment(payment.id);
+            } else {
+              await storage.completePayment(payment.id);
+            }
 
             console.log(`Payment completed: ${type} for user ${userId}`);
           }
@@ -1977,7 +2168,6 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
           email: users.email,
           source: sql<string>`'paid_user'`,
           createdAt: users.createdAt,
-          hasAccessPass: users.hasAccessPass,
         })
         .from(users)
         .where(sql`${users.email} IS NOT NULL`);
@@ -2134,25 +2324,106 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
   // Get user data retention status
   app.get("/api/auth/data-retention-status", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+
+      if (!userId) {
+        console.log("Data retention status: Not authenticated", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: userId,
+          sessionKey: getSessionKey(req),
+        });
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const isPaid = await storage.isPaidUser(req.session.userId);
-      const user = await storage.getUser(req.session.userId);
+      const isPaid = await storage.isPaidUser(userId);
+      const user = await storage.getUser(userId);
 
       res.json({
         isPaidUser: isPaid,
         dataRetentionPolicy: isPaid
           ? "permanent"
           : "24_hours_from_quiz_completion",
-        hasAccessPass: user?.hasAccessPass || false,
+        hasAccessPass: false, // Access pass concept removed
         accountCreatedAt: user?.createdAt,
         dataWillBeDeletedIfUnpaid: !isPaid,
       });
     } catch (error) {
       console.error("Error getting data retention status:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Test endpoint for debugging retake issue
+  app.post("/api/test-retake-flow", async (req, res) => {
+    try {
+      console.log("=== Testing retake flow ===");
+
+      // Create a test user with access pass
+      const testUser = await storage.createUser({
+        username: "test-retake-user@example.com",
+        password: "test123",
+      });
+      console.log("Created test user:", testUser.id);
+
+      // Give them access pass
+      // Access pass concept removed - users pay per report instead
+      console.log("Updated user with access pass and 3 retakes");
+
+      // Simulate first quiz attempt by calling our internal endpoint
+      const quizData = { mockQuizData: true };
+
+      // Manually check isPaidUser and user data before attempt
+      const isPaid = await storage.isPaidUser(testUser.id);
+      const user = await storage.getUser(testUser.id);
+      const attemptsCount = await storage.getQuizAttemptsCount(testUser.id);
+
+      console.log("Before quiz attempt:", {
+        userId: testUser.id,
+        isPaid,
+        hasAccessPass: false, // Access pass concept removed
+        attemptsCount,
+      });
+
+      // Record the quiz attempt
+      const attempt = await storage.recordQuizAttempt({
+        userId: testUser.id,
+        quizData,
+      });
+
+      // Check the decrement logic manually
+      // Quiz retakes system removed - now using pay-per-quiz model
+      console.log("Pay-per-quiz model - no retakes to decrement");
+
+      // Check final status
+      const finalUser = await storage.getUser(testUser.id);
+      const finalAttemptsCount = await storage.getQuizAttemptsCount(
+        testUser.id,
+      );
+
+      console.log("After quiz attempt:", {
+        userId: testUser.id,
+        hasAccessPass: false, // Access pass concept removed
+        attemptsCount: finalAttemptsCount,
+      });
+
+      res.json({
+        success: true,
+        testUserId: testUser.id,
+        before: {
+          isPaid,
+          hasAccessPass: false, // Access pass concept removed
+          attemptsCount,
+        },
+        after: {
+          hasAccessPass: false, // Access pass concept removed
+          attemptsCount: finalAttemptsCount,
+        },
+      });
+    } catch (error) {
+      console.error("Error in test retake flow:", error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 

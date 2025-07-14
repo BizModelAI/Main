@@ -43,12 +43,16 @@ import { AIService } from "../utils/aiService";
 import { aiCacheManager } from "../utils/aiCacheManager";
 import FullReport from "./FullReport";
 import AIReportLoading from "./AIReportLoading";
+import FullReportLoading from "./FullReportLoading";
 import { PaywallModal, LockedCardOverlay } from "./PaywallModals";
 import { PaymentAccountModal } from "./PaymentAccountModal";
 import { usePaywall } from "../contexts/PaywallContext";
 import { useAuth } from "../contexts/AuthContext";
 import { renderMarkdownContent } from "../utils/markdownUtils";
+import { ReportUnlockPaywall } from "./ReportUnlockPaywall";
+import { useReportUnlock } from "../hooks/useReportUnlock";
 import EmailResultsModal from "./EmailResultsModal";
+import { reportViewManager } from "../utils/reportViewManager";
 
 // Helper function to generate 2-sentence descriptions for business models
 const getBusinessModelDescription = (
@@ -117,11 +121,25 @@ interface AIInsights {
 
 const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   const navigate = useNavigate();
+
+  // Get quiz attempt ID from localStorage (set when quiz is saved)
+  const [quizAttemptId, setQuizAttemptId] = useState<number | null>(() => {
+    const stored = localStorage.getItem("currentQuizAttemptId");
+    return stored ? parseInt(stored) : null;
+  });
+
+  // Use the new report unlock hook
+  const {
+    isUnlocked: isReportUnlocked,
+    isLoading: isCheckingUnlock,
+    refresh: refreshUnlockStatus,
+  } = useReportUnlock(quizAttemptId);
   const [selectedPath, setSelectedPath] = useState<BusinessPath | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
   const [showAILoading, setShowAILoading] = useState(false);
+  const [showFullReportLoading, setShowFullReportLoading] = useState(false);
   const [loadedReportData, setLoadedReportData] = useState<any>(null);
   const [personalizedPaths, setPersonalizedPaths] = useState<BusinessPath[]>(
     [],
@@ -161,6 +179,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   >(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
+  const { user } = useAuth();
+
   const {
     hasUnlockedAnalysis,
     hasCompletedQuiz,
@@ -170,14 +190,46 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     hasMadeAnyPayment,
   } = usePaywall();
 
-  const { user } = useAuth();
+  // In pure pay-per-report model, check if this specific report is unlocked
+  // Basic access is always available, but full reports require payment
+  const canViewFullReport = user ? isReportUnlocked : true;
 
   useEffect(() => {
     console.log("Results component received quizData:", quizData);
 
-    // Clear AI cache for fresh quiz results
-    aiCacheManager.clearCacheForQuiz(quizData);
-    console.log("AI cache cleared for new quiz results");
+    // Force clear ALL AI caches to ensure fresh and accurate results
+    console.log("🧹 Force clearing all AI caches for fresh quiz results...");
+
+    // Clear AI cache manager caches
+    aiCacheManager.clearAllCache();
+
+    // Clear specific localStorage items that might cause inconsistencies
+    const specificKeys = [
+      "quiz-completion-ai-insights",
+      "ai-generation-in-progress",
+      "ai-generation-timestamp",
+      "ai-cache-reset-timestamp",
+    ];
+
+    specificKeys.forEach((key) => localStorage.removeItem(key));
+
+    // Clear any AI-related cache keys
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (
+        key &&
+        (key.startsWith("ai-analysis-") ||
+          key.startsWith("skills-analysis-") ||
+          key.startsWith("ai-cache-"))
+      ) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
+    console.log(
+      `✅ Cleared ${keysToRemove.length + specificKeys.length} AI cache entries for fresh results`,
+    );
 
     // Trigger confetti blast only on first visit to results page
     const confettiKey = `confetti_shown_${userEmail || "anonymous"}`;
@@ -202,6 +254,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     // Use advanced scoring algorithm
     const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
     console.log("Advanced algorithm scores:", advancedScores);
+    console.log(
+      "Top 3 business models:",
+      advancedScores
+        .slice(0, 3)
+        .map((s) => `${s.name} (${s.score}%)`)
+        .join(", "),
+    );
 
     // Convert to BusinessPath format for compatibility
     const convertedPaths: BusinessPath[] = advancedScores.map((score) => ({
@@ -288,7 +347,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // This function is no longer used - AI content comes from loading page
   const generateAIContent = async (paths: BusinessPath[]) => {
     console.log(
-      "⚠️ generateAIContent called but should not be used - AI content comes from loading page",
+      "��️ generateAIContent called but should not be used - AI content comes from loading page",
     );
   };
 
@@ -315,17 +374,54 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       // Check for cached AI data from the loading page first
       const cachedAIData = localStorage.getItem("quiz-completion-ai-insights");
 
+      console.log("���� DEBUGGING AI INSIGHTS LOADING:");
+      console.log("Cached AI data found:", !!cachedAIData);
+
       if (cachedAIData) {
         try {
-          const { insights, analysis, complete, error, timestamp } =
-            JSON.parse(cachedAIData);
+          const parsedData = JSON.parse(cachedAIData);
+          console.log("Parsed cached data:", parsedData);
+
+          const { insights, analysis, complete, error, timestamp } = parsedData;
           const isRecent = Date.now() - timestamp < 5 * 60 * 1000; // 5 minutes
 
-          if (isRecent && insights && complete) {
+          console.log("Data validity check:", {
+            isRecent,
+            hasInsights: !!insights,
+            isComplete: complete,
+            hasError: error,
+            timeAgo:
+              Math.round((Date.now() - timestamp) / 1000) + " seconds ago",
+          });
+
+          if (isRecent && insights && complete && !error) {
+            // Verify cached insights match current top business model
+            const currentTopModel = personalizedPaths[0]?.name;
+            const insightsMentionsModel =
+              insights.personalizedSummary?.includes(currentTopModel || "");
+
+            console.log("🔍 Business model consistency check:");
+            console.log("Current top model:", currentTopModel);
+            console.log("Insights mention model:", insightsMentionsModel);
             console.log(
-              "✅ Using cached AI insights from loading page - no API calls needed",
+              "Insights preview:",
+              insights.personalizedSummary?.substring(0, 150) + "...",
             );
-            setAiInsights(insights);
+
+            if (insightsMentionsModel) {
+              console.log(
+                "✅ Using cached AI insights from loading page - matches current model",
+              );
+              setAiInsights(insights);
+            } else {
+              console.log(
+                "❌ Cached insights don't match current top model, using fallback",
+              );
+              const fallbackInsights = generateFallbackInsights(
+                personalizedPaths[0],
+              );
+              setAiInsights(fallbackInsights);
+            }
 
             // If analysis is also cached, use it
             if (analysis) {
@@ -338,6 +434,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 personalizedPaths[0],
               );
             } else {
+              console.log(
+                "📝 No analysis cached, using fallback analysis only",
+              );
               const fallbackAnalysis = generateFallbackAnalysis();
               setAiAnalysis(fallbackAnalysis);
               // Cache the fallback analysis
@@ -351,17 +450,24 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
             setIsGeneratingAI(false);
             return;
+          } else {
+            console.log(
+              "❌ Cached data invalid - falling back to generic content",
+            );
           }
         } catch (error) {
           console.error("Error parsing cached AI data:", error);
         }
+      } else {
+        console.log("❌ No cached AI data found in localStorage");
       }
 
-      // Fallback if no valid cached data
+      // Fallback if no valid cached data - ensure consistency with actual business models
+      const topBusinessModel = personalizedPaths[0];
       console.log(
-        "🚀 Setting fallback AI content (no API calls in production)",
+        `🚀 Setting fallback AI content for ${topBusinessModel?.name || "unknown business model"} (no valid AI data from loading page)`,
       );
-      const fallbackInsights = generateFallbackInsights();
+      const fallbackInsights = generateFallbackInsights(personalizedPaths[0]);
       const fallbackAnalysis = generateFallbackAnalysis();
       setAiInsights(fallbackInsights);
       setAiAnalysis(fallbackAnalysis);
@@ -515,9 +621,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     };
   };
 
-  const generateFallbackInsights = (): AIInsights => {
-    const topPath = personalizedPaths[0];
-    if (!topPath) {
+  const generateFallbackInsights = (topPath?: BusinessPath): AIInsights => {
+    const actualTopPath = topPath || personalizedPaths[0];
+    if (!actualTopPath) {
       return {
         personalizedSummary:
           "Complete your quiz to receive a personalized business analysis.",
@@ -535,7 +641,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       };
     }
     return {
-      personalizedSummary: `Based on your comprehensive assessment, ${topPath?.name || "your top business match"} achieves a ${topPath?.fitScore || 85}% compatibility score with your unique profile.`,
+      personalizedSummary: `Based on your comprehensive assessment, ${actualTopPath?.name || "your top business match"} achieves a ${actualTopPath?.fitScore || 85}% compatibility score with your unique profile.`,
       customRecommendations: [
         "Start with free tools to validate your concept",
         "Focus on building one core skill deeply",
@@ -596,14 +702,19 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       return;
     }
 
-    // Show loading screen if this is the first time viewing the full report
+    // Check if this report has been viewed before
+    const hasBeenViewed =
+      quizAttemptId &&
+      reportViewManager.hasViewedReport(quizAttemptId, quizData, userEmail);
+
+    // Show loading screen only if this is the first time viewing the full report
     // or if we don't have preloaded data
-    if (!loadedReportData) {
+    if (!loadedReportData && !hasBeenViewed) {
       setShowAILoading(true);
       // Scroll to top of page immediately
       window.scrollTo({ top: 0, behavior: "instant" });
     } else {
-      // If we have preloaded data, go directly to the full report
+      // If we have preloaded data or have viewed before, go directly to the full report
       setShowFullReport(true);
       // Scroll to top of page immediately and then again after DOM update
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -660,15 +771,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     setShowFullReport(true);
   };
 
-  // New payment handler that forces account creation
+  // Payment handler for all users - PaymentAccountModal will auto-skip to payment for logged-in users
   const handlePaymentWithAccount = () => {
-    // Use PaymentAccountModal for all users (both new and existing)
     setShowPaymentModal(true);
     setShowUnlockModal(false);
   };
 
   const handlePaymentSuccess = () => {
     setShowPaymentModal(false);
+
+    // Refresh unlock status to reflect the new payment
+    refreshUnlockStatus();
 
     // Execute pending action if user paid for download/share
     if (pendingAction === "download") {
@@ -694,8 +807,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "full-report") {
-        // Show the AI loading page first to generate all OpenAI content
-        setShowAILoading(true);
+        // Show the FULL REPORT loading page to generate comprehensive OpenAI content
+        setShowFullReportLoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: "instant" });
       } else {
@@ -750,13 +863,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           window.scrollTo({ top: 0, behavior: "instant" });
         }, 0);
       } else if (paywallType === "full-report") {
-        // Show the AI loading page first to generate all OpenAI content
-        setShowAILoading(true);
+        // Show the FULL REPORT loading page to generate comprehensive OpenAI content
+        setShowFullReportLoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: "instant" });
       } else {
-        // Default fallback to AI loading page
-        setShowAILoading(true);
+        // Default fallback to full report loading page
+        setShowFullReportLoading(true);
         // Scroll to top of page immediately
         window.scrollTo({ top: 0, behavior: "instant" });
       }
@@ -816,7 +929,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   // Download functionality
   const handleDownloadResults = async () => {
-    if (!hasUnlockedAnalysis) {
+    if (!canViewFullReport) {
       setPendingAction("download");
       setPaywallType("full-report");
       setShowUnlockModal(true);
@@ -828,7 +941,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   // Share functionality
   const handleShareResults = async () => {
-    if (!hasUnlockedAnalysis) {
+    if (!canViewFullReport) {
       setPendingAction("share");
       setPaywallType("full-report");
       setShowUnlockModal(true);
@@ -845,6 +958,21 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
         userEmail={userEmail}
         onComplete={handleAILoadingComplete}
         onExit={() => setShowAILoading(false)}
+      />
+    );
+  }
+
+  if (showFullReportLoading) {
+    return (
+      <FullReportLoading
+        quizData={quizData}
+        userEmail={userEmail}
+        onComplete={(data) => {
+          setLoadedReportData(data);
+          setShowFullReportLoading(false);
+          setShowFullReport(true);
+        }}
+        onExit={() => setShowFullReportLoading(false)}
       />
     );
   }
@@ -1044,7 +1172,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   <div className="relative">
                     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
                       <div className="text-blue-50 leading-relaxed text-lg">
-                        {hasUnlockedAnalysis ? (
+                        {canViewFullReport ? (
                           // Full content when unlocked
                           <div>
                             {(() => {
@@ -1287,7 +1415,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                   </div>
 
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">🚀</div>
+                                    <div className="text-3xl mt-1">���</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Step-by-Step Launch Guidance
@@ -1351,8 +1479,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       </div>
                     </div>
 
-                    {/* Paywall Section */}
-                    {!hasUnlockedAnalysis && (
+                    {/* Paywall Section - Show for users who haven't unlocked */}
+                    {!canViewFullReport && (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1365,13 +1493,14 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                         </h4>
                         <p className="text-blue-100 mb-6">
                           Get the full personalized analysis, detailed insights,
-                          and success strategies for just $9.99
+                          and success strategies for just{" "}
+                          {user ? "$4.99" : "$9.99"}
                         </p>
                         <button
                           onClick={handleUnlockAnalysis}
                           className="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-3 rounded-full font-bold hover:from-yellow-300 hover:to-orange-400 transition-all duration-300 transform hover:scale-105 shadow-xl mb-8"
                         >
-                          Unlock Full Analysis - $9.99
+                          Unlock Full Analysis - {user ? "$4.99" : "$9.99"}
                         </button>
                       </motion.div>
                     )}
@@ -1404,7 +1533,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   whileHover={{ y: -5 }}
                 >
                   {/* Locked overlay for cards 2 and 3 when not unlocked */}
-                  {index > 0 && !hasUnlockedAnalysis && (
+                  {index > 0 && !canViewFullReport && (
                     <LockedCardOverlay
                       onUnlock={() => {
                         setPaywallType("business-model");
@@ -1520,7 +1649,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                       {/* Action Elements */}
                       <div className="space-y-2 md:space-y-3 mt-4 md:mt-auto">
                         {/* Primary CTA - Only show if card is not locked */}
-                        {!(index > 0 && !hasUnlockedAnalysis) && (
+                        {!(index > 0 && !canViewFullReport) && (
                           <button
                             onClick={() => handleViewFullReport(path)}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 md:py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform group-hover:scale-[1.02] flex items-center justify-center text-sm md:text-base"
@@ -1531,7 +1660,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                         )}
 
                         {/* Secondary CTA - Only show if card is not locked */}
-                        {!(index > 0 && !hasUnlockedAnalysis) && (
+                        {!(index > 0 && !canViewFullReport) && (
                           <div className="text-center space-y-2 md:space-y-3">
                             <button
                               onClick={() => handleLearnMore(path)}
@@ -1620,30 +1749,30 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
               <button
                 onClick={handleDownloadResults}
                 className={`p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
-                  hasUnlockedAnalysis ? "bg-white" : "bg-gray-100 relative"
+                  canViewFullReport ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
-                {!hasUnlockedAnalysis && (
+                {!canViewFullReport && (
                   <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Download
                   className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
-                    hasUnlockedAnalysis ? "text-blue-600" : "text-gray-400"
+                    canViewFullReport ? "text-blue-600" : "text-gray-400"
                   }`}
                 />
                 <h4
                   className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
-                    hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
+                    canViewFullReport ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Download as PDF
                 </h4>
                 <p
                   className={`text-xs md:text-sm ${
-                    hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
+                    canViewFullReport ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
-                  {hasUnlockedAnalysis
+                  {canViewFullReport
                     ? "Get your complete report as a downloadable file for offline reference"
                     : "Unlock full analysis to download your results"}
                 </p>
@@ -1665,30 +1794,30 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
               <button
                 onClick={handleShareResults}
                 className={`p-4 md:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${
-                  hasUnlockedAnalysis ? "bg-white" : "bg-gray-100 relative"
+                  canViewFullReport ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
-                {!hasUnlockedAnalysis && (
+                {!canViewFullReport && (
                   <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Share2
                   className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
-                    hasUnlockedAnalysis ? "text-purple-600" : "text-gray-400"
+                    canViewFullReport ? "text-purple-600" : "text-gray-400"
                   }`}
                 />
                 <h4
                   className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
-                    hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
+                    canViewFullReport ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Share My Results
                 </h4>
                 <p
                   className={`text-xs md:text-sm ${
-                    hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
+                    canViewFullReport ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
-                  {hasUnlockedAnalysis
+                  {canViewFullReport
                     ? "Share your business match with friends, family, and mentors"
                     : "Unlock full analysis to share your results"}
                 </p>
@@ -1696,8 +1825,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             </div>
           </motion.div>
 
-          {/* Unlock Premium Section - Hide when user has paid */}
-          {!hasUnlockedAnalysis && (
+          {/* Unlock Premium Section - Show for users who haven't unlocked */}
+          {!canViewFullReport && (
             <motion.div
               className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
@@ -1795,7 +1924,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                     $49.99 Value
                   </div>
                   <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2">
-                    $9.99
+                    {user ? "$4.99" : "$9.99"}
                   </div>
                   <div className="text-gray-300 text-sm md:text-base lg:text-lg px-2 md:px-0">
                     One-time payment • Instant access • 30-day guarantee
@@ -1815,7 +1944,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           )}
 
           {/* Dashboard Link Section - Show when user has paid */}
-          {hasUnlockedAnalysis && (
+          {canViewFullReport && (
             <motion.div
               className="bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
@@ -1881,7 +2010,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           isOpen={showEmailModal}
           onClose={() => setShowEmailModal(false)}
           quizData={quizData}
-          isPaidUser={hasUnlockedAnalysis || hasMadeAnyPayment()}
+          isPaidUser={canViewFullReport || hasMadeAnyPayment()}
           userEmail={userEmail}
         />
 

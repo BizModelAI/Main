@@ -5,15 +5,15 @@ import { businessPaths } from "../../shared/businessPaths.js";
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      maxRetries: 3, // Retry failed requests
-      timeout: 30000, // 30 second timeout
+      maxRetries: 1, // Reduce retries for faster fallback
+      timeout: 30000, // 30 second timeout to match race condition
     })
   : null;
 
 // Simple rate limiting for concurrent requests
 class RateLimiter {
   private requests: number[] = [];
-  private readonly maxRequests = 10; // Max requests per minute
+  private readonly maxRequests = 5; // Max requests per minute to avoid rate limits
   private readonly windowMs = 60000; // 1 minute window
 
   async waitForSlot(): Promise<void> {
@@ -24,7 +24,17 @@ class RateLimiter {
     if (this.requests.length >= this.maxRequests) {
       // Wait until we can make another request
       const oldestRequest = Math.min(...this.requests);
-      const waitTime = this.windowMs - (now - oldestRequest) + 100; // Small buffer
+      const waitTime = Math.min(
+        this.windowMs - (now - oldestRequest) + 100,
+        10000,
+      ); // Cap wait at 10 seconds
+      console.log(`⏳ Rate limit hit, waiting ${waitTime}ms for slot`);
+
+      if (waitTime > 30000) {
+        // If we'd wait more than 30 seconds, just reject to avoid timeout
+        throw new Error("Rate limit exceeded - too many concurrent requests");
+      }
+
       await new Promise((resolve) => setTimeout(resolve, waitTime));
       return this.waitForSlot(); // Recursive check
     }
@@ -72,6 +82,12 @@ export class AIScoringService {
   async analyzeBusinessFit(
     quizData: QuizData,
   ): Promise<ComprehensiveFitAnalysis> {
+    console.log("��� analyzeBusinessFit called", {
+      hasOpenAI: !!openai,
+      hasApiKey: !!process.env.OPENAI_API_KEY,
+      apiKeyLength: process.env.OPENAI_API_KEY?.length || 0,
+    });
+
     try {
       if (!openai) {
         console.error("OpenAI API key not configured, using fallback analysis");
@@ -83,24 +99,35 @@ export class AIScoringService {
 
       const prompt = this.buildAnalysisPrompt(quizData);
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert business consultant and psychologist specializing in entrepreneurial fit assessment. Analyze the user's quiz responses and provide detailed, accurate business model compatibility scores with reasoning.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
+      // Add timeout to prevent hanging
+      const response = (await Promise.race([
+        openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are an expert business consultant and psychologist specializing in entrepreneurial fit assessment. Analyze the user's quiz responses and provide detailed, accurate business model compatibility scores with reasoning.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+          max_tokens: 1200,
+        }),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(new Error("OpenAI API call timed out after 25 seconds")),
+            25000,
+          ),
+        ),
+      ])) as OpenAI.Chat.Completions.ChatCompletion;
 
+      console.log("✅ OpenAI API call completed successfully");
       const content = response.choices[0].message.content;
       if (!content) {
         console.error("No content in AI response, using fallback");
@@ -116,8 +143,37 @@ export class AIScoringService {
         hasOpenAI: !!openai,
         hasApiKey: !!process.env.OPENAI_API_KEY,
       });
+
+      // Log specific error type for debugging
+      if (error instanceof Error) {
+        if (
+          error.message.includes("429") ||
+          error.message.includes("rate limit")
+        ) {
+          console.warn(
+            "🚫 Rate limited by OpenAI - falling back to algorithmic analysis",
+          );
+        } else if (
+          error.message.includes("timeout") ||
+          error.message.includes("timed out")
+        ) {
+          console.warn(
+            "⏰ OpenAI request timed out - falling back to algorithmic analysis",
+          );
+        } else {
+          console.warn(
+            "🔥 OpenAI request failed - falling back to algorithmic analysis",
+          );
+        }
+      }
+
       // Fallback to enhanced algorithmic scoring
-      return this.fallbackAnalysis(quizData);
+      console.log(
+        "🔄 Falling back to algorithmic analysis due to OpenAI error",
+      );
+      const fallbackResult = this.fallbackAnalysis(quizData);
+      console.log("✅ Fallback analysis completed successfully");
+      return fallbackResult;
     }
   }
 
@@ -222,6 +278,7 @@ export class AIScoringService {
   }
 
   private fallbackAnalysis(quizData: QuizData): ComprehensiveFitAnalysis {
+    console.log("🎯 Starting fallback analysis (algorithmic scoring)");
     // Enhanced algorithmic scoring as fallback
     const scoredPaths = businessPaths
       .map((path) => {
@@ -398,7 +455,7 @@ export class AIScoringService {
   private getIncomeGoalRange(value: number): string {
     if (value <= 500) return "Less than $500/month";
     if (value <= 1250) return "$500–$2,000/month";
-    if (value <= 3500) return "$2,000–$5,000/month";
+    if (value <= 3500) return "$2,000��$5,000/month";
     return "$5,000+/month";
   }
 

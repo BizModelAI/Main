@@ -19,7 +19,7 @@ import {
   type InsertPasswordResetToken,
 } from "../shared/schema.js";
 import { db } from "./db.js";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, count, sql, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -40,7 +40,11 @@ export interface IStorage {
 
   // Payment operations
   createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment>;
-  completePayment(paymentId: number, retakesGranted: number): Promise<void>;
+  completePayment(paymentId: number): Promise<void>;
+  linkPaymentToQuizAttempt(
+    paymentId: number,
+    quizAttemptId: number,
+  ): Promise<void>;
   getPaymentsByUser(userId: number): Promise<Payment[]>;
   getPaymentsByStripeId(stripePaymentIntentId: string): Promise<Payment[]>;
   getPaymentById(paymentId: number): Promise<Payment | undefined>;
@@ -127,9 +131,6 @@ export class MemStorage implements IStorage {
       name: insertUser.name ?? null,
       id,
       email: null,
-      hasAccessPass: false,
-      quizRetakesRemaining: 0,
-      totalQuizRetakesUsed: 0,
       isUnsubscribed: false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -203,23 +204,16 @@ export class MemStorage implements IStorage {
     // First quiz is free
     if (attemptCount === 0) return true;
 
-    // After first quiz, user needs access pass and remaining retakes
-    return user.hasAccessPass && user.quizRetakesRemaining > 0;
+    // In pure pay-per-report model, everyone can take unlimited quizzes
+    return true;
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
-    const user = await this.getUser(userId);
-    if (!user) return;
-
-    const attemptCount = await this.getQuizAttemptsCount(userId);
-
-    // Don't decrement for first quiz (it's free)
-    if (attemptCount === 0) return;
-
-    await this.updateUser(userId, {
-      quizRetakesRemaining: Math.max(0, user.quizRetakesRemaining - 1),
-      totalQuizRetakesUsed: user.totalQuizRetakesUsed + 1,
-    });
+    // No longer needed in pay-per-report system
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      "decrementQuizRetakes called but no longer needed in pay-per-report system",
+    );
   }
 
   async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
@@ -229,8 +223,8 @@ export class MemStorage implements IStorage {
       id,
       status: payment.status || "pending",
       currency: payment.currency || "usd",
-      retakesGranted: payment.retakesGranted || 0,
       stripePaymentIntentId: payment.stripePaymentIntentId || null,
+      quizAttemptId: payment.quizAttemptId || null,
       createdAt: new Date(),
       completedAt: null,
     };
@@ -238,10 +232,7 @@ export class MemStorage implements IStorage {
     return newPayment;
   }
 
-  async completePayment(
-    paymentId: number,
-    retakesGranted: number,
-  ): Promise<void> {
+  async completePayment(paymentId: number): Promise<void> {
     const payment = this.payments.get(paymentId);
     if (!payment) return;
 
@@ -249,25 +240,25 @@ export class MemStorage implements IStorage {
     const completedPayment = {
       ...payment,
       status: "completed" as const,
-      retakesGranted,
       completedAt: new Date(),
     };
     this.payments.set(paymentId, completedPayment);
 
-    // Update user's retakes and access pass
-    const user = await this.getUser(payment.userId);
-    if (user) {
-      const updates: Partial<User> = {
-        quizRetakesRemaining: user.quizRetakesRemaining + retakesGranted,
-      };
+    // Payment completed - no need to update user access in pay-per-report model
+  }
 
-      if (payment.type === "access_pass") {
-        updates.hasAccessPass = true;
-        updates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
-      }
+  async linkPaymentToQuizAttempt(
+    paymentId: number,
+    quizAttemptId: number,
+  ): Promise<void> {
+    const payment = this.payments.get(paymentId);
+    if (!payment) return;
 
-      await this.updateUser(payment.userId, updates);
-    }
+    const updatedPayment = {
+      ...payment,
+      quizAttemptId,
+    };
+    this.payments.set(paymentId, updatedPayment);
   }
 
   async getPaymentsByUser(userId: number): Promise<Payment[]> {
@@ -336,8 +327,9 @@ export class MemStorage implements IStorage {
   }
 
   async isPaidUser(userId: number): Promise<boolean> {
-    const user = await this.getUser(userId);
-    return user ? user.hasAccessPass : false;
+    // In pay-per-report model, we check if user has any completed payments
+    const payments = await this.getPaymentsByUser(userId);
+    return payments.some((p) => p.status === "completed");
   }
 
   async createPasswordResetToken(
@@ -540,18 +532,16 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(eq(users.id, userId));
-    return user ? user.quizRetakesRemaining > 0 : false;
+    // In the pure pay-per-report system: everyone can take unlimited quizzes
+    return user ? true : false;
   }
 
   async decrementQuizRetakes(userId: number): Promise<void> {
-    await this.ensureDb()
-      .update(users)
-      .set({
-        quizRetakesRemaining: sql`${users.quizRetakesRemaining} - 1`,
-        totalQuizRetakesUsed: sql`${users.totalQuizRetakesUsed} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+    // No longer needed in pay-per-report system
+    // This method is kept for backward compatibility but does nothing
+    console.log(
+      "decrementQuizRetakes called but no longer needed in pay-per-report system",
+    );
   }
 
   async createPayment(payment: Omit<InsertPayment, "id">): Promise<Payment> {
@@ -562,10 +552,7 @@ export class DatabaseStorage implements IStorage {
     return newPayment;
   }
 
-  async completePayment(
-    paymentId: number,
-    retakesGranted: number,
-  ): Promise<void> {
+  async completePayment(paymentId: number): Promise<void> {
     await this.ensureDb().transaction(async (tx) => {
       // Update payment status
       const [payment] = await tx
@@ -573,7 +560,6 @@ export class DatabaseStorage implements IStorage {
         .set({
           status: "completed",
           completedAt: new Date(),
-          retakesGranted,
         })
         .where(eq(payments.id, paymentId))
         .returning();
@@ -582,23 +568,20 @@ export class DatabaseStorage implements IStorage {
         throw new Error("Payment not found");
       }
 
-      // Update user's retakes and access pass
-      const userUpdates: any = {
-        quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
-        updatedAt: new Date(),
-      };
-
-      // Set hasAccessPass to true for access_pass payments
-      if (payment.type === "access_pass") {
-        userUpdates.hasAccessPass = true;
-        userUpdates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
-      }
-
-      await tx
-        .update(users)
-        .set(userUpdates)
-        .where(eq(users.id, payment.userId));
+      // Payment completed - no need to update user access in pay-per-report model
     });
+  }
+
+  async linkPaymentToQuizAttempt(
+    paymentId: number,
+    quizAttemptId: number,
+  ): Promise<void> {
+    await this.ensureDb()
+      .update(payments)
+      .set({
+        quizAttemptId: quizAttemptId,
+      })
+      .where(eq(payments.id, paymentId));
   }
 
   async getPaymentsByUser(userId: number): Promise<Payment[]> {
@@ -767,11 +750,13 @@ export class DatabaseStorage implements IStorage {
 
   async isPaidUser(userId: number): Promise<boolean> {
     try {
-      const [user] = await this.ensureDb()
+      const userPayments = await this.ensureDb()
         .select()
-        .from(users)
-        .where(eq(users.id, userId));
-      return user ? user.hasAccessPass : false;
+        .from(payments)
+        .where(
+          and(eq(payments.userId, userId), eq(payments.status, "completed")),
+        );
+      return userPayments.length > 0;
     } catch (error) {
       console.error("Error checking if user is paid:", error);
       return false; // Default to unpaid if there's an error

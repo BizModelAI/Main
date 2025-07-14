@@ -31,8 +31,6 @@ import {
 } from "lucide-react";
 import { QuizData } from "../types";
 import { quizSteps } from "../data/quizSteps";
-import { useQuizRetake } from "@/hooks/useQuizRetake";
-import { QuizRetakeModal } from "./QuizRetakeModal";
 import { useToast } from "@/hooks/use-toast";
 
 // Mobile-specific content for scale questions
@@ -631,26 +629,10 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
   const [showRoundIntro, setShowRoundIntro] = useState(true);
   const [currentRound, setCurrentRound] = useState(1);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [showRetakeModal, setShowRetakeModal] = useState(false);
 
   const { toast } = useToast();
-  const {
-    canRetake,
-    isFirstQuiz,
-    hasAccessPass,
-    quizRetakesRemaining,
-    recordAttempt,
-    refetch,
-    isGuestUser,
-  } = useQuizRetake(userId || null);
 
-  // Check if user can take the quiz when component mounts
-  // Guest users (no userId) can always take quiz, authenticated users need retakes
-  useEffect(() => {
-    if (userId && !canRetake && !isGuestUser) {
-      setShowRetakeModal(true);
-    }
-  }, [userId, canRetake, isGuestUser]);
+  // Everyone can take unlimited quizzes in the new pay-per-report system
 
   // Debug logging for exit modal state
   useEffect(() => {
@@ -746,22 +728,12 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
         console.log("Quiz completed with data:", formData);
 
         // Record the quiz attempt if userId is provided
+        // Quiz attempts are now free and saved automatically via Results component
         if (userId) {
-          try {
-            await recordAttempt(formData as QuizData);
-            toast({
-              title: "Quiz Completed!",
-              description: "Your responses have been saved successfully.",
-            });
-          } catch (error) {
-            console.error("Failed to record quiz attempt:", error);
-            toast({
-              title: "Warning",
-              description:
-                "Quiz completed but there was an issue saving your attempt.",
-              variant: "destructive",
-            });
-          }
+          toast({
+            title: "Quiz Completed!",
+            description: "Your responses will be saved when you view results.",
+          });
         }
 
         onComplete(formData as QuizData);
@@ -1433,18 +1405,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
         onConfirmExit={handleExitQuiz}
       />
 
-      {/* Quiz Retake Modal */}
-      <QuizRetakeModal
-        isOpen={showRetakeModal}
-        onClose={() => setShowRetakeModal(false)}
-        userId={userId || 0}
-        hasAccessPass={hasAccessPass}
-        quizRetakesRemaining={quizRetakesRemaining}
-        onPaymentSuccess={() => {
-          refetch();
-          setShowRetakeModal(false);
-        }}
-      />
+      {/* Quiz retake modal removed - everyone can take unlimited quizzes */}
     </div>
   );
 };

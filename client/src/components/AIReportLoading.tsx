@@ -14,6 +14,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { QuizData, BusinessPath } from "../types";
+import { reportViewManager } from "../utils/reportViewManager";
 
 // Hook to detect mobile devices
 const useIsMobile = () => {
@@ -123,6 +124,15 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
   ];
 
   const [steps, setSteps] = useState<LoadingStep[]>(loadingSteps);
+
+  // Clear any potentially stuck state on component mount
+  useEffect(() => {
+    console.log(
+      "🚀 AIReportLoading component mounted, clearing any stuck state",
+    );
+    localStorage.removeItem("ai-generation-in-progress");
+    localStorage.removeItem("ai-generation-timestamp");
+  }, []);
 
   // Generate all 6 characteristics with OpenAI
   const generateAllCharacteristics = async (
@@ -402,15 +412,33 @@ Return JSON format:
       const aiGenerationInProgress = localStorage.getItem(
         "ai-generation-in-progress",
       );
-      if (aiGenerationInProgress === "true") {
+      const flagTimestamp = localStorage.getItem("ai-generation-timestamp");
+      const currentTime = Date.now();
+
+      // Clear flag if it's older than 2 minutes (stuck flag)
+      if (aiGenerationInProgress === "true" && flagTimestamp) {
+        const timeSinceFlag = currentTime - parseInt(flagTimestamp);
+        if (timeSinceFlag > 120000) {
+          // 2 minutes
+          console.log("🧹 Clearing stuck AI generation flag");
+          localStorage.removeItem("ai-generation-in-progress");
+          localStorage.removeItem("ai-generation-timestamp");
+        } else {
+          console.log(
+            "🔄 AI generation already in progress, skipping duplicate call",
+          );
+          return;
+        }
+      } else if (aiGenerationInProgress === "true") {
         console.log(
-          "🔄 AI generation already in progress, skipping duplicate call",
+          "🔄 AI generation already in progress (no timestamp), skipping duplicate call",
         );
         return;
       }
 
       // Set flag to prevent duplicate calls
       localStorage.setItem("ai-generation-in-progress", "true");
+      localStorage.setItem("ai-generation-timestamp", currentTime.toString());
 
       const startTime = Date.now();
       let currentResults = {};
@@ -503,19 +531,81 @@ Return JSON format:
         // Step 3: Generate AI insights (SINGLE API CALL)
         const step3Result = await executeStep(2, async () => {
           console.log("🔄 Starting AI insights generation (single call)");
+          console.log("Quiz data being used:", {
+            mainMotivation: activeQuizData.mainMotivation,
+            successIncomeGoal: activeQuizData.successIncomeGoal,
+            techSkillsRating: activeQuizData.techSkillsRating,
+            riskComfortLevel: activeQuizData.riskComfortLevel,
+            directCommunicationEnjoyment:
+              activeQuizData.directCommunicationEnjoyment,
+          });
+
           const { AIService } = await import("../utils/aiService");
           const aiService = AIService.getInstance();
           const pathsForInsights =
             (currentResults as any).personalizedPaths?.slice(0, 3) || [];
 
-          // Make SINGLE comprehensive API call
-          const insights = await aiService.generatePersonalizedInsights(
-            activeQuizData,
-            pathsForInsights,
+          console.log(
+            "Paths for insights:",
+            pathsForInsights.map((p: any) => `${p.name} (${p.fitScore}%)`),
           );
 
-          console.log("✅ AI insights generation completed successfully");
-          return { aiInsights: insights };
+          // Make PREVIEW-ONLY API call for quiz loading phase
+          try {
+            console.log(
+              "📊 Generating PREVIEW insights ONLY during quiz loading phase (no full report data)",
+            );
+            const previewData = await aiService.generateResultsPreview(
+              activeQuizData,
+              pathsForInsights,
+            );
+
+            console.log(
+              "✅ Preview insights generation completed successfully",
+            );
+            console.log(
+              "Generated preview summary:",
+              previewData.previewInsights?.substring(0, 100) + "...",
+            );
+
+            // Convert preview data to expected format for backward compatibility
+            const formattedInsights = {
+              personalizedSummary: previewData.previewInsights,
+              customRecommendations: previewData.keyInsights,
+              potentialChallenges: previewData.successPredictors,
+              successStrategies: [
+                "Focus on building core skills first",
+                "Start with proven strategies",
+                "Build consistent daily habits",
+                "Connect with other entrepreneurs",
+              ],
+              personalizedActionPlan: {
+                week1: ["Complete market research", "Set up basic workspace"],
+                month1: [
+                  "Launch minimum viable version",
+                  "Gather initial feedback",
+                ],
+                month3: [
+                  "Optimize based on feedback",
+                  "Scale successful elements",
+                ],
+                month6: ["Expand offerings", "Build team if needed"],
+              },
+              motivationalMessage:
+                "You have the foundation to build a successful business. Stay consistent and trust the process.",
+            };
+
+            return { aiInsights: formattedInsights };
+          } catch (error) {
+            console.error("❌ AI insights generation failed:", error);
+            console.error(
+              "Error details:",
+              error instanceof Error ? error.message : "Unknown error",
+            );
+
+            // Return null to trigger fallback in Results component
+            return { aiInsights: null, aiGenerationError: error };
+          }
         });
         currentResults = { ...currentResults, ...step3Result };
 
@@ -602,6 +692,22 @@ Return JSON format:
 
         // Clear the generation flag
         localStorage.removeItem("ai-generation-in-progress");
+        localStorage.removeItem("ai-generation-timestamp");
+
+        // Mark this report as viewed now that it's been fully loaded
+        const quizAttemptId = parseInt(
+          localStorage.getItem("currentQuizAttemptId") || "0",
+        );
+        if (quizAttemptId && quizData) {
+          reportViewManager.markReportAsViewed(
+            quizAttemptId,
+            quizData,
+            userEmail,
+          );
+          console.log(
+            `Report for quiz attempt ${quizAttemptId} marked as viewed after AI loading completion`,
+          );
+        }
 
         // Complete and pass data to parent
         onComplete({
@@ -628,6 +734,22 @@ Return JSON format:
 
         // Clear the generation flag even on error
         localStorage.removeItem("ai-generation-in-progress");
+        localStorage.removeItem("ai-generation-timestamp");
+
+        // Mark this report as viewed even on error (user saw the loading process)
+        const quizAttemptId = parseInt(
+          localStorage.getItem("currentQuizAttemptId") || "0",
+        );
+        if (quizAttemptId && quizData) {
+          reportViewManager.markReportAsViewed(
+            quizAttemptId,
+            quizData,
+            userEmail,
+          );
+          console.log(
+            `Report for quiz attempt ${quizAttemptId} marked as viewed after AI loading completion (with errors)`,
+          );
+        }
 
         // In case of error, still complete with current data
         onComplete({

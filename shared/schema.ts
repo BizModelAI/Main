@@ -18,9 +18,6 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name"), // User's full name
   email: text("email"), // Optional email for paid users
-  hasAccessPass: boolean("has_access_pass").default(false).notNull(),
-  quizRetakesRemaining: integer("quiz_retakes_remaining").default(0).notNull(),
-  totalQuizRetakesUsed: integer("total_quiz_retakes_used").default(0).notNull(),
   isUnsubscribed: boolean("is_unsubscribed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -36,7 +33,7 @@ export const quizAttempts = pgTable("quiz_attempts", {
   completedAt: timestamp("completed_at").defaultNow().notNull(),
 });
 
-// Payments table to track quiz retake purchases
+// Payments table to track individual quiz payments
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -44,10 +41,12 @@ export const payments = pgTable("payments", {
     .notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency").default("usd").notNull(),
-  type: varchar("type").notNull(), // "access_pass" or "retake_bundle"
+  type: varchar("type").notNull(), // "access_pass" or "quiz_payment"
   stripePaymentIntentId: varchar("stripe_payment_intent_id"),
   status: varchar("status").default("pending").notNull(), // "pending", "completed", "failed"
-  retakesGranted: integer("retakes_granted").default(0).notNull(),
+  quizAttemptId: integer("quiz_attempt_id").references(() => quizAttempts.id, {
+    onDelete: "cascade",
+  }), // Links payment to specific quiz
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });
@@ -60,6 +59,19 @@ export const unpaidUserEmails = pgTable("unpaid_user_emails", {
   quizData: jsonb("quiz_data").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
+});
+
+// Report views tracking for optimizing user experience
+export const reportViews = pgTable("report_views", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  sessionId: text("session_id"), // For anonymous users
+  quizAttemptId: integer("quiz_attempt_id")
+    .references(() => quizAttempts.id, { onDelete: "cascade" })
+    .notNull(),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
 });
 
 // Password reset tokens table
@@ -103,6 +115,7 @@ export const insertUnpaidUserEmailSchema = createInsertSchema(unpaidUserEmails);
 export const insertPasswordResetTokenSchema =
   createInsertSchema(passwordResetTokens);
 export const insertRefundSchema = createInsertSchema(refunds);
+export const insertReportViewSchema = createInsertSchema(reportViews);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -118,3 +131,5 @@ export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = z.infer<
   typeof insertPasswordResetTokenSchema
 >;
+export type ReportView = typeof reportViews.$inferSelect;
+export type InsertReportView = z.infer<typeof insertReportViewSchema>;

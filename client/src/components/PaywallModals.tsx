@@ -10,6 +10,7 @@ import {
   Brain,
   CheckCircle,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -26,6 +27,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   type,
   title,
 }) => {
+  const { user } = useAuth();
+  const price = user ? "$4.99" : "$9.99";
+
   if (!isOpen) return null;
 
   const getContent = () => {
@@ -55,13 +59,13 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
             {
               content: (
                 <>
-                  <strong>Step-by-Step Launch Plans</strong> — no fluff, just
+                  <strong>Step-by-Step Launch Plans</strong> ��� no fluff, just
                   execution
                 </>
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -98,7 +102,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -134,7 +138,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -205,7 +209,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
               ),
             },
           ],
-          buttonText: "Unlock for $9.99",
+          buttonText: `Unlock for ${price}`,
           description: undefined,
           secondaryButton: undefined,
         };
@@ -369,6 +373,9 @@ interface LockedCardOverlayProps {
 export const LockedCardOverlay: React.FC<LockedCardOverlayProps> = ({
   onUnlock,
 }) => {
+  const { user } = useAuth();
+  const price = user ? "$4.99" : "$9.99";
+
   return (
     <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center p-6 text-center">
       <motion.div
@@ -389,7 +396,7 @@ export const LockedCardOverlay: React.FC<LockedCardOverlayProps> = ({
         onClick={onUnlock}
         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
       >
-        Unlock for $9.99
+        Unlock for {price}
       </button>
     </div>
   );

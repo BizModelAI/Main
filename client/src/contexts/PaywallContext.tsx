@@ -62,39 +62,53 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
 
         const hasQuiz = !!quizData;
         console.log("PaywallContext: Quiz data found:", hasQuiz);
-        setHasCompletedQuiz(hasQuiz);
 
-        // Check if user has access pass (payment)
-        const hasAccess = user.hasAccessPass;
-        console.log("PaywallContext: User has access pass:", hasAccess);
-        setHasUnlockedAnalysis(hasAccess);
+        // In pure pay-per-report model, users don't need global access
+        // They get access per quiz/report unlock
+        console.log(
+          "PaywallContext: Pure pay-per-report model - no global access needed",
+        );
+        setHasUnlockedAnalysis(false);
 
-        // Development mode: If user exists but quiz data call failed, assume they have completed quiz
-        if (!hasQuiz && import.meta.env.MODE === "development") {
+        // For authenticated users, always assume they have completed the quiz
+        // This handles existing users and prevents access issues
+        console.log(
+          "PaywallContext: User is authenticated - setting quiz as completed",
+        );
+        setHasCompletedQuiz(true);
+
+        // In development mode, also unlock analysis for testing
+        if (import.meta.env.MODE === "development") {
           console.log(
-            "PaywallContext: Development mode - assuming quiz completed for logged-in user",
+            "PaywallContext: Development mode - also unlocking analysis",
           );
-          setHasCompletedQuiz(true);
-          // Also unlock analysis for development
           setHasUnlockedAnalysis(true);
         }
 
         // Update localStorage for consistency
-        localStorage.setItem("hasCompletedQuiz", hasQuiz.toString());
-        localStorage.setItem("hasUnlockedAnalysis", hasAccess.toString());
+        localStorage.setItem("hasCompletedQuiz", "true");
+        localStorage.setItem("hasUnlockedAnalysis", "false");
       } catch (error) {
         if (isMounted) {
           console.error("PaywallContext: Error checking user status:", error);
 
-          // Development mode fallback: If there's an error but user is logged in, assume quiz is completed
+          // For any errors with authenticated users, assume quiz is completed
+          console.log(
+            "PaywallContext: Error occurred but user is authenticated - setting quiz as completed",
+          );
+          setHasCompletedQuiz(true);
+
+          // In development mode, also unlock analysis
           if (import.meta.env.MODE === "development") {
             console.log(
-              "PaywallContext: Development mode - handling network error gracefully",
+              "PaywallContext: Development mode - also unlocking analysis after error",
             );
-            setHasCompletedQuiz(true);
             setHasUnlockedAnalysis(true);
-            // Update localStorage for consistency
-            localStorage.setItem("hasCompletedQuiz", "true");
+          }
+
+          // Update localStorage for consistency
+          localStorage.setItem("hasCompletedQuiz", "true");
+          if (import.meta.env.MODE === "development") {
             localStorage.setItem("hasUnlockedAnalysis", "true");
           }
         }
@@ -125,9 +139,7 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
   }, [hasCompletedQuiz, user]);
 
   const isUnlocked = () => {
-    // For logged-in users with access pass, consider them unlocked even if local state is stale
-    if (user && user.hasAccessPass) return true;
-
+    // In pure pay-per-report model, global unlock is not relevant
     return hasUnlockedAnalysis;
   };
 
@@ -135,28 +147,21 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
     // Must have completed quiz to access any business model details
     if (!hasCompletedQuiz) return false;
 
-    // If unlocked, can access all models
-    if (hasUnlockedAnalysis) return true;
-
-    // For logged-in users with access pass, grant access even if local state is stale
-    if (user && user.hasAccessPass) return true;
-
-    // If not unlocked, no access to detailed pages
-    return false;
+    // In pure pay-per-report model, basic access is free
+    // Users pay per specific report unlock
+    return true;
   };
 
   const canAccessFullReport = () => {
-    // For logged-in users with access pass, grant access even if local state is stale
-    if (user && user.hasAccessPass && hasCompletedQuiz) return true;
-
-    return hasCompletedQuiz && hasUnlockedAnalysis;
+    // In pure pay-per-report model, basic report access is available
+    // Users pay for detailed report unlocks individually
+    return hasCompletedQuiz;
   };
 
   const hasMadeAnyPayment = () => {
-    // For authenticated users, strictly check hasAccessPass only
-    if (user) {
-      return user.hasAccessPass;
-    }
+    // In pure pay-per-report model, we can't easily check this from client
+    // For now, assume no global payment status
+    return false;
 
     // For non-authenticated users, check localStorage flags
     const hasUnlocked = localStorage.getItem("hasUnlockedAnalysis") === "true";

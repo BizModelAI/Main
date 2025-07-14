@@ -1,24 +1,61 @@
 import { QuizData, BusinessPath } from "../types";
 import { businessPaths } from "../data/businessPaths";
+import { apiPost } from "./apiClient";
 
 // AI-powered business fit analysis
 export async function generateAIPersonalizedPaths(
   data: QuizData,
 ): Promise<BusinessPath[]> {
   try {
-    const response = await fetch("/api/ai-business-fit-analysis", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ quizData: data }),
+    console.log("generateAIPersonalizedPaths: Making AI analysis request");
+
+    // Use XMLHttpRequest to avoid FullStory interference with fetch
+    const response = await new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/ai-business-fit-analysis", true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.timeout = 40000; // 40 second timeout (server has 35s)
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            console.error(
+              "generateAIPersonalizedPaths: Invalid JSON response",
+              e,
+            );
+            reject(new Error("Invalid JSON response"));
+          }
+        } else if (xhr.status === 429) {
+          console.error("generateAIPersonalizedPaths: Rate limited");
+          reject(new Error("Rate limited - too many requests"));
+        } else {
+          console.error(
+            `generateAIPersonalizedPaths: API error ${xhr.status}:`,
+            xhr.responseText,
+          );
+          reject(new Error(`API error: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => {
+        console.error("generateAIPersonalizedPaths: Network error");
+        reject(new Error("Network error"));
+      };
+      xhr.ontimeout = () => {
+        console.error(
+          "generateAIPersonalizedPaths: Request timeout after 40 seconds",
+        );
+        reject(new Error("Request timeout"));
+      };
+
+      xhr.send(JSON.stringify({ quizData: data }));
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const analysis = await response.json();
+    const analysis = response;
 
     // Convert the AI analysis to BusinessPath format
     return analysis.topMatches.map((match: any) => ({

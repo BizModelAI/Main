@@ -6,8 +6,6 @@ interface User {
   email: string;
   username: string;
   name?: string;
-  hasAccessPass: boolean;
-  quizRetakesRemaining: number;
   isTemporary?: boolean;
 }
 
@@ -50,20 +48,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const checkExistingSession = async () => {
       try {
         let response: Response;
+
+        // Use XMLHttpRequest first to avoid FullStory interference
         try {
-          response = await fetch("/api/auth/me", {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-        } catch (fetchError) {
           console.log(
-            "Session check: Fetch failed, trying XMLHttpRequest fallback",
+            "Session check: Using XMLHttpRequest to avoid FullStory issues",
           );
 
-          // XMLHttpRequest fallback
           const xhr = new XMLHttpRequest();
           xhr.open("GET", "/api/auth/me", true);
           xhr.withCredentials = true;
@@ -71,14 +62,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
           response = await new Promise<Response>((resolve, reject) => {
             xhr.onload = () => {
+              const responseText = xhr.responseText;
               resolve({
                 ok: xhr.status >= 200 && xhr.status < 300,
                 status: xhr.status,
                 statusText: xhr.statusText,
-                json: () => Promise.resolve(JSON.parse(xhr.responseText)),
-                text: () => Promise.resolve(xhr.responseText),
+                json: () => {
+                  try {
+                    return Promise.resolve(JSON.parse(responseText));
+                  } catch (e) {
+                    return Promise.reject(new Error("Invalid JSON response"));
+                  }
+                },
+                text: () => Promise.resolve(responseText),
                 headers: new Headers(),
-                url: "",
+                url: "/api/auth/me",
                 redirected: false,
                 type: "basic",
                 clone: () => response,
@@ -89,9 +87,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 formData: () => Promise.resolve(new FormData()),
               } as Response);
             };
-            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.onerror = () =>
+              reject(new Error("XMLHttpRequest network error"));
+            xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+            xhr.timeout = 10000; // 10 second timeout
             xhr.send();
           });
+        } catch (xhrError) {
+          console.log(
+            "Session check: XMLHttpRequest failed, trying fetch fallback",
+          );
+
+          // Fallback to fetch
+          try {
+            response = await fetch("/api/auth/me", {
+              method: "GET",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+          } catch (fetchError) {
+            console.error(
+              "Session check: Both XMLHttpRequest and fetch failed:",
+              {
+                xhrError,
+                fetchError,
+              },
+            );
+            throw new Error("All request methods failed");
+          }
         }
 
         if (!isMounted) return; // Component unmounted, don't update state
@@ -269,7 +294,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
     if (!user) {
       console.log("updateProfile: No user found, aborting");
-      return;
+      throw new Error("No user logged in");
     }
 
     console.log("updateProfile: Starting with data:", updates);
@@ -278,38 +303,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       name: user.name,
       email: user.email,
     });
-
-    // First check if the session is still valid
-    try {
-      const authCheck = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("updateProfile: Auth check status:", authCheck.status);
-
-      if (!authCheck.ok) {
-        console.log(
-          "updateProfile: Session invalid, clearing client auth state",
-        );
-        // Clear the client-side user state since server doesn't recognize the session
-        setUser(null);
-        throw new Error("Your session has expired. Please log in again.");
-      }
-
-      // If auth check passes, refresh user data
-      const userData = await authCheck.json();
-      setUser(userData);
-      console.log("updateProfile: Auth check passed, user data refreshed");
-    } catch (authError) {
-      console.error("updateProfile: Auth check failed:", authError);
-      // Clear client auth state on any auth error
-      setUser(null);
-      throw new Error("Authentication check failed. Please log in again.");
-    }
 
     setIsLoading(true);
     try {
@@ -368,9 +361,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           });
           // Provide more specific error message for common cases
           if (response.status === 401) {
-            console.log("updateProfile: 401 error, clearing user state");
-            setUser(null); // Clear user state on authentication error
-            errorMessage = "Not authenticated. Please log in and try again.";
+            console.log("updateProfile: 401 error, session expired");
+            errorMessage =
+              "Your session has expired. Please log in and try again.";
           } else if (response.status === 403) {
             errorMessage = "Permission denied.";
           } else if (response.status >= 500) {
@@ -413,15 +406,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return null;
     }
 
-    // First verify the session is valid by checking auth status
+    // First verify the session is valid by checking auth status using XMLHttpRequest
     try {
-      const authCheck = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", "/api/auth/me", true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      const authCheck = await new Promise<{ ok: boolean; status: number }>(
+        (resolve, reject) => {
+          xhr.onload = () => {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+            });
+          };
+          xhr.onerror = () =>
+            reject(new Error("Auth check XMLHttpRequest failed"));
+          xhr.timeout = 5000; // 5 second timeout for auth check
+          xhr.ontimeout = () => reject(new Error("Auth check timeout"));
+          xhr.send();
         },
-      });
+      );
 
       if (!authCheck.ok) {
         console.log(
@@ -442,53 +448,85 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         email: user.email,
       });
 
-      // Workaround for FullStory fetch interference
-      const originalFetch = window.fetch;
       let response: Response;
 
-      // Try with XMLHttpRequest as fallback
+      // Always use XMLHttpRequest to avoid FullStory interference
       try {
-        response = await originalFetch(url, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      } catch (fetchError) {
         console.log(
-          "getLatestQuizData: Fetch failed, trying XMLHttpRequest fallback",
+          "getLatestQuizData: Using XMLHttpRequest to avoid FullStory issues",
         );
 
-        // XMLHttpRequest fallback
         const xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.withCredentials = true;
         xhr.setRequestHeader("Content-Type", "application/json");
 
-        response = await new Promise<Response>((resolve, reject) => {
-          xhr.onload = () => {
-            resolve({
-              ok: xhr.status >= 200 && xhr.status < 300,
-              status: xhr.status,
-              statusText: xhr.statusText,
-              json: () => Promise.resolve(JSON.parse(xhr.responseText)),
-              text: () => Promise.resolve(xhr.responseText),
-              headers: new Headers(),
-              url: "",
-              redirected: false,
-              type: "basic",
-              clone: () => response,
-              body: null,
-              bodyUsed: false,
-              arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-              blob: () => Promise.resolve(new Blob()),
-              formData: () => Promise.resolve(new FormData()),
-            } as Response);
-          };
-          xhr.onerror = () => reject(new Error("Network error"));
-          xhr.send();
-        });
+        response = await Promise.race([
+          new Promise<Response>((resolve, reject) => {
+            xhr.onload = () => {
+              const responseText = xhr.responseText;
+              resolve({
+                ok: xhr.status >= 200 && xhr.status < 300,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                json: () => {
+                  try {
+                    return Promise.resolve(JSON.parse(responseText));
+                  } catch (e) {
+                    return Promise.reject(new Error("Invalid JSON response"));
+                  }
+                },
+                text: () => Promise.resolve(responseText),
+                headers: new Headers(),
+                url: url,
+                redirected: false,
+                type: "basic",
+                clone: () => response,
+                body: null,
+                bodyUsed: false,
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+                blob: () => Promise.resolve(new Blob()),
+                formData: () => Promise.resolve(new FormData()),
+              } as Response);
+            };
+            xhr.onerror = () =>
+              reject(new Error("XMLHttpRequest network error"));
+            xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+            xhr.timeout = 10000; // 10 second timeout
+            xhr.send();
+          }),
+          // Additional timeout safety net
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Request timeout after 15 seconds")),
+              15000,
+            ),
+          ),
+        ]);
+      } catch (xhrError) {
+        console.log(
+          "getLatestQuizData: XMLHttpRequest failed, trying fetch as last resort",
+        );
+
+        // Try fetch as last resort
+        try {
+          response = await fetch(url, {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        } catch (fetchError) {
+          console.error(
+            "getLatestQuizData: Both XMLHttpRequest and fetch failed:",
+            {
+              xhrError,
+              fetchError,
+            },
+          );
+          throw new Error("All request methods failed");
+        }
       }
 
       console.log("getLatestQuizData: Response status:", response.status);

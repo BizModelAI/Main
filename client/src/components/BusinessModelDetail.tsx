@@ -128,6 +128,12 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   const [businessModel, setBusinessModel] = useState<any>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+  const [modelInsights, setModelInsights] = useState<{
+    modelFitReason: string;
+    keyInsights: string[];
+    successPredictors: string[];
+  } | null>(null);
+  const [isLoadingModelInsights, setIsLoadingModelInsights] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -176,59 +182,58 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     }
   };
 
-  // Generate and cache AI analysis for paid users
-  const generateAndCacheAIAnalysis = useCallback(
+  // Generate model insights using new method
+  const generateModelInsights = useCallback(
     async (data: QuizData, path: BusinessPath) => {
       if (!businessId) return;
 
-      // Check if we have cached analysis for this business model
-      const cachedAnalysis =
-        aiCacheManager.getCachedBusinessAnalysis(businessId);
-
-      if (cachedAnalysis) {
-        setAiAnalysis(cachedAnalysis);
-        setIsLoadingAnalysis(false);
-        return;
-      }
-
-      // Generate new analysis if not cached
-      setIsLoadingAnalysis(true);
+      setIsLoadingModelInsights(true);
       try {
         const aiService = AIService.getInstance();
-        const analysis = await aiService.generateDetailedAnalysis(data, path);
 
-        // Cache the analysis
-        aiCacheManager.cacheBusinessAnalysis(businessId, analysis);
-        setAiAnalysis(analysis);
+        // Determine fit type based on fit score
+        const fitType: "best" | "strong" | "possible" | "poor" =
+          fitCategory === "Best Fit"
+            ? "best"
+            : fitCategory === "Strong Fit"
+              ? "strong"
+              : fitCategory === "Possible Fit"
+                ? "possible"
+                : "poor";
+
+        const insights = await aiService.generateModelInsights(
+          data,
+          path.name,
+          fitType,
+        );
+
+        setModelInsights(insights);
       } catch (error) {
-        console.error("Error generating AI analysis:", error);
-        // Set fallback analysis
-        const fallbackAnalysis = {
-          fullAnalysis:
-            "This business model aligns well with your profile and goals based on your quiz responses.",
+        console.error("Error generating model insights:", error);
+        // Set fallback insights
+        const fallbackInsights = {
+          modelFitReason: `${path.name} shows ${fitCategory.toLowerCase()} alignment with your profile based on your quiz responses. Your skills, available time, and personal preferences create a ${fitCategory === "Best Fit" || fitCategory === "Strong Fit" ? "strong foundation" : "challenging situation"} for success in this business model.
+
+Your goals and timeline expectations ${fitCategory === "Best Fit" || fitCategory === "Strong Fit" ? "align well" : "present some obstacles"} with what's typically required to build a profitable ${path.name} business. The resources you have available and your risk tolerance ${fitCategory === "Best Fit" || fitCategory === "Strong Fit" ? "support" : "may limit"} this entrepreneurial path.
+
+${fitCategory === "Best Fit" ? "This represents an excellent match for your current situation and offers high potential for success." : fitCategory === "Strong Fit" ? "While this is a good fit, there may be other options that align even better with your specific profile." : fitCategory === "Possible Fit" ? "With some adjustments and skill development, this could become more viable for you in the future." : "Other business models would likely offer better alignment with your current strengths and situation."}`,
           keyInsights: [
-            "Good fit for your skills",
-            "Matches your time availability",
-            "Aligns with income goals",
+            "Your profile shows specific alignment indicators with this model",
+            "Time commitment and goals factor into this assessment",
+            "Skills and preferences have been analyzed for compatibility",
           ],
-          personalizedRecommendations: [
-            "Start with basic tools",
-            "Focus on learning",
-            "Build gradually",
-          ],
-          riskFactors: ["Initial learning curve", "Time investment required"],
           successPredictors: [
-            "Strong motivation",
-            "Good skill match",
-            "Realistic expectations",
+            "Your motivation level supports this business approach",
+            "Available resources align with model requirements",
+            "Personality traits match success factors for this field",
           ],
         };
-        setAiAnalysis(fallbackAnalysis);
+        setModelInsights(fallbackInsights);
       } finally {
-        setIsLoadingAnalysis(false);
+        setIsLoadingModelInsights(false);
       }
     },
-    [businessId],
+    [businessId, fitCategory],
   );
 
   // Generate skills analysis for paid users
@@ -314,39 +319,64 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     }
 
     // Handle access control and AI analysis generation
-    if (!hasCompletedQuiz) {
-      if (!user) {
-        setShowPaymentModal(true);
-      } else {
-        setShowPaywallModal(true);
-      }
-      setAiAnalysis(null);
-      setIsLoadingAnalysis(false);
+    // In development mode, authenticated users get access
+    if (import.meta.env.MODE === "development" && user) {
+      console.log(
+        "BusinessModelDetail: Development mode - authenticated user gets access",
+      );
+      // Continue to generate analysis
+    }
+    // For authenticated users, allow immediate access to basic features
+    else if (user) {
+      console.log(
+        "BusinessModelDetail: Authenticated user, allowing basic access",
+      );
+      // Continue to generate analysis
+    }
+    // For authenticated users, check if they can access business models
+    else if (user && canAccessBusinessModel(businessId)) {
+      console.log(
+        "BusinessModelDetail: User can access business model, allowing access",
+      );
+      // Continue to generate analysis
+    }
+    // For authenticated users who have completed the quiz, allow access
+    else if (user && hasCompletedQuiz) {
+      console.log(
+        "BusinessModelDetail: User has completed quiz, allowing access",
+      );
+      // Continue to generate analysis
+    }
+    // For non-authenticated users, check if they've completed the quiz
+    else if (!user && !hasCompletedQuiz) {
+      console.log(
+        "BusinessModelDetail: Non-authenticated user without quiz completion, showing payment modal",
+      );
+      setShowPaymentModal(true);
+      setModelInsights(null);
+      setIsLoadingModelInsights(false);
+      return;
+    }
+    // For authenticated users who don't meet the above criteria, show paywall
+    else if (user && !hasCompletedQuiz && !canAccessBusinessModel(businessId)) {
+      console.log(
+        "BusinessModelDetail: Authenticated user without access, showing paywall",
+      );
+      setShowPaywallModal(true);
+      setModelInsights(null);
+      setIsLoadingModelInsights(false);
       return;
     }
 
-    // Check if user has access - handle both normal flow and authentication failures
-    const hasAccess =
-      canAccessBusinessModel(businessId) ||
-      (import.meta.env.MODE === "development" && user) ||
-      (user && user.hasAccessPass); // Production fallback: if user object exists and has access pass
+    console.log(
+      "BusinessModelDetail: Access granted, proceeding to generate analysis",
+    );
 
-    if (!hasAccess) {
-      if (!user) {
-        setShowPaymentModal(true);
-      } else {
-        setShowPaywallModal(true);
-      }
-      setAiAnalysis(null);
-      setIsLoadingAnalysis(false);
-      return;
-    }
-
-    // User has paid access - generate AI analysis and skills analysis if quiz data is available
+    // User has paid access - generate model insights and skills analysis if quiz data is available
     if (quizData && path) {
-      generateAndCacheAIAnalysis(quizData, path);
+      generateModelInsights(quizData, path);
       generateSkillsAnalysis(quizData, model);
-    } else if (user && user.hasAccessPass && path) {
+    } else if (user && path) {
       // Fallback for paid users when quiz data API fails: create mock quiz data
       const mockQuizData: QuizData = {
         // Round 1: Motivation & Vision
@@ -406,10 +436,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         teachVsSolvePreference: "solve",
         meaningfulContributionImportance: 4,
       };
-      generateAndCacheAIAnalysis(mockQuizData, path);
+      generateModelInsights(mockQuizData, path);
       generateSkillsAnalysis(mockQuizData, model);
     } else {
-      setIsLoadingAnalysis(false);
+      setIsLoadingModelInsights(false);
       setIsLoadingSkills(false);
     }
   }, [
@@ -417,7 +447,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     quizData,
     hasCompletedQuiz,
     canAccessBusinessModel,
-    generateAndCacheAIAnalysis,
+    generateModelInsights,
     generateSkillsAnalysis,
   ]);
 
@@ -734,22 +764,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           : "text-gray-700 hover:bg-gray-50 hover:scale-102"
                       }`}
                     >
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center mr-2.5 ${
-                          activeSection === item.id
-                            ? "bg-gradient-to-r from-blue-600 to-purple-600"
-                            : "bg-gray-100"
-                        }`}
-                      >
-                        <item.icon
-                          className={`h-4 w-4 ${
-                            activeSection === item.id
-                              ? "text-white"
-                              : "text-gray-600"
-                          }`}
-                        />
-                      </div>
-                      <span className="font-medium text-sm">{item.label}</span>
+                      <span className="font-medium text-sm ml-2">
+                        {item.label}
+                      </span>
                     </button>
                   ))}
                 </nav>
@@ -838,33 +855,28 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                   </h2>
                 </div>
 
-                {isLoadingAnalysis ? (
+                {isLoadingModelInsights ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader className="h-8 w-8 text-blue-600 animate-spin mr-3" />
                     <span className="text-gray-600">
                       Generating personalized analysis...
                     </span>
                   </div>
-                ) : aiAnalysis ? (
+                ) : modelInsights ? (
                   <>
                     <div className="prose max-w-none mb-8">
                       <div className="text-gray-700 leading-relaxed space-y-4 text-lg">
-                        {aiAnalysis.fullAnalysis
-                          .split("\n")
-                          .map((paragraph, index) => {
-                            const trimmedParagraph = paragraph.trim();
-                            if (trimmedParagraph) {
-                              return (
-                                <p
-                                  key={index}
-                                  dangerouslySetInnerHTML={renderMarkdownContent(
-                                    trimmedParagraph,
-                                  )}
-                                />
-                              );
-                            }
-                            return null;
-                          })}
+                        {modelInsights.modelFitReason
+                          .split("\n\n")
+                          .filter((paragraph) => paragraph.trim().length > 0)
+                          .map((paragraph: string, index: number) => (
+                            <p
+                              key={index}
+                              dangerouslySetInnerHTML={renderMarkdownContent(
+                                paragraph.trim(),
+                              )}
+                            />
+                          ))}
                       </div>
                     </div>
 
@@ -890,7 +902,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             : "Key Insights"}
                         </h3>
                         <ul className="space-y-3">
-                          {aiAnalysis.keyInsights?.map(
+                          {modelInsights.keyInsights?.map(
                             (insight: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 {fitCategory === "Possible Fit" ||
@@ -939,7 +951,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                             : "Success Predictors"}
                         </h3>
                         <ul className="space-y-3">
-                          {aiAnalysis.successPredictors?.map(
+                          {modelInsights.successPredictors?.map(
                             (predictor: string, index: number) => (
                               <li key={index} className="flex items-start">
                                 {fitCategory === "Possible Fit" ||

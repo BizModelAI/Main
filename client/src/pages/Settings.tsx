@@ -60,12 +60,28 @@ const Settings: React.FC = () => {
       return;
     }
 
+    // Basic validation - allow saving even if names are empty (users can set them)
+    if (
+      !formData.firstName.trim() &&
+      !formData.lastName.trim() &&
+      !formData.email.trim()
+    ) {
+      setSaveStatus("error");
+      console.error("Settings: At least one field must be provided");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+      return;
+    }
+
     setSaveStatus("saving");
     try {
       // Create clean server data with only valid User fields
+      const firstName = formData.firstName.trim();
+      const lastName = formData.lastName.trim();
+      const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
       const serverData = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
+        name: fullName,
+        email: formData.email.trim(),
       };
 
       console.log("Settings: Saving profile data:", {

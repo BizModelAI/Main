@@ -19,6 +19,8 @@ interface EnhancedPaymentFormProps {
   onError: (error: string) => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
+  amount?: number;
+  isFirstReport?: boolean;
 }
 
 const PaymentMethodSelector: React.FC<{
@@ -141,7 +143,8 @@ const CreditCardForm: React.FC<{
   onSubmit: (event: React.FormEvent) => void;
   isProcessing: boolean;
   clientSecret: string;
-}> = ({ onSubmit, isProcessing, clientSecret }) => {
+  amount: number;
+}> = ({ onSubmit, isProcessing, clientSecret, amount }) => {
   const [billingDetails, setBillingDetails] = useState({
     name: "Casey Dunham",
   });
@@ -209,7 +212,7 @@ const CreditCardForm: React.FC<{
         ) : (
           <>
             <CheckCircle className="h-4 w-4 mr-2" />
-            Pay $9.99 Securely
+            Pay ${amount.toFixed(2)} Securely
           </>
         )}
       </button>
@@ -222,7 +225,8 @@ const PayPalForm: React.FC<{
   onError: (error: string) => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
-}> = ({ onSuccess, onError, isProcessing, setIsProcessing }) => {
+  amount: number;
+}> = ({ onSuccess, onError, isProcessing, setIsProcessing, amount }) => {
   const { user } = useAuth();
 
   const createOrder = async () => {
@@ -242,7 +246,12 @@ const PayPalForm: React.FC<{
         requestBody.userId = parseInt(user?.id || "0");
       }
 
-      const response = await fetch("/api/create-paypal-payment", {
+      // Use appropriate endpoint based on user type
+      const endpoint = isTemporaryUser
+        ? "/api/create-paypal-anonymous-report-unlock-payment"
+        : "/api/create-paypal-report-unlock-payment";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -251,12 +260,13 @@ const PayPalForm: React.FC<{
         body: JSON.stringify(requestBody),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create PayPal payment");
+        throw new Error(data.error || "Failed to create PayPal payment");
       }
 
-      const { orderID } = await response.json();
+      const { orderID } = data;
       return orderID;
     } catch (error) {
       console.error("Error creating PayPal order:", error);
@@ -281,12 +291,11 @@ const PayPalForm: React.FC<{
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to capture PayPal payment");
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to capture PayPal payment");
+      }
       if (result.success) {
         onSuccess();
       } else {
@@ -336,6 +345,8 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
   onError,
   isProcessing,
   setIsProcessing,
+  amount = 9.99,
+  isFirstReport = true,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -365,7 +376,12 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           requestBody.userId = parseInt(user.id);
         }
 
-        const response = await fetch("/api/create-access-pass-payment", {
+        // Use appropriate endpoint based on user type
+        const endpoint = isTemporaryUser
+          ? "/api/create-anonymous-report-unlock-payment"
+          : "/api/create-report-unlock-payment";
+
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -374,12 +390,13 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           body: JSON.stringify(requestBody),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create payment intent");
+          throw new Error(data.error || "Failed to create payment intent");
         }
 
-        const { clientSecret } = await response.json();
+        const { clientSecret } = data;
         setClientSecret(clientSecret);
       } catch (error) {
         console.error("Error creating payment intent:", error);
@@ -436,10 +453,13 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between">
           <span className="font-medium text-blue-900">Total:</span>
-          <span className="text-2xl font-bold text-blue-900">$9.99</span>
+          <span className="text-2xl font-bold text-blue-900">
+            ${amount.toFixed(2)}
+          </span>
         </div>
         <p className="text-sm text-blue-700 mt-1">
-          One-time payment • Instant access
+          {isFirstReport ? "First report unlock" : "Report unlock"} • Instant
+          access
         </p>
       </div>
 
@@ -453,6 +473,7 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           onSubmit={handleCardSubmit}
           isProcessing={isProcessing}
           clientSecret={clientSecret}
+          amount={amount}
         />
       ) : (
         <PayPalForm
@@ -460,6 +481,7 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           onError={onError}
           isProcessing={isProcessing}
           setIsProcessing={setIsProcessing}
+          amount={amount}
         />
       )}
 
@@ -478,6 +500,8 @@ interface EnhancedPaymentWrapperProps {
   onError: (error: string) => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
+  amount?: number;
+  isFirstReport?: boolean;
 }
 
 export const EnhancedPaymentWrapper: React.FC<EnhancedPaymentWrapperProps> = (
