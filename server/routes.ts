@@ -199,10 +199,21 @@ export async function registerRoutes(app: Express): Promise<void> {
       console.error("Error in OpenAI chat:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      res.status(500).json({
-        error: "OpenAI API request failed",
-        details: errorMessage,
-      });
+
+      // Handle rate limit errors specifically
+      if (error instanceof Error && error.message.includes("429")) {
+        console.warn("🚫 Rate limited by OpenAI");
+        res.status(429).json({
+          error: "Rate limited by OpenAI",
+          details: "Please try again in a few seconds",
+          retry: true,
+        });
+      } else {
+        res.status(500).json({
+          error: "OpenAI API request failed",
+          details: errorMessage,
+        });
+      }
     }
   });
 
