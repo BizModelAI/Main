@@ -647,6 +647,14 @@ export async function registerRoutes(app: Express): Promise<void> {
       }
 
       const attempts = await storage.getQuizAttempts(userId);
+      console.log(
+        `Quiz attempts for user ${userId}: Found ${attempts.length} attempts`,
+      );
+      if (attempts.length > 0) {
+        console.log(
+          `Latest attempt: ID ${attempts[0].id}, completed at ${attempts[0].completedAt}`,
+        );
+      }
       res.json(attempts);
     } catch (error) {
       console.error("Error getting quiz attempts:", error);
