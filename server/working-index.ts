@@ -19,23 +19,24 @@ app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "10mb" })); // Increased limit for quiz data
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// Session configuration with proper security settings
+// Session configuration optimized for development with security
 app.use(
   session({
     secret:
-      process.env.SESSION_SECRET || "fallback-secret-for-development-only",
+      process.env.SESSION_SECRET ||
+      "development-secret-key-change-in-production",
     resave: false, // Don't save session if unmodified
-    saveUninitialized: false, // Don't save empty sessions
+    saveUninitialized: true, // Save uninitialized sessions for better compatibility
     store: new MemoryStoreSession({
       checkPeriod: 86400000,
       max: 10000,
       ttl: 86400000,
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true, // Secure cookie setting
+      secure: false, // Allow over HTTP in development
+      httpOnly: true, // Prevent XSS attacks
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "lax", // CSRF protection
+      sameSite: "lax", // CSRF protection while allowing normal navigation
     },
     rolling: true, // Extend session on activity
     name: "connect.sid",
