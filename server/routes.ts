@@ -695,6 +695,15 @@ export async function registerRoutes(app: Express): Promise<void> {
         quizData,
       });
 
+      // Also decrement retakes for paid users with access pass
+      const user = await storage.getUser(userId);
+      const isPaid = await storage.isPaidUser(userId);
+      const hasAccessPass = user.hasAccessPass;
+
+      if (isPaid && hasAccessPass && user.quizRetakesRemaining > 0) {
+        await storage.decrementQuizRetakes(userId);
+      }
+
       res.json({ success: true, attemptId: attempt.id });
     } catch (error) {
       console.error("Error saving quiz data:", error);
