@@ -1704,10 +1704,10 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 </h4>
                 <p
                   className={`text-xs md:text-sm ${
-                    hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
+                    canViewFullReport ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
-                  {hasUnlockedAnalysis
+                  {canViewFullReport
                     ? "Share your business match with friends, family, and mentors"
                     : "Unlock full analysis to share your results"}
                 </p>
