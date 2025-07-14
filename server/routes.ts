@@ -953,9 +953,9 @@ export async function registerRoutes(app: Express): Promise<void> {
         if (user && user.hasAccessPass) {
           // User has access but needs more retakes - $4.99
           amount = "4.99";
-          retakesGranted = "4";
+          retakesGranted = "2";
           paymentType = "retakes";
-          description = "BizModelAI Quiz Retakes - 4 additional attempts";
+          description = "BizModelAI Quiz Retakes - 2 additional attempts";
         } else {
           // New user needs full access - $9.99
           amount = "9.99";
