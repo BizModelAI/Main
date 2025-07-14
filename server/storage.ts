@@ -327,8 +327,9 @@ export class MemStorage implements IStorage {
   }
 
   async isPaidUser(userId: number): Promise<boolean> {
-    const user = await this.getUser(userId);
-    return user ? user.hasAccessPass : false;
+    // In pay-per-report model, we check if user has any completed payments
+    const payments = await this.getPaymentsByUser(userId);
+    return payments.some((p) => p.status === "completed");
   }
 
   async createPasswordResetToken(
