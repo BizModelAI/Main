@@ -139,6 +139,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
   const [showAILoading, setShowAILoading] = useState(false);
+  const [showFullReportLoading, setShowFullReportLoading] = useState(false);
   const [loadedReportData, setLoadedReportData] = useState<any>(null);
   const [personalizedPaths, setPersonalizedPaths] = useState<BusinessPath[]>(
     [],
