@@ -982,13 +982,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Check if user already has access pass (no payment needed for additional quizzes)
-      if (user.hasAccessPass) {
-        return res.status(400).json({
-          error:
-            "User with access pass doesn't need to pay for additional quizzes",
-        });
-      }
+      // Note: Even users with access pass need to pay for additional quizzes
+      // Access pass only provides access to full reports, not unlimited quiz retakes
 
       // Check if this is their first quiz (should be free)
       const existingAttempts = await storage.getQuizAttempts(userId);
