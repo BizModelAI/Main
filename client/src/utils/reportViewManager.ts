@@ -86,7 +86,7 @@ export class ReportViewManager {
   hasViewedReport(
     quizAttemptId: number,
     quizData?: QuizData,
-    userEmail?: string,
+    userEmail?: string | null,
   ): boolean {
     const viewedReports = this.getViewedReports();
 
