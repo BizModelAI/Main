@@ -910,20 +910,22 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Quiz Status and History Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-12 mb-8"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <QuizRetakeDashboard
-              userId={user ? parseInt(String(user.id)) : 1}
-              onRetakeQuiz={() => handleNavigateWithScrollToTop("/quiz")}
-            />
-            <QuizAttemptHistory userId={user ? parseInt(String(user.id)) : 1} />
-          </div>
-        </motion.div>
+        {user && !authLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-12 mb-8"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <QuizRetakeDashboard
+                userId={parseInt(String(user.id))}
+                onRetakeQuiz={() => handleNavigateWithScrollToTop("/quiz")}
+              />
+              <QuizAttemptHistory userId={parseInt(String(user.id))} />
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
