@@ -138,23 +138,35 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const {
         prompt,
-        maxTokens = 200,
+        maxTokens = 1200,
         temperature = 0.7,
         responseFormat = null,
+        systemMessage,
       } = req.body;
 
       if (!prompt) {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
+      const messages = [];
+
+      // Add system message if provided
+      if (systemMessage) {
+        messages.push({
+          role: "system",
+          content: systemMessage,
+        });
+      }
+
+      // Add user prompt
+      messages.push({
+        role: "user",
+        content: prompt,
+      });
+
       const requestBody: any = {
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+        messages,
         max_tokens: maxTokens,
         temperature: temperature,
       };
