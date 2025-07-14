@@ -141,9 +141,9 @@ CRITICAL RULES:
         return `${basePrompt}
 
 FIT TYPE: BEST - This is their ideal match
-- modelFitReason: Explain why ${modelName} is the user's ideal match. Use clear, confident tone.
-- keyInsights: All positive insights about why this works for them
-- successPredictors: Traits that increase their odds of success
+- modelFitReason: Write exactly 3 paragraphs explaining why ${modelName} is the user's ideal match. Use clear, confident tone. Each paragraph should cover different aspects: alignment with their traits, how it fits their goals/timeline, and why it's their best option.
+- keyInsights: Exactly 3 positive insights about why this works for them
+- successPredictors: Exactly 3 traits that increase their odds of success
 
 Be enthusiastic and confident about this being their perfect fit.`;
 
