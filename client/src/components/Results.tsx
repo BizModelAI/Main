@@ -1715,8 +1715,24 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             </div>
           </motion.div>
 
+          {/* Report Unlock Section for Access Pass Users */}
+          {user?.hasAccessPass && !isReportUnlocked && quizAttemptId && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="mt-12"
+            >
+              <ReportUnlockPaywall
+                quizAttemptId={quizAttemptId}
+                onUnlock={refreshUnlockStatus}
+                preview={true}
+              />
+            </motion.div>
+          )}
+
           {/* Unlock Premium Section - Hide when user has paid */}
-          {!hasUnlockedAnalysis && (
+          {!hasUnlockedAnalysis && !user?.hasAccessPass && (
             <motion.div
               className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
