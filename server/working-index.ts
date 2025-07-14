@@ -22,24 +22,22 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 // Session configuration with improved concurrency support
 app.use(
   session({
-    secret:
-      process.env.SESSION_SECRET || "your-secret-key-change-in-production",
-    resave: false,
-    saveUninitialized: false,
+    secret: "debug-secret-key",
+    resave: true, // Force save for debugging
+    saveUninitialized: true, // Save uninitialized sessions
     store: new MemoryStoreSession({
-      checkPeriod: 86400000, // 24 hours
-      max: 100000, // Increased max sessions for concurrent users
-      ttl: 86400000, // Session TTL
+      checkPeriod: 86400000,
+      max: 10000,
+      ttl: 86400000,
     }),
     cookie: {
-      secure: false, // Disable secure for debugging
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "lax", // Use lax for development
+      secure: false,
+      httpOnly: false, // Disable httpOnly for debugging
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: false, // Disable sameSite for debugging
     },
-    // Improved settings for concurrent access
-    rolling: true, // Reset expiry on activity
-    name: "bizmodel.sid", // Custom session name
+    rolling: false, // Disable rolling for debugging
+    name: "connect.sid", // Use default name
   }),
 );
 
