@@ -518,8 +518,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
 
       // Logic: Guests can take quiz unlimited times for free
-      // If they pay $9.99, they get 5 total attempts (limited)
-      // After 5 attempts, they pay $4.99 for 5 more attempts
+      // If they pay $9.99, they get 3 total attempts (limited)
+      // After 3 attempts, they pay $4.99 for 3 more attempts
 
       const isGuestUser =
         !user.hasAccessPass && user.quizRetakesRemaining === 0;
