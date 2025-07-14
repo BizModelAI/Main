@@ -609,14 +609,20 @@ export async function registerRoutes(app: Express): Promise<void> {
   app.get("/api/quiz-attempts/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      const currentUserId = getUserIdFromRequest(req);
 
       // Check if user is authenticated
-      if (!req.session.userId) {
+      if (!currentUserId) {
+        console.log("Quiz attempts: Not authenticated", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: currentUserId,
+          sessionKey: getSessionKey(req),
+        });
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       // Check if user is requesting their own data
-      if (req.session.userId !== userId) {
+      if (currentUserId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
 
