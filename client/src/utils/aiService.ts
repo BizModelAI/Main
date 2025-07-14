@@ -696,7 +696,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
 
   async makeOpenAIRequest(
     prompt: string,
-    maxTokens: number = 200,
+    maxTokens: number = 1200,
     temperature: number = 0.7,
     retries: number = 3,
   ): Promise<string> {
@@ -1255,28 +1255,72 @@ CRITICAL RULES:
   }
 
   private createUserProfile(quizData: QuizData): string {
-    return `
-User Profile:
-- Main Motivation: ${quizData.mainMotivation || "Not specified"}
-- Income Goal: ${quizData.successIncomeGoal ? this.getIncomeGoalRange(quizData.successIncomeGoal) : "Not specified"}
-- Time to First Income: ${quizData.firstIncomeTimeline || "Not specified"}
-- Investment Budget: ${quizData.upfrontInvestment ? this.getInvestmentRange(quizData.upfrontInvestment) : "Not specified"}
-- Weekly Time Commitment: ${quizData.weeklyTimeCommitment ? this.getTimeCommitmentRange(quizData.weeklyTimeCommitment) : "Not specified"}
-- Tech Skills: ${quizData.techSkillsRating ? this.getRatingDescription(quizData.techSkillsRating) : "Not specified"}
-- Brand Face Comfort: ${quizData.brandFaceComfort ? this.getRatingDescription(quizData.brandFaceComfort) : "Not specified"}
-- Creative Work Enjoyment: ${quizData.creativeWorkEnjoyment ? this.getRatingDescription(quizData.creativeWorkEnjoyment) : "Not specified"}
-- Communication Enjoyment: ${quizData.directCommunicationEnjoyment ? this.getRatingDescription(quizData.directCommunicationEnjoyment) : "Not specified"}
-- Self Motivation: ${quizData.selfMotivationLevel ? this.getRatingDescription(quizData.selfMotivationLevel) : "Not specified"}
-- Risk Comfort: ${quizData.riskComfortLevel ? this.getRatingDescription(quizData.riskComfortLevel) : "Not specified"}
-- Work Structure Preference: ${quizData.workStructurePreference || "Not specified"}
-- Work Collaboration Preference: ${quizData.workCollaborationPreference || "Not specified"}
-- Decision Making Style: ${quizData.decisionMakingStyle || "Not specified"}
-- Social Media Interest: ${quizData.socialMediaInterest ? this.getRatingDescription(quizData.socialMediaInterest) : "Not specified"}
-- Familiar Tools: ${quizData.familiarTools?.join(", ") || "None specified"}
-- Learning Preference: ${quizData.learningPreference || "Not specified"}
-- Passion Alignment Importance: ${quizData.passionIdentityAlignment ? this.getRatingDescription(quizData.passionIdentityAlignment) : "Not specified"}
-- Meaningful Contribution Importance: ${quizData.meaningfulContributionImportance ? this.getRatingDescription(quizData.meaningfulContributionImportance) : "Not specified"}
-    `.trim();
+    // Get top scoring business path for reference
+    const businessPaths = this.calculateBusinessPaths(quizData);
+    const topMatch = businessPaths[0];
+
+    // Extract motivations from quiz data
+    const motivations = [];
+    if (
+      quizData.passionIdentityAlignment &&
+      quizData.passionIdentityAlignment >= 4
+    )
+      motivations.push("purpose");
+    if (
+      quizData.meaningfulContributionImportance &&
+      quizData.meaningfulContributionImportance >= 4
+    )
+      motivations.push("impact");
+    if (quizData.successIncomeGoal && parseInt(quizData.successIncomeGoal) >= 5)
+      motivations.push("financial");
+    if (motivations.length === 0) motivations.push("growth");
+
+    const profile = {
+      topMatch: {
+        name: topMatch?.name || "Unknown",
+        fitScore: topMatch?.fitScore || 0,
+      },
+      personality: {
+        discipline: quizData.selfMotivationLevel || 3,
+        riskTolerance: quizData.riskComfortLevel || 3,
+        techComfort: quizData.techSkillsRating || 3,
+        motivation: quizData.selfMotivationLevel || 3,
+        creativity: quizData.creativeWorkEnjoyment || 3,
+        structure:
+          quizData.workStructurePreference === "very structured"
+            ? 5
+            : quizData.workStructurePreference === "structured"
+              ? 4
+              : quizData.workStructurePreference === "flexible"
+                ? 2
+                : 3,
+        adaptability: quizData.riskComfortLevel || 3,
+        focus: quizData.selfMotivationLevel || 3,
+        resilience: quizData.riskComfortLevel || 3,
+        feedbackResilience: quizData.brandFaceComfort || 3,
+        confidence: quizData.brandFaceComfort || 3,
+        socialComfort: quizData.directCommunicationEnjoyment || 3,
+      },
+      workPreferences: {
+        timeAvailability: quizData.weeklyTimeCommitment
+          ? this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)
+          : "< 10 hours/week",
+        learningStyle: quizData.learningPreference || "reading self-study",
+        structure: quizData.workStructurePreference || "flexible",
+        collaboration: quizData.workCollaborationPreference || "independent",
+        decisionStyle: quizData.decisionMakingStyle || "logical",
+        incomeGoal: quizData.successIncomeGoal
+          ? this.getIncomeGoalRange(quizData.successIncomeGoal)
+          : "< $500",
+      },
+      motivations,
+      investment: quizData.upfrontInvestment
+        ? this.getInvestmentRange(quizData.upfrontInvestment)
+        : "$0",
+      incomeTimeline: quizData.firstIncomeTimeline || "under 3 months",
+    };
+
+    return JSON.stringify(profile);
   }
 
   private async generatePersonalizedSummary(
