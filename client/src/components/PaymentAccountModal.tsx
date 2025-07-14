@@ -36,6 +36,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const [error, setError] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
   const [isRetakePayment, setIsRetakePayment] = useState(false);
+  const [amount, setAmount] = useState(9.99);
+  const [isFirstReport, setIsFirstReport] = useState(true);
 
   // Account form data
   const [formData, setFormData] = useState({
@@ -312,18 +314,9 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
         }
       }
 
-      // Check if user has access pass
-      if (userData.hasAccessPass) {
-        // Access pass holders get free quiz attempts but need to pay per report unlock
-        // For now, just proceed to results page - they'll pay for report unlock if they want it
-        setHasUnlockedAnalysis(false); // They need to unlock individual reports
-        localStorage.setItem("hasAnyPayment", "true");
-        onSuccess(); // Close modal and go to results
-        return;
-      }
-
-      // If user doesn't have access pass at all, proceed to payment for access pass
-      setIsRetakePayment(false); // This is initial access payment
+      // In the new pay-per-report model, logged-in users proceed to payment for report unlock
+      setIsRetakePayment(false);
+      await fetchReportPricing(); // Get the correct pricing for this user
       setStep("payment");
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -771,6 +764,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
                   onError={handlePaymentError}
                   isProcessing={isProcessing}
                   setIsProcessing={setIsProcessing}
+                  amount={amount}
+                  isFirstReport={isFirstReport}
                 />
 
                 {/* Dev Bypass Button for payment step too */}
