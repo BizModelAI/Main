@@ -802,40 +802,7 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       // In pure pay-per-report model, quiz attempts are always free
       // Payment is only required for report unlocks
-      if (false) {
-        // This logic is disabled since quizzes are free
-        if (!paymentId) {
-          return res.status(402).json({
-            error: "Payment required for additional quiz attempts",
-            requiresPayment: true,
-            amount: "4.99",
-          });
-        }
-
-        // Verify payment exists and is completed
-        const payments = await storage.getPaymentsByUser(userId);
-        const payment = payments.find(
-          (p) =>
-            p.id === paymentId &&
-            p.status === "completed" &&
-            p.type === "quiz_payment",
-        );
-
-        if (!payment) {
-          return res.status(402).json({
-            error: "Valid payment required for additional quiz attempts",
-            requiresPayment: true,
-            amount: "4.99",
-          });
-        }
-
-        // Check if payment is already linked to another quiz attempt
-        if (payment.quizAttemptId) {
-          return res.status(400).json({
-            error: "Payment has already been used for another quiz attempt",
-          });
-        }
-      }
+      // Quiz payment verification removed - all quizzes are now free
 
       console.log(`Save quiz data: Saving quiz data for user ${userId}`);
 
