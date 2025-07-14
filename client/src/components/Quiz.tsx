@@ -1415,18 +1415,7 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
         onConfirmExit={handleExitQuiz}
       />
 
-      {/* Quiz Retake Modal */}
-      <QuizRetakeModal
-        isOpen={showRetakeModal}
-        onClose={() => setShowRetakeModal(false)}
-        userId={userId || 0}
-        hasAccessPass={hasAccessPass}
-        quizRetakesRemaining={quizRetakesRemaining}
-        onPaymentSuccess={() => {
-          refetch();
-          setShowRetakeModal(false);
-        }}
-      />
+      {/* Quiz retake modal removed - everyone can take unlimited quizzes */}
     </div>
   );
 };
