@@ -264,6 +264,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
     if (!user) return;
 
+    console.log("updateProfile: Starting with data:", updates);
+    console.log("updateProfile: Current user:", {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
     setIsLoading(true);
     try {
       const response = await fetch("/api/auth/profile", {
