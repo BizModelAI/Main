@@ -192,7 +192,11 @@ Be direct about the poor fit while offering hope for the future.`;
   } {
     const fallbackContent = {
       best: {
-        reason: `${modelName} aligns exceptionally well with your profile, making it an ideal entrepreneurial path for your current situation and goals.`,
+        reason: `${modelName} aligns exceptionally well with your profile, making it an ideal entrepreneurial path for your current situation and goals. Your unique combination of skills, available time, and personal preferences creates a perfect match with this business model's requirements and opportunities.
+
+The timing couldn't be better for you to pursue this path, as your current resources and commitment level align perfectly with what's needed to succeed in ${modelName}. Your goals and timeline expectations are realistic and achievable within this business framework.
+
+Among all the business options available, ${modelName} stands out as your optimal choice because it leverages your natural strengths while minimizing areas where you might struggle. This gives you the highest probability of success and satisfaction in your entrepreneurial journey.`,
         insights: [
           "Your skills and preferences match this model's requirements perfectly",
           "Your available time and resources support this business approach",
