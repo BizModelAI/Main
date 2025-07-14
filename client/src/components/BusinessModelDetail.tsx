@@ -757,21 +757,6 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
                           : "text-gray-700 hover:bg-gray-50 hover:scale-102"
                       }`}
                     >
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center mr-2.5 ${
-                          activeSection === item.id
-                            ? "bg-gradient-to-r from-blue-600 to-purple-600"
-                            : "bg-gray-100"
-                        }`}
-                      >
-                        <item.icon
-                          className={`h-4 w-4 ${
-                            activeSection === item.id
-                              ? "text-white"
-                              : "text-gray-600"
-                          }`}
-                        />
-                      </div>
                       <span className="font-medium text-sm">{item.label}</span>
                     </button>
                   ))}
