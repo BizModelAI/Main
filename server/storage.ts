@@ -244,15 +244,7 @@ export class MemStorage implements IStorage {
     };
     this.payments.set(paymentId, completedPayment);
 
-    // For access pass payments, update user's access
-    if (payment.type === "access_pass") {
-      const user = await this.getUser(payment.userId);
-      if (user) {
-        await this.updateUser(payment.userId, {
-          hasAccessPass: true,
-        });
-      }
-    }
+    // Payment completed - no need to update user access in pay-per-report model
   }
 
   async linkPaymentToQuizAttempt(
