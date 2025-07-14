@@ -517,29 +517,21 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       const attemptsCount = await storage.getQuizAttemptsCount(userId);
 
-      // New pay-per-report system logic:
-      // - First quiz is always free for everyone
-      // - Users with access pass can take unlimited quizzes
-      // - Users without access pass can only take the first quiz for free
+      // Pure pay-per-report system logic:
+      // - Everyone can take unlimited quiz attempts for free
+      // - They pay per report unlock
 
-      const hasAccessPass = user.hasAccessPass;
       const isFirstQuiz = attemptsCount === 0;
-      const isGuestUser = !hasAccessPass && !isFirstQuiz;
-
-      // Can retake if:
-      // 1. First quiz (always free)
-      // 2. User with access pass (unlimited retakes)
-      const canRetake = isFirstQuiz || hasAccessPass;
 
       res.json({
-        canRetake,
+        canRetake: true, // Everyone can always retake
         attemptsCount,
-        hasAccessPass,
-        quizRetakesRemaining: hasAccessPass ? 999 : isFirstQuiz ? 1 : 0, // Show 999 for access pass users, 1 for first quiz, 0 otherwise
+        hasAccessPass: false, // No longer used
+        quizRetakesRemaining: 999, // Unlimited for everyone
         totalQuizRetakesUsed: 0, // Not used in new system, always 0
         isFirstQuiz,
         isFreeQuizUsed: attemptsCount > 0,
-        isGuestUser,
+        isGuestUser: false, // No longer relevant since everyone can take quizzes
       });
     } catch (error) {
       console.error("Error getting quiz retake status:", error);
