@@ -26,6 +26,7 @@ interface ReportPaymentFormProps {
   onError: (error: string) => void;
   quizAttemptId: number;
   onPricingUpdate: (amount: string, isFirstReport: boolean) => void;
+  amount: string;
 }
 
 const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
@@ -33,6 +34,7 @@ const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
   onError,
   quizAttemptId,
   onPricingUpdate,
+  amount,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
