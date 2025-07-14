@@ -83,14 +83,23 @@ export const QuizAttemptHistory: React.FC<QuizAttemptHistoryProps> = ({
   }
 
   if (error) {
+    console.error("QuizAttemptHistory: Error loading quiz attempts:", error);
     return (
       <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Quiz History
         </h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          Unable to load quiz history.
-        </p>
+        <div className="text-center py-4">
+          <p className="text-red-500 dark:text-red-400 mb-2 font-medium">
+            Unable to load quiz history
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Error: {error instanceof Error ? error.message : "Unknown error"}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            UserId: {userId} | Please try refreshing the page
+          </p>
+        </div>
       </div>
     );
   }
