@@ -10,6 +10,17 @@ declare module "express-session" {
 }
 
 export function setupAuthRoutes(app: Express) {
+  // Debug endpoint to check session state
+  app.get("/api/auth/session-debug", async (req, res) => {
+    res.json({
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      sessionExists: !!req.session,
+      cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+      userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
+    });
+  });
+
   // Get current user session
   app.get("/api/auth/me", async (req, res) => {
     try {
