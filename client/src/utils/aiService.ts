@@ -161,9 +161,9 @@ Be positive but acknowledge it's not their perfect match.`;
         return `${basePrompt}
 
 FIT TYPE: POSSIBLE - Might work but likely won't right now
-- modelFitReason: Explain why it might work, but emphasize 2-3 quiz-based reasons why it likely won't work right now
-- keyInsights: Highlight gaps or blockers from their profile
-- successPredictors: Traits that reduce their odds of success
+- modelFitReason: Write exactly 3 paragraphs. First paragraph: why it might work for them. Second paragraph: emphasize 2-3 quiz-based reasons why it likely won't work right now. Third paragraph: what would need to change for this to become viable.
+- keyInsights: Exactly 3 insights highlighting gaps or blockers from their profile
+- successPredictors: Exactly 3 traits that reduce their odds of success
 
 Be honest about the challenges while remaining constructive.`;
 
@@ -970,7 +970,7 @@ CRITICAL RULES:
 
     try {
       console.log(
-        "��� Sending streamlined full report prompt to OpenAI:",
+        "📤 Sending streamlined full report prompt to OpenAI:",
         prompt.substring(0, 200) + "...",
       );
 
