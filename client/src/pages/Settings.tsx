@@ -54,13 +54,11 @@ const Settings: React.FC = () => {
   const handleProfileSave = async () => {
     setSaveStatus("saving");
     try {
-      // Combine firstName and lastName into a single name field for the server
-      const profileData = {
-        ...formData,
+      // Create clean server data with only valid User fields
+      const serverData = {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
       };
-      // Remove the separate firstName/lastName fields as server expects 'name'
-      const { firstName, lastName, ...serverData } = profileData;
 
       console.log("Settings: Saving profile data:", {
         formData,
