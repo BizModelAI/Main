@@ -349,8 +349,8 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         "BusinessModelDetail: Non-authenticated user without quiz completion, showing payment modal",
       );
       setShowPaymentModal(true);
-      setAiAnalysis(null);
-      setIsLoadingAnalysis(false);
+      setModelInsights(null);
+      setIsLoadingModelInsights(false);
       return;
     }
     // For authenticated users who don't meet the above criteria, show paywall
