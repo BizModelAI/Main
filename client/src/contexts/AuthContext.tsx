@@ -273,13 +273,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         email: user.email,
       });
 
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // Workaround for FullStory fetch interference
+      const originalFetch = window.fetch;
+      let response;
+
+      // Try with XMLHttpRequest as fallback
+      try {
+        response = await originalFetch(url, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (fetchError) {
+        console.log(
+          "getLatestQuizData: Fetch failed, trying XMLHttpRequest fallback",
+        );
+
+        // XMLHttpRequest fallback
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        response = await new Promise((resolve, reject) => {
+          xhr.onload = () => {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              statusText: xhr.statusText,
+              json: () => Promise.resolve(JSON.parse(xhr.responseText)),
+              text: () => Promise.resolve(xhr.responseText),
+              clone: () => response,
+            });
+          };
+          xhr.onerror = () => reject(new Error("Network error"));
+          xhr.send();
+        });
+      }
 
       console.log("getLatestQuizData: Response status:", response.status);
       console.log(
