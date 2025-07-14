@@ -24,12 +24,8 @@ export const useReportUnlock = (
       return;
     }
 
-    // Users without access pass get full reports for free (they paid per quiz)
-    if (!user.hasAccessPass) {
-      setIsUnlocked(true);
-      setIsLoading(false);
-      return;
-    }
+    // In pure pay-per-report model, we need to check if this specific report is unlocked
+    // No more global access pass concept
 
     setIsLoading(true);
     setError(null);
