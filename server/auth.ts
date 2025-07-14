@@ -10,11 +10,27 @@ declare module "express-session" {
 }
 
 export function setupAuthRoutes(app: Express) {
+  // Cookie test endpoint - sets a test value and returns session info
+  app.get("/api/auth/cookie-test", async (req, res) => {
+    const testValue = `test-${Date.now()}`;
+    req.session.testValue = testValue;
+
+    res.json({
+      sessionId: req.sessionID,
+      testValue: testValue,
+      sessionExists: !!req.session,
+      cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+      userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
+      setCookieHeader: res.getHeaders()["set-cookie"] || "none",
+    });
+  });
+
   // Debug endpoint to check session state
   app.get("/api/auth/session-debug", async (req, res) => {
     res.json({
       sessionId: req.sessionID,
       userId: req.session?.userId,
+      testValue: req.session?.testValue || "none",
       sessionExists: !!req.session,
       cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
       userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
