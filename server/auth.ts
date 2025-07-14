@@ -143,13 +143,13 @@ export function setupAuthRoutes(app: Express) {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUser(userId);
       if (!user) {
-        console.log(
-          "Auth check: User not found for userId:",
-          req.session.userId,
-        );
+        console.log("Auth check: User not found for userId:", userId);
         req.session.userId = undefined;
+        // Also clear from cache
+        const sessionKey = getSessionKey(req);
+        tempSessionCache.delete(sessionKey);
         return res.status(401).json({ error: "User not found" });
       }
 
