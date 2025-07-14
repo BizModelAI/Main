@@ -1,4 +1,5 @@
-import type { QuizData } from "./types";
+// Compatible with both old and new QuizData types
+type QuizDataCompat = any;
 
 // 23 Core Trait Dimensions with weights - REFINED WEIGHTS and ALIGNED WITH QUIZ QUESTIONS
 // These weights indicate the importance of each trait in the overall business model fit.
