@@ -774,14 +774,7 @@ export async function registerRoutes(app: Express): Promise<void> {
           quizAttemptId: latestAttempt.id,
           isUnlocked: true,
             });
-          }
-        }
-
-        // No unlocked attempts found for access pass user
-        console.log(
-          "Latest paid quiz data: No unlocked attempts found for access pass user",
-        );
-        return res.json(null);
+                  });
       } else {
         // For non-access pass users: any saved attempt means they paid
         const latestAttempt = attempts[0];
