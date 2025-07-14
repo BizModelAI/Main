@@ -833,7 +833,7 @@ export async function registerRoutes(app: Express): Promise<void> {
       );
 
       // If this was a paid quiz attempt, link the payment to this attempt
-      if (!isFirstQuiz && paymentId) {
+      if (!isFirstQuiz && !user?.hasAccessPass && paymentId) {
         await storage.linkPaymentToQuizAttempt(paymentId, attempt.id);
         console.log(
           `Save quiz data: Linked payment ${paymentId} to quiz attempt ${attempt.id}`,
