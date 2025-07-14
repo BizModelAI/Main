@@ -253,25 +253,33 @@ export class MemStorage implements IStorage {
     const completedPayment = {
       ...payment,
       status: "completed" as const,
-      retakesGranted,
       completedAt: new Date(),
     };
     this.payments.set(paymentId, completedPayment);
 
-    // Update user's retakes and access pass
-    const user = await this.getUser(payment.userId);
-    if (user) {
-      const updates: Partial<User> = {
-        quizRetakesRemaining: user.quizRetakesRemaining + retakesGranted,
-      };
-
-      if (payment.type === "access_pass") {
-        updates.hasAccessPass = true;
-        updates.quizRetakesRemaining = 3; // Initial 3 retakes with access pass
+    // For access pass payments, update user's access
+    if (payment.type === "access_pass") {
+      const user = await this.getUser(payment.userId);
+      if (user) {
+        await this.updateUser(payment.userId, {
+          hasAccessPass: true,
+        });
       }
-
-      await this.updateUser(payment.userId, updates);
     }
+  }
+
+  async linkPaymentToQuizAttempt(
+    paymentId: number,
+    quizAttemptId: number,
+  ): Promise<void> {
+    const payment = this.payments.get(paymentId);
+    if (!payment) return;
+
+    const updatedPayment = {
+      ...payment,
+      quizAttemptId,
+    };
+    this.payments.set(paymentId, updatedPayment);
   }
 
   async getPaymentsByUser(userId: number): Promise<Payment[]> {
