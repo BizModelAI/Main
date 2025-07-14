@@ -1,6 +1,6 @@
-import React from 'react';
-import { RefreshCw, Gift, CreditCard, Clock } from 'lucide-react';
-import { useQuizRetake } from '@/hooks/useQuizRetake';
+import React from "react";
+import { RefreshCw, Gift, CreditCard, Clock } from "lucide-react";
+import { useQuizRetake } from "@/hooks/useQuizRetake";
 
 interface QuizRetakeDashboardProps {
   userId: number;
@@ -47,7 +47,7 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
         <div className="flex items-center gap-2">
           <RefreshCw className="w-4 h-4 text-blue-600" />
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            {attemptsCount} attempt{attemptsCount !== 1 ? 's' : ''} completed
+            {attemptsCount} attempt{attemptsCount !== 1 ? "s" : ""} completed
           </span>
         </div>
       </div>
@@ -74,7 +74,7 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
               </span>
             </div>
             <p className="text-blue-800 dark:text-blue-200">
-              {hasAccessPass ? 'Active' : 'Not purchased'}
+              {hasAccessPass ? "Active" : "Not purchased"}
             </p>
           </div>
 
@@ -87,6 +87,11 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
             </div>
             <p className="text-green-800 dark:text-green-200">
               {quizRetakesRemaining}/5 remaining
+            </p>
+            {/* Debug info */}
+            <p className="text-xs text-gray-500 mt-1">
+              Debug: Attempts: {attemptsCount}, Used: {totalQuizRetakesUsed},
+              Remaining: {quizRetakesRemaining}
             </p>
           </div>
         </div>
@@ -103,9 +108,11 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min((totalQuizRetakesUsed / 10) * 100, 100)}%` }}
+              style={{
+                width: `${Math.min((totalQuizRetakesUsed / 10) * 100, 100)}%`,
+              }}
             />
           </div>
         </div>
@@ -117,18 +124,22 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
           disabled={!canRetake}
           className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] ${
             canRetake
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg'
-              : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+              : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
           }`}
         >
           <RefreshCw className="w-4 h-4" />
-          {isGuestUser ? 'Retake Quiz (Free)' : isFirstQuiz ? 'Take Quiz' : 'Retake Quiz'}
+          {isGuestUser
+            ? "Retake Quiz (Free)"
+            : isFirstQuiz
+              ? "Take Quiz"
+              : "Retake Quiz"}
         </button>
 
         {!canRetake && !isGuestUser && (
           <div className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200 text-sm font-semibold">
             <CreditCard className="w-4 h-4" />
-            {hasAccessPass ? 'Purchase more retakes' : 'Purchase access pass'}
+            {hasAccessPass ? "Purchase more retakes" : "Purchase access pass"}
           </div>
         )}
       </div>
@@ -139,9 +150,7 @@ export const QuizRetakeDashboard: React.FC<QuizRetakeDashboardProps> = ({
             <p className="mb-1">
               <strong>Pricing:</strong> Access Pass ($9.99) includes 5 retakes
             </p>
-            <p>
-              Additional retake bundles: $4.99 for 5 more attempts
-            </p>
+            <p>Additional retake bundles: $4.99 for 5 more attempts</p>
           </div>
         </div>
       )}
