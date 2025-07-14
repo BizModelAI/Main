@@ -1894,11 +1894,32 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       }
 
       // Store the email and send results
-      // Preserve any existing signup data when storing quiz results
-      await storage.storeUnpaidUserEmail(sessionId, email, {
-        email,
-        quizData,
-      });
+      // Check if there's existing signup data to preserve
+      const existingData = await storage.getUnpaidUserEmail(sessionId);
+      let dataToStore;
+
+      if (
+        existingData &&
+        existingData.quizData &&
+        typeof existingData.quizData === "object"
+      ) {
+        // Preserve existing signup data (email, password, name) and update quiz data
+        const existingQuizData = existingData.quizData as any;
+        dataToStore = {
+          email: existingQuizData.email || email,
+          password: existingQuizData.password,
+          name: existingQuizData.name,
+          quizData,
+        };
+      } else {
+        // No existing data, just store email and quiz data
+        dataToStore = {
+          email,
+          quizData,
+        };
+      }
+
+      await storage.storeUnpaidUserEmail(sessionId, email, dataToStore);
       const success = await emailService.sendQuizResults(email, quizData);
 
       if (success) {
