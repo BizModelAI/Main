@@ -585,7 +585,6 @@ export class DatabaseStorage implements IStorage {
         .set({
           status: "completed",
           completedAt: new Date(),
-          retakesGranted,
         })
         .where(eq(payments.id, paymentId))
         .returning();
@@ -594,23 +593,29 @@ export class DatabaseStorage implements IStorage {
         throw new Error("Payment not found");
       }
 
-      // Update user's retakes and access pass
-      const userUpdates: any = {
-        quizRetakesRemaining: sql`${users.quizRetakesRemaining} + ${retakesGranted}`,
-        updatedAt: new Date(),
-      };
-
-      // Set hasAccessPass to true for access_pass payments
+      // For access pass payments, update user's access
       if (payment.type === "access_pass") {
-        userUpdates.hasAccessPass = true;
-        userUpdates.quizRetakesRemaining = 3; // Initial 3 retakes with access pass
+        await tx
+          .update(users)
+          .set({
+            hasAccessPass: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, payment.userId));
       }
-
-      await tx
-        .update(users)
-        .set(userUpdates)
-        .where(eq(users.id, payment.userId));
     });
+  }
+
+  async linkPaymentToQuizAttempt(
+    paymentId: number,
+    quizAttemptId: number,
+  ): Promise<void> {
+    await this.ensureDb()
+      .update(payments)
+      .set({
+        quizAttemptId: quizAttemptId,
+      })
+      .where(eq(payments.id, paymentId));
   }
 
   async getPaymentsByUser(userId: number): Promise<Payment[]> {
