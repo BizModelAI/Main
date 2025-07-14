@@ -20,6 +20,7 @@ import { calculateAllBusinessModelMatches } from "../utils/advancedScoringAlgori
 import { QuizData } from "../types";
 import { Link, useNavigate } from "react-router-dom";
 import { businessPaths } from "../data/businessPaths";
+import { QuizAttemptHistory } from "../components/QuizAttemptHistory";
 
 const Dashboard: React.FC = () => {
   const { user, getLatestQuizData, isLoading: authLoading } = useAuth();
