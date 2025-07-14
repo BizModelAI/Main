@@ -5,6 +5,8 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PaywallProvider } from "./contexts/PaywallContext";
 import Layout from "./components/Layout";
@@ -227,6 +229,8 @@ function App() {
     <AuthProvider>
       <PaywallProvider>
         <Router>
+          <Analytics />
+          <SpeedInsights />
           <Routes>
             {/* Public routes with layout */}
             <Route
@@ -663,7 +667,9 @@ const QuizWithNavigation: React.FC<{
         onComplete={handleQuizComplete}
         onBack={() => window.history.back()}
         userId={
-          user && !user.id.startsWith("temp_") ? parseInt(user.id) : undefined
+          user && !String(user.id).startsWith("temp_")
+            ? parseInt(String(user.id))
+            : undefined
         }
       />
       {showCongratulations && quizData && (

@@ -87,14 +87,50 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
     const fetchQuizData = async () => {
       if (!user || propQuizData) return; // If no user or already have quiz data, skip
 
+      console.log("BusinessExplorer: Fetching quiz data for user:", user.email);
       setIsLoadingQuizData(true);
+
+      // First test session health
+      try {
+        const sessionCheck = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+        console.log(
+          "BusinessExplorer: Session check status:",
+          sessionCheck.status,
+        );
+
+        if (sessionCheck.ok) {
+          const sessionUser = await sessionCheck.json();
+          console.log("BusinessExplorer: Session user:", {
+            id: sessionUser.id,
+            email: sessionUser.email,
+          });
+        } else {
+          console.log(
+            "BusinessExplorer: Session check failed with status:",
+            sessionCheck.status,
+          );
+          if (sessionCheck.status === 401) {
+            console.log("BusinessExplorer: User not authenticated - 401 error");
+          }
+        }
+      } catch (error) {
+        console.error("BusinessExplorer: Session check failed:", error);
+      }
+
       try {
         const latestQuizData = await getLatestQuizData();
         if (latestQuizData) {
+          console.log("BusinessExplorer: Successfully loaded quiz data");
           setQuizData(latestQuizData);
+        } else {
+          console.log("BusinessExplorer: No quiz data found");
         }
       } catch (error) {
-        console.error("Error fetching quiz data:", error);
+        console.error("BusinessExplorer: Error fetching quiz data:", error);
       } finally {
         setIsLoadingQuizData(false);
       }
@@ -138,6 +174,23 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
   // Calculate fit scores for business models if quiz data exists
   const businessModelsWithFitScores = useMemo(() => {
     if (!quizData || !hasUnlockedAnalysis) {
+      // Development mode fallback: Generate mock scores for demo when user is logged in
+      if (
+        import.meta.env.MODE === "development" &&
+        user &&
+        hasUnlockedAnalysis
+      ) {
+        return businessModels.map((model, index) => {
+          const mockScore = 85 - index * 3; // Descending scores for demo
+          const fitCategory = getFitCategory(mockScore);
+          return {
+            ...model,
+            fitScore: mockScore,
+            fitCategory,
+          };
+        });
+      }
+
       return businessModels.map((model) => ({
         ...model,
         fitScore: 0,
@@ -145,7 +198,7 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
       }));
     }
 
-    return businessModels.map((model) => {
+    const modelsWithScores = businessModels.map((model) => {
       // Find matching business path by name or similar logic
       const matchingPath = personalizedPaths.find(
         (path) =>
@@ -162,6 +215,13 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
         fitCategory,
       };
     });
+
+    // Sort by fit score when quiz data is available (highest to lowest)
+    if (quizData && hasUnlockedAnalysis) {
+      modelsWithScores.sort((a, b) => (b.fitScore || 0) - (a.fitScore || 0));
+    }
+
+    return modelsWithScores;
   }, [quizData, hasUnlockedAnalysis, personalizedPaths]);
 
   const filteredModels = businessModelsWithFitScores.filter((model) => {
@@ -308,7 +368,12 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
               onLearnMore={handleLearnMore}
               isExpanded={expandedCard === model.id}
               onToggleExpand={() => handleCardExpand(model.id)}
-              showFitBadge={!!(hasUnlockedAnalysis && quizData)}
+              showFitBadge={
+                !!(
+                  hasUnlockedAnalysis &&
+                  (quizData || (import.meta.env.MODE === "development" && user))
+                )
+              }
               fitCategory={model.fitCategory}
               fitScore={model.fitScore}
               getFitCategoryColor={getFitCategoryColor}
@@ -429,7 +494,7 @@ const BusinessModelCard = ({
     >
       <div className="p-6 flex flex-col h-full">
         {/* Header */}
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-start mb-4 relative">
           <h3 className="text-xl font-bold text-gray-900 flex-1 mr-2 line-clamp-2">
             {model.title}
           </h3>
@@ -440,7 +505,9 @@ const BusinessModelCard = ({
                 <div className="text-2xl font-bold text-blue-600">
                   {Math.round(fitScore)}%
                 </div>
-                <div className="text-xs text-gray-500">Fit</div>
+                <div className="text-xs text-gray-500">
+                  {fitCategory ? `${fitCategory} Fit` : "Fit"}
+                </div>
               </div>
             )}
           </div>

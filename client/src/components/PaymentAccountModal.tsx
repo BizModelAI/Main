@@ -39,7 +39,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
   // Account form data
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -129,8 +130,12 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const content = getContent();
 
   const validateAccountForm = () => {
-    if (!formData.name.trim()) {
-      setError("Name is required");
+    if (!formData.firstName.trim()) {
+      setError("First name is required");
+      return false;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Last name is required");
       return false;
     }
     if (!formData.email.trim()) {
@@ -178,7 +183,7 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       await signup(
         formData.email,
         formData.password,
-        formData.name,
+        `${formData.firstName} ${formData.lastName}`.trim(),
         parsedQuizData,
       );
 
@@ -485,22 +490,45 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
             {/* Account Creation Form */}
             {step === "account" && (
               <form onSubmit={handleAccountSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter your full name"
-                      required
-                    />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            firstName: e.target.value,
+                          })
+                        }
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="First name"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, lastName: e.target.value })
+                        }
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Last name"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -1,4 +1,4 @@
-// Shared types between client and server
+// Shared types between client and server - Compatible with existing client interface
 export interface QuizData {
   // Round 1: Motivation & Vision
   mainMotivation: string;
@@ -9,7 +9,7 @@ export interface QuizData {
   businessExitPlan: string;
   businessGrowthSize: string;
   passiveIncomeImportance: number;
-  
+
   // Round 2: Time, Effort & Learning Style
   weeklyTimeCommitment: number;
   longTermConsistency: number;
@@ -23,47 +23,96 @@ export interface QuizData {
   uncertaintyHandling: number;
   repetitiveTasksFeeling: string;
   workCollaborationPreference: string;
-  
+
   // Round 3: Personality & Preferences
   brandFaceComfort: number;
   competitivenessLevel: number;
   creativeWorkEnjoyment: number;
   directCommunicationEnjoyment: number;
   workStructurePreference: string;
-  
+
   // Round 4: Tools & Work Environment
   techSkillsRating: number;
   workspaceAvailability: string;
   supportSystemStrength: string;
   internetDeviceReliability: number;
   familiarTools: string[];
-  
+
   // Round 5: Strategy & Decision-Making
   decisionMakingStyle: string;
   riskComfortLevel: number;
   feedbackRejectionResponse: number;
   pathPreference: string;
   controlImportance: number;
-  
+
   // Round 6: Business Model Fit Filters
   onlinePresenceComfort: string;
   clientCallsComfort: string;
   physicalShippingOpenness: string;
   workStylePreference: string;
+  socialMediaInterest: number;
+  ecosystemParticipation: string;
+  existingAudience: string;
+  promotingOthersOpenness: string;
+  teachVsSolvePreference: string;
+  meaningfulContributionImportance: number;
 
-  // Optional legacy fields
+  // Adaptive Questions (populated based on responses)
+  inventoryComfort?: number;
+  digitalContentComfort?: number;
+  teachingComfort?: number;
+  publicSpeakingComfort?: number;
+  salesComfort?: number;
+
+  // Legacy fields for backward compatibility
+  primaryMotivation?: string;
   incomeGoal?: number;
   timeToFirstIncome?: string;
   startupBudget?: number;
   timeCommitment?: number;
-  technologyComfort?: number;
-  selfMotivation?: number;
+  learningStyle?: string;
+  workPreference?: string;
   riskTolerance?: number;
-  teachVsSolvePreference?: string;
-  meaningfulContributionImportance?: number;
-  socialMediaInterest?: number;
+  customerInteractionComfort?: number;
+  selfMotivation?: number;
   existingSkills?: string[];
+  experienceLevel?: "beginner" | "intermediate" | "advanced";
+  lifestyle?: "freedom" | "stability" | "growth";
+  stressResponse?: string;
+  communicationStyle?: string;
+  perfectionismLevel?: number;
+  socialEnergy?: string;
+  changeAdaptability?: number;
+  attentionToDetail?: number;
+  competitionMotivation?: string;
+  failureResponse?: string;
+  routinePreference?: string;
+  feedbackReception?: string;
+  longTermThinking?: string;
   authorityComfort?: number;
+  technologyComfort?: number;
+
+  // New structure fields (for future compatibility) - with different names to avoid conflicts
+  sellOrExitBusiness?: string;
+  businessGrowthAmbition?: string;
+  hoursPerWeek?: string;
+  consistencyWithGoals?: number;
+  trialAndErrorComfort?: number;
+  competitiveness?: number;
+  consistentWorkspace?: string;
+  personalSupportSystem?: string;
+  internetAccessReliability?: number;
+  riskComfort?: number;
+  negativeFeedbackResponse?: number;
+  pathCreationPreference?: string;
+  faceAndVoiceOnlineComfort?: string;
+  clientCallComfort?: string;
+  physicalProductShipping?: string;
+  createEarnWorkConsistently?: string;
+  platformEcosystemInterest?: string;
+  hasAudience?: string;
+  promoteOthersProducts?: string;
+  teachOrSolve?: string;
 }
 
 export interface BusinessPath {
@@ -72,7 +121,7 @@ export interface BusinessPath {
   description: string;
   detailedDescription: string;
   fitScore: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: "Easy" | "Medium" | "Hard";
   timeToProfit: string;
   startupCost: string;
   potentialIncome: string;

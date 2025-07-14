@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  name: text("name"), // User's full name
   email: text("email"), // Optional email for paid users
   hasAccessPass: boolean("has_access_pass").default(false).notNull(),
   quizRetakesRemaining: integer("quiz_retakes_remaining").default(0).notNull(),
@@ -93,6 +94,7 @@ export const refunds = pgTable("refunds", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  name: true,
 });
 
 export const insertQuizAttemptSchema = createInsertSchema(quizAttempts);

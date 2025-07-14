@@ -10,18 +10,82 @@ declare module "express-session" {
 }
 
 export function setupAuthRoutes(app: Express) {
+  // Debug endpoint to check session state
+  app.get("/api/auth/session-debug", async (req, res) => {
+    res.json({
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      sessionExists: !!req.session,
+      cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+      userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
+    });
+  });
+
+  // Test endpoint to set and check session
+  app.post("/api/auth/session-test", async (req, res) => {
+    try {
+      const testValue = `test-${Date.now()}`;
+      req.session.testValue = testValue;
+
+      console.log("Session test: Setting test value", {
+        sessionId: req.sessionID,
+        testValue: testValue,
+        sessionExists: !!req.session,
+      });
+
+      res.json({
+        success: true,
+        sessionId: req.sessionID,
+        testValue: testValue,
+        message: "Test value set in session",
+      });
+    } catch (error) {
+      console.error("Session test error:", error);
+      res.status(500).json({ error: "Session test failed" });
+    }
+  });
+
+  app.get("/api/auth/session-test", async (req, res) => {
+    res.json({
+      sessionId: req.sessionID,
+      testValue: req.session?.testValue || null,
+      sessionExists: !!req.session,
+      cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+    });
+  });
+
   // Get current user session
   app.get("/api/auth/me", async (req, res) => {
     try {
+      console.log("Auth check: /api/auth/me called", {
+        sessionId: req.sessionID,
+        userId: req.session?.userId,
+        sessionExists: !!req.session,
+        hasUserAgent: !!req.headers["user-agent"],
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+      });
+
       if (!req.session.userId) {
+        console.log("Auth check: No userId in session");
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const user = await storage.getUser(req.session.userId);
       if (!user) {
+        console.log(
+          "Auth check: User not found for userId:",
+          req.session.userId,
+        );
         req.session.userId = undefined;
         return res.status(401).json({ error: "User not found" });
       }
+
+      console.log("Auth check: Success for user:", {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      });
 
       // Don't send password
       const { password, ...userWithoutPassword } = user;
@@ -63,6 +127,23 @@ export function setupAuthRoutes(app: Express) {
 
       // Set session
       req.session.userId = user.id;
+
+      console.log("Login: Session set", {
+        sessionId: req.sessionID,
+        userId: user.id,
+        userEmail: user.email,
+        sessionSaved: !!req.session.userId,
+        cookieSettings: {
+          secure: req.sessionStore?.options?.cookie?.secure,
+          httpOnly: req.sessionStore?.options?.cookie?.httpOnly,
+          sameSite: req.sessionStore?.options?.cookie?.sameSite,
+          domain: req.sessionStore?.options?.cookie?.domain,
+        },
+        headers: {
+          setCookie: req.res?.getHeaders?.()?.["set-cookie"],
+          userAgent: req.headers["user-agent"]?.substring(0, 50),
+        },
+      });
 
       // Don't send password
       const { password: _, ...userWithoutPassword } = user;
@@ -194,6 +275,7 @@ export function setupAuthRoutes(app: Express) {
         id: `temp_${sessionId}`,
         username: email,
         email: email,
+        name: name,
         hasAccessPass: false,
         quizRetakesRemaining: 0,
         isTemporary: true,
@@ -248,11 +330,27 @@ export function setupAuthRoutes(app: Express) {
   app.put("/api/auth/profile", async (req, res) => {
     try {
       if (!req.session.userId) {
+        console.log(
+          "Profile update: Not authenticated, userId:",
+          req.session.userId,
+        );
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const updates = req.body;
+      console.log(
+        "Profile update: Received updates for userId",
+        req.session.userId,
+        ":",
+        updates,
+      );
+
       const user = await storage.updateUser(req.session.userId, updates);
+      console.log("Profile update: Updated user:", {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      });
 
       // Don't send password
       const { password: _, ...userWithoutPassword } = user;

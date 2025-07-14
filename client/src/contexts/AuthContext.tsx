@@ -49,13 +49,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const checkExistingSession = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        let response: Response;
+        try {
+          response = await fetch("/api/auth/me", {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        } catch (fetchError) {
+          console.log(
+            "Session check: Fetch failed, trying XMLHttpRequest fallback",
+          );
+
+          // XMLHttpRequest fallback
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", "/api/auth/me", true);
+          xhr.withCredentials = true;
+          xhr.setRequestHeader("Content-Type", "application/json");
+
+          response = await new Promise<Response>((resolve, reject) => {
+            xhr.onload = () => {
+              resolve({
+                ok: xhr.status >= 200 && xhr.status < 300,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                json: () => Promise.resolve(JSON.parse(xhr.responseText)),
+                text: () => Promise.resolve(xhr.responseText),
+                headers: new Headers(),
+                url: "",
+                redirected: false,
+                type: "basic",
+                clone: () => response,
+                body: null,
+                bodyUsed: false,
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+                blob: () => Promise.resolve(new Blob()),
+                formData: () => Promise.resolve(new FormData()),
+              } as Response);
+            };
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send();
+          });
+        }
 
         if (!isMounted) return; // Component unmounted, don't update state
 
@@ -188,6 +225,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const forceLogout = () => {
+    console.log("ForceLogout: Clearing user state due to session mismatch");
+    setUser(null);
+  };
+
   const deleteAccount = async (): Promise<void> => {
     if (!user) {
       throw new Error("No user logged in");
@@ -225,7 +267,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateProfile = async (updates: Partial<User>): Promise<void> => {
-    if (!user) return;
+    if (!user) {
+      console.log("updateProfile: No user found, aborting");
+      return;
+    }
+
+    console.log("updateProfile: Starting with data:", updates);
+    console.log("updateProfile: Current user:", {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
+    // First check if the session is still valid
+    try {
+      const authCheck = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("updateProfile: Auth check status:", authCheck.status);
+
+      if (!authCheck.ok) {
+        console.log(
+          "updateProfile: Session invalid, clearing client auth state",
+        );
+        // Clear the client-side user state since server doesn't recognize the session
+        setUser(null);
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
+      // If auth check passes, refresh user data
+      const userData = await authCheck.json();
+      setUser(userData);
+      console.log("updateProfile: Auth check passed, user data refreshed");
+    } catch (authError) {
+      console.error("updateProfile: Auth check failed:", authError);
+      // Clear client auth state on any auth error
+      setUser(null);
+      throw new Error("Authentication check failed. Please log in again.");
+    }
 
     setIsLoading(true);
     try {
@@ -240,19 +324,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (!response.ok) {
         let errorMessage = "Profile update failed";
+        let responseText = "";
+
         try {
-          const data = await response.json();
-          errorMessage = data.error || errorMessage;
-        } catch (parseError) {
-          // If JSON parsing fails, use the response status text or default message
-          errorMessage = response.statusText || errorMessage;
+          responseText = await response.text();
+          console.log("updateProfile: Raw response text:", responseText);
+
+          if (responseText) {
+            try {
+              const data = JSON.parse(responseText);
+              errorMessage = data.error || errorMessage;
+              console.error("updateProfile: Server error response:", {
+                status: response.status,
+                statusText: response.statusText,
+                data: data,
+                updates: updates,
+              });
+            } catch (jsonError) {
+              console.error("updateProfile: Response is not valid JSON:", {
+                status: response.status,
+                statusText: response.statusText,
+                responseText: responseText,
+                jsonError: jsonError,
+                updates: updates,
+              });
+              errorMessage =
+                responseText || response.statusText || errorMessage;
+            }
+          } else {
+            console.error("updateProfile: Empty response:", {
+              status: response.status,
+              statusText: response.statusText,
+              updates: updates,
+            });
+            errorMessage = response.statusText || errorMessage;
+          }
+        } catch (readError) {
+          console.error("updateProfile: Failed to read response:", {
+            status: response.status,
+            statusText: response.statusText,
+            readError: readError,
+            updates: updates,
+          });
+          // Provide more specific error message for common cases
+          if (response.status === 401) {
+            console.log("updateProfile: 401 error, clearing user state");
+            setUser(null); // Clear user state on authentication error
+            errorMessage = "Not authenticated. Please log in and try again.";
+          } else if (response.status === 403) {
+            errorMessage = "Permission denied.";
+          } else if (response.status >= 500) {
+            errorMessage = "Server error. Please try again later.";
+          } else {
+            errorMessage = response.statusText || errorMessage;
+          }
         }
+
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
       setUser(data);
     } catch (error) {
+      // Handle network errors and other fetch failures
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.error("updateProfile: Network error:", error);
+        throw new Error(
+          "Network error. Please check your connection and try again.",
+        );
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -260,26 +400,132 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getLatestQuizData = async (): Promise<QuizData | null> => {
-    if (!user) return null;
+    if (!user) {
+      console.log("getLatestQuizData: No user available");
+      return null;
+    }
+
+    // Don't try to fetch quiz data for temporary users via API
+    if (String(user.id).startsWith("temp_")) {
+      console.log(
+        "getLatestQuizData: Temporary user detected, skipping API call",
+      );
+      return null;
+    }
+
+    // First verify the session is valid by checking auth status
+    try {
+      const authCheck = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!authCheck.ok) {
+        console.log(
+          "getLatestQuizData: Session not valid, user not authenticated",
+        );
+        return null;
+      }
+    } catch (error) {
+      console.log("getLatestQuizData: Auth check failed:", error);
+      return null;
+    }
 
     try {
       const url = "/api/auth/latest-quiz-data";
-      console.log("Making request to:", url);
-      console.log("Current window.location:", window.location.href);
-
-      const response = await fetch(url, {
-        credentials: "include",
+      console.log("getLatestQuizData: Making request to:", url);
+      console.log("getLatestQuizData: Current user:", {
+        id: user.id,
+        email: user.email,
       });
 
-      console.log("Response URL:", response.url);
-      console.log("Response status:", response.status);
+      // Workaround for FullStory fetch interference
+      const originalFetch = window.fetch;
+      let response: Response;
+
+      // Try with XMLHttpRequest as fallback
+      try {
+        response = await originalFetch(url, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (fetchError) {
+        console.log(
+          "getLatestQuizData: Fetch failed, trying XMLHttpRequest fallback",
+        );
+
+        // XMLHttpRequest fallback
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        response = await new Promise<Response>((resolve, reject) => {
+          xhr.onload = () => {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              statusText: xhr.statusText,
+              json: () => Promise.resolve(JSON.parse(xhr.responseText)),
+              text: () => Promise.resolve(xhr.responseText),
+              headers: new Headers(),
+              url: "",
+              redirected: false,
+              type: "basic",
+              clone: () => response,
+              body: null,
+              bodyUsed: false,
+              arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+              blob: () => Promise.resolve(new Blob()),
+              formData: () => Promise.resolve(new FormData()),
+            } as Response);
+          };
+          xhr.onerror = () => reject(new Error("Network error"));
+          xhr.send();
+        });
+      }
+
+      console.log("getLatestQuizData: Response status:", response.status);
+      console.log(
+        "getLatestQuizData: Response headers:",
+        Object.fromEntries(response.headers.entries()),
+      );
 
       if (response.ok) {
         const quizData = await response.json();
+        console.log(
+          "getLatestQuizData: Success, quiz data:",
+          quizData ? "Found" : "None",
+        );
         return quizData;
+      } else {
+        // For error responses, safely read the body once
+        let errorMessage = `HTTP ${response.status} ${response.statusText}`;
+        try {
+          const responseText = await response.text();
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch {
+            // If not JSON, use the text as is
+            errorMessage = responseText || errorMessage;
+          }
+        } catch {
+          // If can't read body, use status text
+        }
+        console.error(
+          "getLatestQuizData: Request failed:",
+          `Status: ${response.status}, StatusText: ${response.statusText}, Error: ${errorMessage}`,
+        );
       }
     } catch (error) {
-      console.error("Error fetching quiz data:", error);
+      console.error("getLatestQuizData: Network error:", error);
     }
 
     return null;
@@ -287,6 +533,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const hasValidSession = (): boolean => {
     return !!user;
+  };
+
+  const verifyAndRefreshAuth = async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        console.log("verifyAndRefreshAuth: Session valid, user refreshed");
+        return true;
+      } else {
+        console.log("verifyAndRefreshAuth: Session invalid");
+        setUser(null);
+        return false;
+      }
+    } catch (error) {
+      console.error("verifyAndRefreshAuth: Error:", error);
+      setUser(null);
+      return false;
+    }
   };
 
   const value = {

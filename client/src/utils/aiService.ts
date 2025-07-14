@@ -143,13 +143,13 @@ Generate a professional analysis explaining why ${topPath.name} is a STRONG fit 
 1. How your traits align well with this business model
 2. Why this is a solid choice with good potential for you
 3. Areas where you'll do well
-4. 1-2 sentences about why it's not your #1 best fit
-5. How you can maximize success in this model
+4. 1-2 sentences about minor gaps or why other options might be slightly better
+5. How you can maximize success in this model despite small misalignments
 
 Requirements:
 - Speak directly to the user in second person ("you", "your")
-- Positive but realistic tone
-- Show it's a good choice while noting it's not perfect
+- Positive but realistic tone - emphasize it's STRONG but not perfect
+- Show it's a very good choice while noting minor areas that could be better
 - 250-350 words maximum
 - No markdown formatting
 - CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
@@ -157,18 +157,19 @@ Requirements:
           case "Possible Fit":
             return `${baseProfile}
 
-Generate a professional analysis explaining why ${topPath.name} ISN'T the best fit for you. Focus on:
-1. Specific misalignments between your traits and this business model
-2. Why you should consider other options first
-3. Challenges you would likely face
-4. Why your quiz responses suggest this isn't ideal
-5. What you should focus on instead
+Generate a professional analysis explaining why ${topPath.name} wouldn't work great for you. Focus on:
+1. Specific misalignments between your traits and this business model requirements
+2. Why this path would be challenging based on your quiz responses
+3. Concrete examples of difficulties you would likely face
+4. Why other business models would be much better suited to your profile
+5. What you should explore instead that better matches your strengths
 
 Requirements:
 - Speak directly to the user in second person ("you", "your")
-- Honest but constructive tone
-- Clearly explain why this isn't recommended
-- Suggest you explore better-fitting options
+- Honest, direct tone explaining why this isn't a good fit
+- Clearly explain this would be difficult and not recommended
+- Emphasize that better options exist for your profile
+- Suggest focusing on better-matching business models
 - 250-350 words maximum
 - No markdown formatting
 - CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
@@ -176,18 +177,19 @@ Requirements:
           case "Poor Fit":
             return `${baseProfile}
 
-Generate a professional analysis explaining why you should AVOID ${topPath.name}. Focus on:
-1. Clear misalignments between your profile and this business model
-2. Specific reasons why you would struggle
-3. Why you should avoid this path for now
-4. What fundamental changes would be needed before considering this
-5. Better alternatives for you to explore instead
+Generate a professional analysis explaining why you should AVOID ${topPath.name} right now. Focus on:
+1. Major misalignments between your profile and this business model requirements
+2. Specific fundamental reasons why you would struggle and likely fail
+3. Why you should definitely avoid this path at present
+4. What significant changes would be needed before this could be considered
+5. Much better alternatives that actually match your profile
 
 Requirements:
 - Speak directly to the user in second person ("you", "your")
-- Direct but supportive tone
-- Clearly advise against this path
-- Explain what needs to change before reconsidering
+- Direct, honest tone that clearly advises against this path
+- Explain this is a poor choice that should be avoided now
+- Mention this might be reconsidered in the future after major changes
+- Strongly recommend focusing on better-matched alternatives
 - 250-350 words maximum
 - No markdown formatting
 - CRITICAL: Use ONLY the actual data provided. Do NOT make up specific numbers or amounts. Reference the exact ranges shown in the user profile.`;
@@ -250,41 +252,37 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
           case "Possible Fit":
             return {
               keyInsights: [
-                `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance may clash with ${topPath.name} requirements`,
-                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, progress may be slower than ideal`,
-                `Your tech comfort level could be a limiting factor`,
-                `Several aspects of your profile suggest other paths would be more suitable`,
+                `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance doesn't match ${topPath.name} demands`,
+                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, this path would be challenging to execute properly`,
+                `Your profile shows gaps that would make success in this field difficult`,
+                `Other business models would be much better suited to your strengths and preferences`,
               ],
               successPredictors: [
-                "Limited alignment means you'd need to work harder to overcome natural disadvantages",
+                "Significant misalignment means you'd face major challenges and likely struggle",
+                "Your profile suggests this path would require working against your natural strengths",
                 quizData.selfMotivationLevel <= 2
-                  ? "Lower self-motivation makes independent business challenging"
-                  : null,
-                quizData.longTermConsistency <= 2
-                  ? "Consistency challenges could hurt long-term success"
-                  : null,
-                `Your ${topPath.fitScore}% compatibility indicates significant misalignment with this path`,
-              ].filter(Boolean) as string[],
+                  ? "Lower self-motivation makes this independent path particularly challenging"
+                  : "This business model demands skills and traits that don't align with your profile",
+                `Your ${topPath.fitScore}% compatibility indicates this path should be avoided in favor of better matches`,
+              ],
             };
 
           case "Poor Fit":
             return {
               keyInsights: [
-                `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance conflicts with ${topPath.name} demands`,
-                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, you lack the time commitment this path requires`,
-                `Your tech comfort level is insufficient for this business model`,
-                `Multiple factors in your profile indicate this path is not recommended`,
+                `Your ${quizData.riskComfortLevel <= 2 ? "low" : "moderate"} risk tolerance fundamentally conflicts with ${topPath.name} requirements`,
+                `With ${this.getTimeCommitmentRange(quizData.weeklyTimeCommitment)}, you lack the commitment this demanding path requires`,
+                `Your profile shows major gaps that would lead to failure in this business model`,
+                `This path goes against your natural strengths and should be avoided completely`,
               ],
               successPredictors: [
-                "Significant misalignment suggests high probability of struggle and failure",
+                "Major misalignment indicates high probability of failure and wasted effort",
+                "This business model requires traits and skills that conflict with your profile",
                 quizData.selfMotivationLevel <= 2
-                  ? "Low self-motivation makes this independent path particularly challenging"
-                  : null,
-                quizData.longTermConsistency <= 2
-                  ? "Consistency issues would severely impact success"
-                  : null,
-                `Your ${topPath.fitScore}% compatibility shows this path should be avoided`,
-              ].filter(Boolean) as string[],
+                  ? "Low self-motivation makes this demanding independent path virtually impossible"
+                  : "Your personality and preferences make this path unsuitable for success",
+                `Your ${topPath.fitScore}% compatibility clearly shows this path should be completely avoided`,
+              ],
             };
 
           default:

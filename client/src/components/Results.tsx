@@ -330,8 +330,23 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             // If analysis is also cached, use it
             if (analysis) {
               setAiAnalysis(analysis);
+              // Cache this for the FullReport to use
+              aiCacheManager.cacheAIContent(
+                quizData,
+                insights,
+                analysis,
+                personalizedPaths[0],
+              );
             } else {
-              setAiAnalysis(generateFallbackAnalysis());
+              const fallbackAnalysis = generateFallbackAnalysis();
+              setAiAnalysis(fallbackAnalysis);
+              // Cache the fallback analysis
+              aiCacheManager.cacheAIContent(
+                quizData,
+                insights,
+                fallbackAnalysis,
+                personalizedPaths[0],
+              );
             }
 
             setIsGeneratingAI(false);
@@ -346,8 +361,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       console.log(
         "🚀 Setting fallback AI content (no API calls in production)",
       );
-      setAiInsights(generateFallbackInsights());
-      setAiAnalysis(generateFallbackAnalysis());
+      const fallbackInsights = generateFallbackInsights();
+      const fallbackAnalysis = generateFallbackAnalysis();
+      setAiInsights(fallbackInsights);
+      setAiAnalysis(fallbackAnalysis);
+      // Cache the fallback content for the FullReport to use
+      aiCacheManager.cacheAIContent(
+        quizData,
+        fallbackInsights,
+        fallbackAnalysis,
+        personalizedPaths[0],
+      );
       setIsGeneratingAI(false);
     }
   }, [personalizedPaths]);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -16,7 +16,8 @@ const Settings: React.FC = () => {
   const { user, updateProfile, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    firstName: user?.name?.split(" ")[0] || "",
+    lastName: user?.name?.split(" ").slice(1).join(" ") || "",
     email: user?.email || "",
   });
   const [notifications, setNotifications] = useState({
@@ -30,6 +31,20 @@ const Settings: React.FC = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Sync form data when user data changes
+  useEffect(() => {
+    console.log("Settings: User data changed:", user);
+    if (user) {
+      const newFormData = {
+        firstName: user?.name?.split(" ")[0] || "",
+        lastName: user?.name?.split(" ").slice(1).join(" ") || "",
+        email: user?.email || "",
+      };
+      console.log("Settings: Setting form data to:", newFormData);
+      setFormData(newFormData);
+    }
+  }, [user]);
+
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
@@ -37,12 +52,34 @@ const Settings: React.FC = () => {
   ];
 
   const handleProfileSave = async () => {
+    // Check if user is authenticated before attempting to save
+    if (!user) {
+      setSaveStatus("error");
+      console.error("Settings: Cannot save - user not authenticated");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+      return;
+    }
+
     setSaveStatus("saving");
     try {
-      await updateProfile(formData);
+      // Create clean server data with only valid User fields
+      const serverData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+      };
+
+      console.log("Settings: Saving profile data:", {
+        formData,
+        serverData,
+        user: user?.id,
+      });
+
+      await updateProfile(serverData);
+      console.log("Settings: Profile saved successfully");
       setSaveStatus("success");
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
+      console.error("Settings: Profile save error:", error);
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 3000);
     }
@@ -84,6 +121,32 @@ const Settings: React.FC = () => {
       setIsDeleting(false);
     }
   };
+
+  // Show login message if user is not authenticated
+  if (!user || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {isLoading ? "Loading..." : "Please Log In"}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {isLoading
+              ? "Checking your authentication status..."
+              : "You need to be logged in to access settings."}
+          </p>
+          {!isLoading && (
+            <a
+              href="/login"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Login
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -210,21 +273,39 @@ const Settings: React.FC = () => {
 
                   {/* Form Fields */}
                   <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.firstName}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              firstName: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              lastName: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
 
                     <div>

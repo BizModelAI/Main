@@ -28,6 +28,7 @@ export class AICacheManager {
   private static readonly CACHE_KEY_PREFIX = "ai-cache-";
   private static readonly INSIGHTS_KEY = "ai-insights";
   private static readonly ANALYSIS_KEY = "ai-analysis";
+  private static readonly CACHE_VERSION = "v2.1"; // Increment when prompts change
 
   private constructor() {}
 
@@ -43,6 +44,7 @@ export class AICacheManager {
    */
   private generateQuizDataHash(quizData: QuizData): string {
     const key = JSON.stringify({
+      version: AICacheManager.CACHE_VERSION, // Include version in hash
       mainMotivation: quizData.mainMotivation,
       successIncomeGoal: quizData.successIncomeGoal,
       weeklyTimeCommitment: quizData.weeklyTimeCommitment,
@@ -60,11 +62,11 @@ export class AICacheManager {
    */
   private isCacheValid(timestamp: number): boolean {
     // Check if cache has been force reset
-    const resetTimestamp = localStorage.getItem('ai-cache-reset-timestamp');
+    const resetTimestamp = localStorage.getItem("ai-cache-reset-timestamp");
     if (resetTimestamp && parseInt(resetTimestamp) > timestamp) {
       return false; // Cache was reset after this item was cached
     }
-    
+
     return Date.now() - timestamp < AICacheManager.CACHE_DURATION;
   }
 
@@ -79,7 +81,7 @@ export class AICacheManager {
     try {
       const quizHash = this.generateQuizDataHash(quizData);
       const cachedData = localStorage.getItem(
-        `${AICacheManager.CACHE_KEY_PREFIX}${quizHash}`
+        `${AICacheManager.CACHE_KEY_PREFIX}${quizHash}`,
       );
 
       if (!cachedData) {
@@ -117,7 +119,7 @@ export class AICacheManager {
     quizData: QuizData,
     insights: AIInsights,
     analysis: AIAnalysis,
-    topPath: BusinessPath
+    topPath: BusinessPath,
   ): void {
     try {
       const quizHash = this.generateQuizDataHash(quizData);
@@ -131,7 +133,7 @@ export class AICacheManager {
 
       localStorage.setItem(
         `${AICacheManager.CACHE_KEY_PREFIX}${quizHash}`,
-        JSON.stringify(cacheData)
+        JSON.stringify(cacheData),
       );
       console.log("AI content cached successfully");
     } catch (error) {
@@ -160,7 +162,10 @@ export class AICacheManager {
    */
   cacheBusinessAnalysis(businessId: string, analysis: AIAnalysis): void {
     try {
-      localStorage.setItem(`ai-analysis-${businessId}`, JSON.stringify(analysis));
+      localStorage.setItem(
+        `ai-analysis-${businessId}`,
+        JSON.stringify(analysis),
+      );
       console.log(`Business analysis cached for ${businessId}`);
     } catch (error) {
       console.error("Error caching business analysis:", error);
@@ -172,7 +177,9 @@ export class AICacheManager {
    */
   getCachedSkillsAnalysis(businessId: string): any | null {
     try {
-      const cachedSkills = localStorage.getItem(`skills-analysis-${businessId}`);
+      const cachedSkills = localStorage.getItem(
+        `skills-analysis-${businessId}`,
+      );
       if (cachedSkills) {
         return JSON.parse(cachedSkills);
       }
@@ -188,7 +195,10 @@ export class AICacheManager {
    */
   cacheSkillsAnalysis(businessId: string, skillsAnalysis: any): void {
     try {
-      localStorage.setItem(`skills-analysis-${businessId}`, JSON.stringify(skillsAnalysis));
+      localStorage.setItem(
+        `skills-analysis-${businessId}`,
+        JSON.stringify(skillsAnalysis),
+      );
       console.log(`Skills analysis cached for ${businessId}`);
     } catch (error) {
       console.error("Error caching skills analysis:", error);
@@ -235,7 +245,7 @@ export class AICacheManager {
   forceResetCache(): void {
     this.clearAllCache();
     // Add a timestamp to force fresh responses
-    localStorage.setItem('ai-cache-reset-timestamp', Date.now().toString());
+    localStorage.setItem("ai-cache-reset-timestamp", Date.now().toString());
     console.log("AI cache force reset - all responses will be fresh");
   }
 
@@ -253,7 +263,7 @@ export class AICacheManager {
         (key) =>
           key.startsWith(AICacheManager.CACHE_KEY_PREFIX) ||
           key.startsWith("ai-analysis-") ||
-          key.startsWith("skills-analysis-")
+          key.startsWith("skills-analysis-"),
       );
 
       let totalSize = 0;
