@@ -3,7 +3,17 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CreditCard, ArrowLeft, Check, Clock, Star } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { EnhancedPaymentWrapper } from "../components/EnhancedPaymentForm";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "",
+);
 
 const QuizPaymentRequired: React.FC = () => {
   const navigate = useNavigate();
