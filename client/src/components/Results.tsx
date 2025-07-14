@@ -1773,8 +1773,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             </motion.div>
           )}
 
-          {/* Unlock Premium Section - Hide for logged users (they use report unlock instead) */}
-          {!hasUnlockedAnalysis && !user && (
+          {/* Unlock Premium Section - Show for all users who haven't unlocked */}
+          {(!hasUnlockedAnalysis || (user && !isReportUnlocked)) && (
             <motion.div
               className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center relative overflow-hidden mt-8 md:mt-12 mx-2 md:mx-0"
               initial={{ opacity: 0, y: 60 }}
