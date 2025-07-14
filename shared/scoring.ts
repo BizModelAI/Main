@@ -599,8 +599,9 @@ export function normalizeUserResponses(data: QuizData): Record<string, number> {
     "2-plus-years": 0.0,
   };
   normalized.speedToIncome =
-    firstIncomeMapping[data.firstIncomeTimeline || data.timeToFirstIncome] ||
-    0.5;
+    firstIncomeMapping[
+      data.firstIncomeTimeline || data.timeToFirstIncome || "3–6 months"
+    ] || 0.5;
 
   // upfrontInvestmentTolerance (Q4)
   const investment = data.upfrontInvestment || data.startupBudget || 0;
