@@ -866,11 +866,17 @@ ${fitCategory === "Best Fit" ? "This represents an excellent match for your curr
                   <>
                     <div className="prose max-w-none mb-8">
                       <div className="text-gray-700 leading-relaxed space-y-4 text-lg">
-                        <p
-                          dangerouslySetInnerHTML={renderMarkdownContent(
-                            modelInsights.modelFitReason,
-                          )}
-                        />
+                        {modelInsights.modelFitReason
+                          .split("\n\n")
+                          .filter((paragraph) => paragraph.trim().length > 0)
+                          .map((paragraph: string, index: number) => (
+                            <p
+                              key={index}
+                              dangerouslySetInnerHTML={renderMarkdownContent(
+                                paragraph.trim(),
+                              )}
+                            />
+                          ))}
                       </div>
                     </div>
 
