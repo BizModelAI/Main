@@ -143,7 +143,8 @@ const CreditCardForm: React.FC<{
   onSubmit: (event: React.FormEvent) => void;
   isProcessing: boolean;
   clientSecret: string;
-}> = ({ onSubmit, isProcessing, clientSecret }) => {
+  amount: number;
+}> = ({ onSubmit, isProcessing, clientSecret, amount }) => {
   const [billingDetails, setBillingDetails] = useState({
     name: "Casey Dunham",
   });
@@ -471,6 +472,7 @@ const PaymentForm: React.FC<EnhancedPaymentFormProps> = ({
           onSubmit={handleCardSubmit}
           isProcessing={isProcessing}
           clientSecret={clientSecret}
+          amount={amount}
         />
       ) : (
         <PayPalForm
