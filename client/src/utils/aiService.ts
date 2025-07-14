@@ -157,44 +157,16 @@ Requirements:
 
     switch (fitType) {
       case "best":
-        return `${basePrompt}
-
-FIT TYPE: BEST - This is their ideal match
-- modelFitReason: Write exactly 3 paragraphs explaining why ${modelName} is the user's ideal match. Use clear, confident tone. Each paragraph should cover different aspects: alignment with their traits, how it fits their goals/timeline, and why it's their best option.
-- keyInsights: Exactly 3 positive insights about why this works for them
-- successPredictors: Exactly 3 traits that increase their odds of success
-
-Be enthusiastic and confident about this being their perfect fit.`;
+        return `${basePrompt}FIT: BEST (ideal match)\nTone: Enthusiastic, confident. Focus on alignment with traits, goals/timeline fit, why it's their best option.`;
 
       case "strong":
-        return `${basePrompt}
-
-FIT TYPE: STRONG - Great fit but not their #1
-- modelFitReason: Write exactly 3 paragraphs explaining why it's a great fit. First paragraph: strong alignment aspects. Second paragraph: why it works well for their situation. Third paragraph: briefly note why it's not their absolute best match but still excellent.
-- keyInsights: Exactly 3 insights - mostly strengths with 1 light drawback if relevant
-- successPredictors: Exactly 3 traits - mostly positive traits, minor caveat if needed
-
-Be positive but acknowledge it's not their perfect match.`;
+        return `${basePrompt}FIT: STRONG (great but not #1)\nTone: Positive with minor caveats. Focus on strong alignments, why it works well, why not absolute best.`;
 
       case "possible":
-        return `${basePrompt}
-
-FIT TYPE: POSSIBLE - Might work but likely won't right now
-- modelFitReason: Write exactly 3 paragraphs. First paragraph: why it might work for them. Second paragraph: emphasize 2-3 quiz-based reasons why it likely won't work right now. Third paragraph: what would need to change for this to become viable.
-- keyInsights: Exactly 3 insights highlighting gaps or blockers from their profile
-- successPredictors: Exactly 3 traits that reduce their odds of success
-
-Be honest about the challenges while remaining constructive.`;
+        return `${basePrompt}FIT: POSSIBLE (might work but challenges exist)\nTone: Honest about gaps. Focus on potential benefits, current blockers, what needs to change.`;
 
       case "poor":
-        return `${basePrompt}
-
-FIT TYPE: POOR - Clearly misaligned
-- modelFitReason: Write exactly 3 paragraphs. First paragraph: clearly explain the fundamental misalignment with their profile. Second paragraph: specific reasons why this would be challenging for them. Third paragraph: future-oriented - what would need to change for this to become viable.
-- keyInsights: Exactly 3 insights showing clear mismatches between their profile and this model
-- successPredictors: Exactly 3 traits that would make success unlikely
-
-Be direct about the poor fit while offering hope for the future.`;
+        return `${basePrompt}FIT: POOR (misaligned)\nTone: Direct but constructive. Focus on fundamental misalignment, specific challenges, future potential.`;
 
       default:
         return basePrompt;
