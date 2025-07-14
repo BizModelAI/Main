@@ -209,7 +209,11 @@ Among all the business options available, ${modelName} stands out as your optima
         ],
       },
       strong: {
-        reason: `${modelName} represents a strong fit for your profile, offering good potential for success with some minor considerations to keep in mind.`,
+        reason: `${modelName} represents a strong fit for your profile, with most of your key traits and resources aligning well with what's needed for success in this field. Your skills, available time, and goals create a solid foundation for building a profitable business in this area.
+
+While this is definitely a viable and promising path for you, there are other business models that might offer slightly better alignment with your specific profile and preferences. However, ${modelName} still provides excellent potential for achieving your financial and lifestyle goals.
+
+You can absolutely succeed in ${modelName} with focused effort and the right approach. The minor gaps between your profile and the ideal requirements are easily addressable and shouldn't prevent you from pursuing this path if it interests you.`,
         insights: [
           "Most of your traits align well with this business model",
           "Your goals and timeline work well with this approach",
