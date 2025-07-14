@@ -1916,7 +1916,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           isOpen={showEmailModal}
           onClose={() => setShowEmailModal(false)}
           quizData={quizData}
-          isPaidUser={hasUnlockedAnalysis || hasMadeAnyPayment()}
+          isPaidUser={canViewFullReport || hasMadeAnyPayment()}
           userEmail={userEmail}
         />
 
