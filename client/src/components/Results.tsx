@@ -192,7 +192,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // Basic access is always available, but full reports require payment
   const canViewFullReport = user ? isReportUnlocked : true;
 
-    useEffect(() => {
+  useEffect(() => {
     console.log("Results component received quizData:", quizData);
 
     // Clear ALL AI cache for fresh quiz results to prevent inconsistencies
@@ -402,15 +402,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           console.error("Error parsing cached AI data:", error);
         }
       } else {
-              console.log("❌ No cached AI data found in localStorage");
+        console.log("❌ No cached AI data found in localStorage");
       }
 
       // Fallback if no valid cached data - ensure consistency with actual business models
       const topBusinessModel = personalizedPaths[0];
       console.log(
-        `🚀 Setting fallback AI content for ${topBusinessModel?.name || 'unknown business model'} (no valid AI data from loading page)",
+        `🚀 Setting fallback AI content for ${topBusinessModel?.name || "unknown business model"} (no valid AI data from loading page)`,
       );
-            const fallbackInsights = generateFallbackInsights(personalizedPaths[0]);
+      const fallbackInsights = generateFallbackInsights(personalizedPaths[0]);
       const fallbackAnalysis = generateFallbackAnalysis();
       setAiInsights(fallbackInsights);
       setAiAnalysis(fallbackAnalysis);
@@ -564,7 +564,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     };
   };
 
-    const generateFallbackInsights = (topPath?: BusinessPath): AIInsights => {
+  const generateFallbackInsights = (topPath?: BusinessPath): AIInsights => {
     const actualTopPath = topPath || personalizedPaths[0];
     if (!actualTopPath) {
       return {
@@ -583,7 +583,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
           "Start your entrepreneurial journey by completing our comprehensive business assessment!",
       };
     }
-        return {
+    return {
       personalizedSummary: `Based on your comprehensive assessment, ${actualTopPath?.name || "your top business match"} achieves a ${actualTopPath?.fitScore || 85}% compatibility score with your unique profile.`,
       customRecommendations: [
         "Start with free tools to validate your concept",
