@@ -571,13 +571,28 @@ const QuizWithNavigation: React.FC<{
     if (user && !String(user.id).startsWith("temp_")) {
       console.log("Saving quiz data for authenticated user:", user.email);
       try {
-        const response = await fetch("/api/auth/save-quiz-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ quizData: data }),
+        // Use XMLHttpRequest to avoid FullStory interference
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/auth/save-quiz-data", true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        const response = await new Promise<{
+          ok: boolean;
+          status: number;
+          statusText: string;
+        }>((resolve, reject) => {
+          xhr.onload = () => {
+            resolve({
+              ok: xhr.status >= 200 && xhr.status < 300,
+              status: xhr.status,
+              statusText: xhr.statusText,
+            });
+          };
+          xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
+          xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+          xhr.timeout = 10000; // 10 second timeout
+          xhr.send(JSON.stringify({ quizData: data }));
         });
 
         if (response.ok) {
