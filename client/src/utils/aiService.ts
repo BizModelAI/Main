@@ -728,7 +728,7 @@ Generate a professional business analysis about ${topPath.name} for this user.`;
             xhr.onerror = () =>
               reject(new Error("XMLHttpRequest network error"));
             xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
-            xhr.timeout = 60000; // 60 second timeout for OpenAI calls
+            xhr.timeout = 90000; // 90 second timeout for OpenAI calls
             xhr.send(
               JSON.stringify({
                 prompt,
