@@ -847,7 +847,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
 
   // Share functionality
   const handleShareResults = async () => {
-    if (!hasUnlockedAnalysis) {
+    if (!canViewFullReport) {
       setPendingAction("share");
       setPaywallType("full-report");
       setShowUnlockModal(true);
