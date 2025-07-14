@@ -1114,13 +1114,15 @@ ${index === 0 ? "As your top match, this path offers the best alignment with you
                   </div>
                 </div>
 
-                {/* Best Fit Characteristics */}
+                {/* Best Fit Characteristics - Updated to use AI-generated characteristics */}
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Your Best Fit Characteristics
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {allCharacteristics.map((characteristic, index) => (
+                    {(
+                      aiInsights?.bestFitCharacteristics || allCharacteristics
+                    ).map((characteristic, index) => (
                       <div key={index} className="flex items-center">
                         <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                         <span className="text-gray-700">{characteristic}</span>
