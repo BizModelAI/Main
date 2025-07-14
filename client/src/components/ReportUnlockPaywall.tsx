@@ -164,12 +164,14 @@ const ReportPaymentForm: React.FC<ReportPaymentFormProps> = ({
 interface ReportUnlockPaywallProps {
   quizAttemptId: number;
   onUnlock: () => void;
+  onBack?: () => void;
   preview?: boolean;
 }
 
 export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
   quizAttemptId,
   onUnlock,
+  onBack,
   preview = false,
 }) => {
   const [showPayment, setShowPayment] = useState(false);
@@ -238,7 +240,10 @@ export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
         </Elements>
 
         <button
-          onClick={() => setShowPayment(false)}
+          onClick={() => {
+            setShowPayment(false);
+            if (onBack) onBack();
+          }}
           className="w-full mt-4 text-gray-600 hover:text-gray-900 transition-colors text-sm"
         >
           Back to Preview
