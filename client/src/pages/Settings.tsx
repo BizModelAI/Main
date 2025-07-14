@@ -16,7 +16,8 @@ const Settings: React.FC = () => {
   const { user, updateProfile, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    firstName: user?.name?.split(" ")[0] || "",
+    lastName: user?.name?.split(" ").slice(1).join(" ") || "",
     email: user?.email || "",
   });
   const [notifications, setNotifications] = useState({
