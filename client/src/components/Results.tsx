@@ -1550,7 +1550,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                         )}
 
                         {/* Secondary CTA - Only show if card is not locked */}
-                        {!(index > 0 && !hasUnlockedAnalysis) && (
+                        {!(index > 0 && !canViewFullReport) && (
                           <div className="text-center space-y-2 md:space-y-3">
                             <button
                               onClick={() => handleLearnMore(path)}
