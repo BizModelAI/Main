@@ -335,13 +335,14 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
   const handlePaymentSuccess = async () => {
     setHasUnlockedAnalysis(true);
     localStorage.setItem("hasAnyPayment", "true");
+    localStorage.setItem("hasUnlockedAnalysis", "true");
 
     // Save quiz data from localStorage to user's account
     const savedQuizData = localStorage.getItem("quizData");
     if (savedQuizData) {
       try {
         const quizData = JSON.parse(savedQuizData);
-        await fetch("/api/auth/save-quiz-data", {
+        const response = await fetch("/api/auth/save-quiz-data", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -349,6 +350,16 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
           credentials: "include",
           body: JSON.stringify({ quizData }),
         });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.quizAttemptId) {
+            localStorage.setItem(
+              "currentQuizAttemptId",
+              data.quizAttemptId.toString(),
+            );
+          }
+        }
 
         // Set quiz completion flag so user can access features
         setHasCompletedQuiz(true);
@@ -360,7 +371,13 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       }
     }
 
+    // Close the modal and trigger success handler
     onSuccess();
+
+    // Force a reload to ensure the site updates with latest quiz and full access
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   const handlePaymentError = (errorMessage: string) => {
