@@ -2396,14 +2396,8 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
       });
 
       // Check the decrement logic manually
-      const shouldDecrement =
-        isPaid && user.hasAccessPass && user.quizRetakesRemaining > 0;
-      console.log("Should decrement retakes:", shouldDecrement);
-
-      if (shouldDecrement) {
-        console.log("Decrementing retakes...");
-        await storage.decrementQuizRetakes(testUser.id);
-      }
+      // Quiz retakes system removed - now using pay-per-quiz model
+      console.log("Pay-per-quiz model - no retakes to decrement");
 
       // Check final status
       const finalUser = await storage.getUser(testUser.id);
