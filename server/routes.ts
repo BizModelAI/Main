@@ -1579,11 +1579,7 @@ export async function registerRoutes(app: Express): Promise<void> {
               });
 
               // Complete the payment
-              if (type === "quiz_payment" || type === "report_unlock") {
-                await storage.completePayment(payment.id, 0);
-              } else {
-                await storage.completePayment(payment.id, 0);
-              }
+              await storage.completePayment(payment.id);
 
               // Clean up temporary data
               await storage.cleanupExpiredUnpaidEmails();
