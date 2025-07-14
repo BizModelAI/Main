@@ -128,6 +128,13 @@ export function setupAuthRoutes(app: Express) {
       // Set session
       req.session.userId = user.id;
 
+      console.log("Login: Before session save", {
+        sessionId: req.sessionID,
+        userId: user.id,
+        userEmail: user.email,
+        sessionData: req.session,
+      });
+
       // Force session save before sending response
       req.session.save((err) => {
         if (err) {
