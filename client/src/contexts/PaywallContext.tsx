@@ -90,15 +90,23 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
         if (isMounted) {
           console.error("PaywallContext: Error checking user status:", error);
 
-          // Development mode fallback: If there's an error but user is logged in, assume quiz is completed
+          // For any errors with authenticated users, assume quiz is completed
+          console.log(
+            "PaywallContext: Error occurred but user is authenticated - setting quiz as completed",
+          );
+          setHasCompletedQuiz(true);
+
+          // In development mode, also unlock analysis
           if (import.meta.env.MODE === "development") {
             console.log(
-              "PaywallContext: Development mode - handling network error gracefully",
+              "PaywallContext: Development mode - also unlocking analysis after error",
             );
-            setHasCompletedQuiz(true);
             setHasUnlockedAnalysis(true);
-            // Update localStorage for consistency
-            localStorage.setItem("hasCompletedQuiz", "true");
+          }
+
+          // Update localStorage for consistency
+          localStorage.setItem("hasCompletedQuiz", "true");
+          if (import.meta.env.MODE === "development") {
             localStorage.setItem("hasUnlockedAnalysis", "true");
           }
         }
