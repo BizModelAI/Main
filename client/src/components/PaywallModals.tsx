@@ -27,6 +27,9 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({
   type,
   title,
 }) => {
+  const { user } = useAuth();
+  const price = user ? "$4.99" : "$9.99";
+
   if (!isOpen) return null;
 
   const getContent = () => {
