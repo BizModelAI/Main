@@ -569,10 +569,20 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
               <p>
                 Based on your quiz responses, our AI has identified key patterns
                 in your entrepreneurial profile that suggest strong potential
-                for success in certain business models. Your responses indicate
-                a unique combination of traits that align particularly well with
-                businesses requiring your specific skill set and work style
-                preferences.
+                for success in {topThreePaths[0]?.name.toLowerCase()} and
+                similar business models. Your responses show{" "}
+                {quizData.selfMotivationLevel >= 7
+                  ? "strong self-motivation"
+                  : "good self-motivation with external structure"}{" "}
+                and{" "}
+                {quizData.uncertaintyHandling >= 7
+                  ? "excellent ability to handle uncertainty"
+                  : "preference for more structured approaches"}
+                , which align particularly well with{" "}
+                {quizData.workStylePreference === "independent"
+                  ? "independent business models"
+                  : "collaborative business approaches"}
+                .
               </p>
               <p>
                 Your time availability of{" "}
