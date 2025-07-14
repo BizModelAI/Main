@@ -1042,6 +1042,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         // Update the user with additional fields
         await storage.updateUser(user.id, {
           email: tempData.email,
+          name: signupData.name, // Include the name from signup data
           quizRetakesRemaining: parseInt(retakesGranted) || 5,
           hasAccessPass: true,
         });
