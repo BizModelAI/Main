@@ -591,7 +591,7 @@ export class DatabaseStorage implements IStorage {
       // Set hasAccessPass to true for access_pass payments
       if (payment.type === "access_pass") {
         userUpdates.hasAccessPass = true;
-        userUpdates.quizRetakesRemaining = 5; // Initial 5 retakes with access pass
+        userUpdates.quizRetakesRemaining = 3; // Initial 3 retakes with access pass
       }
 
       await tx
