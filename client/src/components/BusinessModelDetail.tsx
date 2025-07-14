@@ -128,6 +128,12 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
   const [businessModel, setBusinessModel] = useState<any>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+  const [modelInsights, setModelInsights] = useState<{
+    modelFitReason: string;
+    keyInsights: string[];
+    successPredictors: string[];
+  } | null>(null);
+  const [isLoadingModelInsights, setIsLoadingModelInsights] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -176,59 +182,54 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     }
   };
 
-  // Generate and cache AI analysis for paid users
-  const generateAndCacheAIAnalysis = useCallback(
+  // Generate model insights using new method
+  const generateModelInsights = useCallback(
     async (data: QuizData, path: BusinessPath) => {
       if (!businessId) return;
 
-      // Check if we have cached analysis for this business model
-      const cachedAnalysis =
-        aiCacheManager.getCachedBusinessAnalysis(businessId);
-
-      if (cachedAnalysis) {
-        setAiAnalysis(cachedAnalysis);
-        setIsLoadingAnalysis(false);
-        return;
-      }
-
-      // Generate new analysis if not cached
-      setIsLoadingAnalysis(true);
+      setIsLoadingModelInsights(true);
       try {
         const aiService = AIService.getInstance();
-        const analysis = await aiService.generateDetailedAnalysis(data, path);
 
-        // Cache the analysis
-        aiCacheManager.cacheBusinessAnalysis(businessId, analysis);
-        setAiAnalysis(analysis);
+        // Determine fit type based on fit score
+        const fitType: "best" | "strong" | "possible" | "poor" =
+          fitCategory === "Best Fit"
+            ? "best"
+            : fitCategory === "Strong Fit"
+              ? "strong"
+              : fitCategory === "Possible Fit"
+                ? "possible"
+                : "poor";
+
+        const insights = await aiService.generateModelInsights(
+          data,
+          path.name,
+          fitType,
+        );
+
+        setModelInsights(insights);
       } catch (error) {
-        console.error("Error generating AI analysis:", error);
-        // Set fallback analysis
-        const fallbackAnalysis = {
-          fullAnalysis:
-            "This business model aligns well with your profile and goals based on your quiz responses.",
+        console.error("Error generating model insights:", error);
+        // Set fallback insights
+        const fallbackInsights = {
+          modelFitReason: `${path.name} shows ${fitCategory.toLowerCase()} alignment with your profile based on your quiz responses.`,
           keyInsights: [
-            "Good fit for your skills",
-            "Matches your time availability",
-            "Aligns with income goals",
+            "Your profile shows specific alignment indicators with this model",
+            "Time commitment and goals factor into this assessment",
+            "Skills and preferences have been analyzed for compatibility",
           ],
-          personalizedRecommendations: [
-            "Start with basic tools",
-            "Focus on learning",
-            "Build gradually",
-          ],
-          riskFactors: ["Initial learning curve", "Time investment required"],
           successPredictors: [
-            "Strong motivation",
-            "Good skill match",
-            "Realistic expectations",
+            "Your motivation level supports this business approach",
+            "Available resources align with model requirements",
+            "Personality traits match success factors for this field",
           ],
         };
-        setAiAnalysis(fallbackAnalysis);
+        setModelInsights(fallbackInsights);
       } finally {
-        setIsLoadingAnalysis(false);
+        setIsLoadingModelInsights(false);
       }
     },
-    [businessId],
+    [businessId, fitCategory],
   );
 
   // Generate skills analysis for paid users
@@ -367,9 +368,9 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
       "BusinessModelDetail: Access granted, proceeding to generate analysis",
     );
 
-    // User has paid access - generate AI analysis and skills analysis if quiz data is available
+    // User has paid access - generate model insights and skills analysis if quiz data is available
     if (quizData && path) {
-      generateAndCacheAIAnalysis(quizData, path);
+      generateModelInsights(quizData, path);
       generateSkillsAnalysis(quizData, model);
     } else if (user && path) {
       // Fallback for paid users when quiz data API fails: create mock quiz data
@@ -431,10 +432,10 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
         teachVsSolvePreference: "solve",
         meaningfulContributionImportance: 4,
       };
-      generateAndCacheAIAnalysis(mockQuizData, path);
+      generateModelInsights(mockQuizData, path);
       generateSkillsAnalysis(mockQuizData, model);
     } else {
-      setIsLoadingAnalysis(false);
+      setIsLoadingModelInsights(false);
       setIsLoadingSkills(false);
     }
   }, [
@@ -442,7 +443,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     quizData,
     hasCompletedQuiz,
     canAccessBusinessModel,
-    generateAndCacheAIAnalysis,
+    generateModelInsights,
     generateSkillsAnalysis,
   ]);
 
