@@ -661,10 +661,19 @@ export async function registerRoutes(app: Express): Promise<void> {
         sessionId: req.sessionID,
         sessionUserId: req.session?.userId,
         sessionKey: getSessionKey(req),
+        headers: req.headers["user-agent"],
+        ip: req.ip || req.connection.remoteAddress,
       });
 
       const userId = getUserIdFromRequest(req);
       console.log("Latest quiz data: getUserIdFromRequest returned", userId);
+
+      // Debug: Let's check the actual cache
+      const { tempSessionCache } = await import("./auth.js");
+      console.log(
+        "Latest quiz data: Cache contents:",
+        Array.from(tempSessionCache.entries()).slice(0, 3),
+      );
 
       if (!userId) {
         console.log("Latest quiz data: Not authenticated", {
