@@ -13,7 +13,7 @@ const openai = process.env.OPENAI_API_KEY
 // Simple rate limiting for concurrent requests
 class RateLimiter {
   private requests: number[] = [];
-  private readonly maxRequests = 10; // Max requests per minute
+  private readonly maxRequests = 5; // Max requests per minute to avoid rate limits
   private readonly windowMs = 60000; // 1 minute window
 
   async waitForSlot(): Promise<void> {
@@ -72,7 +72,7 @@ export class AIScoringService {
   async analyzeBusinessFit(
     quizData: QuizData,
   ): Promise<ComprehensiveFitAnalysis> {
-    console.log("🎯 analyzeBusinessFit called", {
+    console.log("��� analyzeBusinessFit called", {
       hasOpenAI: !!openai,
       hasApiKey: !!process.env.OPENAI_API_KEY,
       apiKeyLength: process.env.OPENAI_API_KEY?.length || 0,
@@ -106,13 +106,13 @@ export class AIScoringService {
           ],
           response_format: { type: "json_object" },
           temperature: 0.3,
-          max_tokens: 4000,
+          max_tokens: 1200,
         }),
         new Promise((_, reject) =>
           setTimeout(
             () =>
-              reject(new Error("OpenAI API call timed out after 30 seconds")),
-            30000,
+              reject(new Error("OpenAI API call timed out after 25 seconds")),
+            25000,
           ),
         ),
       ])) as OpenAI.Chat.Completions.ChatCompletion;
