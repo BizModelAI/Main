@@ -785,8 +785,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         `Save quiz data: User ${userId}, first quiz: ${isFirstQuiz}, has access pass: ${user?.hasAccessPass}`,
       );
 
-      // For additional quizzes (after the first), require payment for all users
-      if (!isFirstQuiz) {
+      // For additional quizzes (after the first), require payment unless user has access pass
+      if (!isFirstQuiz && !user?.hasAccessPass) {
         if (!paymentId) {
           return res.status(402).json({
             error: "Payment required for additional quiz attempts",
