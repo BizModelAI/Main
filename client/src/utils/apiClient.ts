@@ -14,10 +14,6 @@ export async function apiRequest(
   const { method = "GET", headers = {}, body, timeout = 30000 } = options;
 
   let response: Response;
-  let lastError: Error;
-
-  // Retry up to 3 times for network errors
-  for (let attempt = 1; attempt <= 3; attempt++) {
 
   // Use XMLHttpRequest first to avoid FullStory interference
   try {
