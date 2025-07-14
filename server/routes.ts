@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
+import { getUserIdFromRequest, getSessionKey } from "./auth.js";
 import { generateBusinessResources } from "./services/resourceService.js";
 import { pdfService } from "./services/pdfService.js";
 import { emailService } from "./services/emailService.js";
