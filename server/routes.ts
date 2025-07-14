@@ -969,7 +969,8 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  app.post("/api/create-retake-bundle-payment", async (req, res) => {
+  // Create payment for individual quiz attempt ($4.99 per additional quiz)
+  app.post("/api/create-quiz-payment", async (req, res) => {
     try {
       const { userId } = req.body;
 
@@ -982,14 +983,23 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Check if user has access pass
-      if (!user.hasAccessPass) {
+      // Check if user already has access pass (no payment needed for additional quizzes)
+      if (user.hasAccessPass) {
         return res
           .status(400)
-          .json({ error: "User must have access pass first" });
+          .json({
+            error:
+              "User with access pass doesn't need to pay for additional quizzes",
+          });
       }
 
-      // Create Stripe Payment Intent for $4.99 retake bundle
+      // Check if this is their first quiz (should be free)
+      const existingAttempts = await storage.getQuizAttempts(userId);
+      if (existingAttempts.length === 0) {
+        return res.status(400).json({ error: "First quiz attempt is free" });
+      }
+
+      // Create Stripe Payment Intent for $4.99 quiz payment
       if (!stripe) {
         return res
           .status(500)
@@ -1001,10 +1011,9 @@ export async function registerRoutes(app: Express): Promise<void> {
         currency: "usd",
         metadata: {
           userId: userId.toString(),
-          type: "retake_bundle",
-          retakesGranted: "3",
+          type: "quiz_payment",
         },
-        description: "BizModelAI Retake Bundle - 3 additional quiz attempts",
+        description: "BizModelAI Quiz Attempt - Additional quiz",
       });
 
       // Create payment record in our database
@@ -1012,9 +1021,8 @@ export async function registerRoutes(app: Express): Promise<void> {
         userId,
         amount: "4.99",
         currency: "usd",
-        type: "retake_bundle",
+        type: "quiz_payment",
         status: "pending",
-        retakesGranted: 3,
         stripePaymentIntentId: paymentIntent.id,
       });
 
@@ -1024,7 +1032,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         paymentId: payment.id,
       });
     } catch (error) {
-      console.error("Error creating retake bundle payment:", error);
+      console.error("Error creating quiz payment:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
