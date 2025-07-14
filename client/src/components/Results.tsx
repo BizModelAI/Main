@@ -195,12 +195,23 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   useEffect(() => {
     console.log("Results component received quizData:", quizData);
 
-    // Clear ALL AI cache for fresh quiz results to prevent inconsistencies
+    // Force clear ALL AI caches to ensure fresh and accurate results
+    console.log("🧹 Force clearing all AI caches for fresh quiz results...");
+
+    // Clear AI cache manager caches
     aiCacheManager.clearAllCache();
-    localStorage.removeItem("quiz-completion-ai-insights");
-    localStorage.removeItem("ai-generation-in-progress");
-    localStorage.removeItem("ai-generation-timestamp");
-    // Clear any cached business analysis that might be outdated
+
+    // Clear specific localStorage items that might cause inconsistencies
+    const specificKeys = [
+      "quiz-completion-ai-insights",
+      "ai-generation-in-progress",
+      "ai-generation-timestamp",
+      "ai-cache-reset-timestamp",
+    ];
+
+    specificKeys.forEach((key) => localStorage.removeItem(key));
+
+    // Clear any AI-related cache keys
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -214,7 +225,9 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
       }
     }
     keysToRemove.forEach((key) => localStorage.removeItem(key));
-    console.log("All AI cache cleared for new quiz results");
+    console.log(
+      `✅ Cleared ${keysToRemove.length + specificKeys.length} AI cache entries for fresh results`,
+    );
 
     // Trigger confetti blast only on first visit to results page
     const confettiKey = `confetti_shown_${userEmail || "anonymous"}`;
