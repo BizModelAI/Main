@@ -2230,7 +2230,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
         quizRetakesRemaining: 5,
         totalQuizRetakesUsed: 0,
       });
-      console.log("Updated user with access pass and 5 retakes");
+      console.log("Updated user with access pass and 3 retakes");
 
       // Simulate first quiz attempt by calling our internal endpoint
       const quizData = { mockQuizData: true };
