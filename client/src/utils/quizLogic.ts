@@ -47,7 +47,7 @@ export async function generateAIPersonalizedPaths(
       };
       xhr.ontimeout = () => {
         console.error(
-          "generateAIPersonalizedPaths: Request timeout after 50 seconds",
+          "generateAIPersonalizedPaths: Request timeout after 40 seconds",
         );
         reject(new Error("Request timeout"));
       };
