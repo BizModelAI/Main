@@ -1460,10 +1460,14 @@ export async function registerRoutes(app: Express): Promise<void> {
             }
 
             // Complete the payment in our system
-            await storage.completePayment(
-              payment.id,
-              parseInt(retakesGranted) || 5,
-            );
+            if (payment.type === "quiz_payment") {
+              await storage.completePayment(payment.id, 0);
+            } else {
+              await storage.completePayment(
+                payment.id,
+                parseInt(retakesGranted) || 5,
+              );
+            }
 
             console.log(`Payment completed: ${type} for user ${userId}`);
           }
