@@ -104,6 +104,21 @@ export class AIService {
         `❌ Error generating model insights for ${modelName}:`,
         error,
       );
+
+      // Log specific error type for debugging
+      if (error instanceof Error) {
+        if (
+          error.message.includes("timeout") ||
+          error.message.includes("timed out")
+        ) {
+          console.warn("⏰ OpenAI request timed out, using fallback insights");
+        } else if (error.message.includes("rate limit")) {
+          console.warn("🚫 Rate limited by OpenAI, using fallback insights");
+        } else {
+          console.warn("🔥 OpenAI request failed:", error.message);
+        }
+      }
+
       return this.generateModelInsightsFallback(modelName, fitType);
     }
   }
