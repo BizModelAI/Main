@@ -512,21 +512,12 @@ const BusinessModelCard = ({
                 <div className="text-2xl font-bold text-blue-600">
                   {Math.round(fitScore)}%
                 </div>
-                <div className="text-xs text-gray-500">Fit</div>
+                <div className="text-xs text-gray-500">
+                  {fitCategory || "Fit"}
+                </div>
               </div>
             )}
           </div>
-
-          {/* Fit indicator bubble in upper right corner */}
-          {showFitBadge && fitCategory && getFitCategoryColor && (
-            <div className="absolute -top-2 -right-2 z-10">
-              <div
-                className={`px-3 py-1 rounded-full text-xs font-bold shadow-lg ${getFitCategoryColor(fitCategory)}`}
-              >
-                {fitCategory}
-              </div>
-            </div>
-          )}
         </div>
 
         <p className="text-gray-600 mb-4 line-clamp-3">{model.description}</p>
