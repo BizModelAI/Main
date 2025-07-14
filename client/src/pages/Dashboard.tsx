@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
         let quizData: QuizData | null = null;
 
         // Only call API for non-temporary users (temporary users have IDs like "temp_sessionId")
-        if (user && !user.id.startsWith("temp_")) {
+        if (user && !String(user.id).startsWith("temp_")) {
           try {
             quizData = await getLatestQuizData();
           } catch (error) {
