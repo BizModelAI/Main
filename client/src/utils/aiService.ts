@@ -121,7 +121,7 @@ ${userProfile}
 Generate a JSON response with this exact structure:
 
 {
-  "modelFitReason": "Single paragraph explanation",
+  "modelFitReason": "Three paragraphs explaining the fit - each paragraph should be substantial and provide different aspects of the analysis",
   "keyInsights": ["insight 1", "insight 2", "insight 3"],
   "successPredictors": ["predictor 1", "predictor 2", "predictor 3"]
 }
@@ -130,7 +130,9 @@ CRITICAL RULES:
 - Use ONLY the data provided in the user profile
 - Do NOT make up specific numbers, amounts, or timeframes
 - Do NOT include markdown or formatting
-- Keep modelFitReason as ONE paragraph
+- modelFitReason must be exactly THREE paragraphs separated by double line breaks
+- keyInsights must be exactly 3 items
+- successPredictors must be exactly 3 items
 - Reference exact values from the user profile
 `;
 
