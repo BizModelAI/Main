@@ -260,12 +260,13 @@ const PayPalForm: React.FC<{
         body: JSON.stringify(requestBody),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create PayPal payment");
+        throw new Error(data.error || "Failed to create PayPal payment");
       }
 
-      const { orderID } = await response.json();
+      const { orderID } = data;
       return orderID;
     } catch (error) {
       console.error("Error creating PayPal order:", error);
@@ -290,12 +291,11 @@ const PayPalForm: React.FC<{
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to capture PayPal payment");
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to capture PayPal payment");
+      }
       if (result.success) {
         onSuccess();
       } else {
