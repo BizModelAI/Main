@@ -273,47 +273,56 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
       // Update auth context
       await login(loginEmail, formData.password);
 
-      // Check if user already has access AND retakes available
-      // Only bypass payment if they have both access AND retakes remaining
-      if (userData.hasAccessPass && userData.quizRetakesRemaining > 0) {
-        setHasUnlockedAnalysis(true);
-        localStorage.setItem("hasAnyPayment", "true");
+      // Save quiz data for logged-in users (they can take unlimited quizzes if they have access pass)
+      const savedQuizData = localStorage.getItem("quizData");
+      if (savedQuizData) {
+        try {
+          const quizData = JSON.parse(savedQuizData);
+          const saveResponse = await fetch("/api/auth/save-quiz-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ quizData }),
+          });
 
-        // Save quiz data if available (this enables access to new quiz results)
-        const savedQuizData = localStorage.getItem("quizData");
-        if (savedQuizData) {
-          try {
-            const quizData = JSON.parse(savedQuizData);
-            await fetch("/api/auth/save-quiz-data", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({ quizData }),
-            });
-            // Set quiz completion flag so user can access features
+          if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            // Store the quiz attempt ID for potential report unlock
+            if (saveData.quizAttemptId) {
+              localStorage.setItem(
+                "currentQuizAttemptId",
+                saveData.quizAttemptId.toString(),
+              );
+            }
+
+            // Set quiz completion flag
             setHasCompletedQuiz(true);
             localStorage.setItem("hasCompletedQuiz", "true");
-          } catch (error) {
-            console.error("Error saving quiz data:", error);
+          } else if (saveResponse.status === 402) {
+            // User needs to pay for this quiz attempt (non-access pass users)
+            const errorData = await saveResponse.json();
+            setIsRetakePayment(true);
+            setStep("payment");
+            return;
           }
+        } catch (error) {
+          console.error("Error saving quiz data:", error);
         }
+      }
 
-        onSuccess(); // Close modal and grant access
+      // Check if user has access pass
+      if (userData.hasAccessPass) {
+        // Access pass holders get free quiz attempts but need to pay per report unlock
+        // For now, just proceed to results page - they'll pay for report unlock if they want it
+        setHasUnlockedAnalysis(false); // They need to unlock individual reports
+        localStorage.setItem("hasAnyPayment", "true");
+        onSuccess(); // Close modal and go to results
         return;
       }
 
-      // If user has access but no retakes, they need to pay for additional retakes
-      if (userData.hasAccessPass && userData.quizRetakesRemaining <= 0) {
-        // Set a flag to indicate this is a retake payment, not initial access
-        // Don't save quiz data yet - only after payment
-        setIsRetakePayment(true);
-        setStep("payment");
-        return;
-      }
-
-      // If user doesn't have access at all, proceed to payment
+      // If user doesn't have access pass at all, proceed to payment for access pass
       setIsRetakePayment(false); // This is initial access payment
       setStep("payment");
     } catch (err: any) {
