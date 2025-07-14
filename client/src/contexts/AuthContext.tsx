@@ -225,6 +225,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const forceLogout = () => {
+    console.log("ForceLogout: Clearing user state due to session mismatch");
+    setUser(null);
+  };
+
   const deleteAccount = async (): Promise<void> => {
     if (!user) {
       throw new Error("No user logged in");
