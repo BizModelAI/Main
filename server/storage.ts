@@ -467,11 +467,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    console.log("Storage updateUser: Updating user", id, "with:", updates);
+
     const [user] = await this.ensureDb()
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
+
+    console.log(
+      "Storage updateUser: Result:",
+      user ? { id: user.id, name: user.name, email: user.email } : "null",
+    );
 
     if (!user) {
       throw new Error("User not found");
