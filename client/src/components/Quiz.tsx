@@ -631,23 +631,8 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const { toast } = useToast();
-  const {
-    canRetake,
-    isFirstQuiz,
-    hasAccessPass,
-    quizRetakesRemaining,
-    recordAttempt,
-    refetch,
-    isGuestUser,
-  } = useQuizRetake(userId || null);
 
-  // Check if user can take the quiz when component mounts
-  // Guest users (no userId) can always take quiz, authenticated users need retakes
-  useEffect(() => {
-    if (userId && !canRetake && !isGuestUser) {
-      setShowRetakeModal(true);
-    }
-  }, [userId, canRetake, isGuestUser]);
+  // Everyone can take unlimited quizzes in the new pay-per-report system
 
   // Debug logging for exit modal state
   useEffect(() => {
