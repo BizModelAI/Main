@@ -226,7 +226,11 @@ You can absolutely succeed in ${modelName} with focused effort and the right app
         ],
       },
       possible: {
-        reason: `${modelName} might work for you, but several aspects of your current profile suggest significant challenges that could impact your success.`,
+        reason: `${modelName} might work for you under the right circumstances, and there are some aspects of your profile that could support success in this field. However, several key factors suggest this wouldn't be the most natural or efficient path for you right now.
+
+Your current resources, available time, and skill set present some notable challenges that could make success in ${modelName} more difficult than it needs to be. These gaps aren't insurmountable, but they would require significant additional effort and development on your part.
+
+With focused skill development, increased resources, or changes to your current situation, ${modelName} could become much more viable for you in the future. For now, you might find greater success and satisfaction with business models that better match your current profile.`,
         insights: [
           "Some misalignment between your preferences and model requirements",
           "Your current resources may not fully support this approach",
