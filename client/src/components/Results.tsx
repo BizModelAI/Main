@@ -307,7 +307,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // This function is no longer used - AI content comes from loading page
   const generateAIContent = async (paths: BusinessPath[]) => {
     console.log(
-      "⚠️ generateAIContent called but should not be used - AI content comes from loading page",
+      "��️ generateAIContent called but should not be used - AI content comes from loading page",
     );
   };
 
@@ -1652,17 +1652,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                 />
                 <h4
                   className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
-                    hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
+                    canViewFullReport ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Download as PDF
                 </h4>
                 <p
                   className={`text-xs md:text-sm ${
-                    hasUnlockedAnalysis ? "text-gray-600" : "text-gray-400"
+                    canViewFullReport ? "text-gray-600" : "text-gray-400"
                   }`}
                 >
-                  {hasUnlockedAnalysis
+                  {canViewFullReport
                     ? "Get your complete report as a downloadable file for offline reference"
                     : "Unlock full analysis to download your results"}
                 </p>
