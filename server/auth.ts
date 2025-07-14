@@ -21,6 +21,39 @@ export function setupAuthRoutes(app: Express) {
     });
   });
 
+  // Test endpoint to set and check session
+  app.post("/api/auth/session-test", async (req, res) => {
+    try {
+      const testValue = `test-${Date.now()}`;
+      req.session.testValue = testValue;
+
+      console.log("Session test: Setting test value", {
+        sessionId: req.sessionID,
+        testValue: testValue,
+        sessionExists: !!req.session,
+      });
+
+      res.json({
+        success: true,
+        sessionId: req.sessionID,
+        testValue: testValue,
+        message: "Test value set in session",
+      });
+    } catch (error) {
+      console.error("Session test error:", error);
+      res.status(500).json({ error: "Session test failed" });
+    }
+  });
+
+  app.get("/api/auth/session-test", async (req, res) => {
+    res.json({
+      sessionId: req.sessionID,
+      testValue: req.session?.testValue || null,
+      sessionExists: !!req.session,
+      cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
+    });
+  });
+
   // Get current user session
   app.get("/api/auth/me", async (req, res) => {
     try {
