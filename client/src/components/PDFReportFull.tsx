@@ -40,6 +40,11 @@ export const PDFReportFull: React.FC<PDFReportFullProps> = ({
   const topThreePaths = paths.slice(0, 3);
   const userName = userEmail?.split("@")[0] || "User";
 
+  // Get the cached AI analysis that was generated on the Results/FullReport page
+  const cachedData = aiCacheManager.getCachedAIContent(quizData);
+  const aiInsights = cachedData.insights;
+  const aiAnalysis = cachedData.analysis;
+
   // Calculate trait scores
   const traitScores = {
     socialComfort: calculateSocialComfort(quizData),
