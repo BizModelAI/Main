@@ -665,11 +665,18 @@ CRITICAL REQUIREMENTS:
     `;
 
     try {
+      console.log(
+        "📤 Sending prompt to OpenAI:",
+        comprehensivePrompt.substring(0, 200) + "...",
+      );
+
       const response = await this.makeOpenAIRequest(
         comprehensivePrompt,
         1200,
         0.7,
       );
+
+      console.log("📥 Raw AI response:", response.substring(0, 300) + "...");
 
       // Clean up the response content (remove markdown code blocks if present)
       let cleanContent = response;
@@ -679,7 +686,16 @@ CRITICAL REQUIREMENTS:
           .replace(/```/g, "");
       }
 
+      console.log(
+        "🧹 Cleaned response:",
+        cleanContent.substring(0, 300) + "...",
+      );
+
       const parsed = JSON.parse(cleanContent);
+      console.log(
+        "✅ Parsed AI response - Summary:",
+        parsed.personalizedSummary?.substring(0, 100) + "...",
+      );
 
       // Validate and structure the response
       return {
