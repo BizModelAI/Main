@@ -1615,10 +1615,7 @@ export async function registerRoutes(app: Express): Promise<void> {
             ) {
               await storage.completePayment(payment.id);
             } else {
-              await storage.completePayment(
-                payment.id,
-                parseInt(retakesGranted) || 5,
-              );
+              await storage.completePayment(payment.id);
             }
 
             console.log(`Payment completed: ${type} for user ${userId}`);
