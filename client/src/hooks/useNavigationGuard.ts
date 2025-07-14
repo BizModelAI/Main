@@ -95,6 +95,7 @@ export const useNavigationGuard = () => {
       localStorage.removeItem("quizData");
       localStorage.removeItem("hasCompletedQuiz");
       localStorage.removeItem("currentQuizAttemptId");
+      localStorage.removeItem("hasUnlockedAnalysis");
 
       // For access pass holders, try to load their latest quiz attempt
       if (user?.hasAccessPass) {
@@ -105,9 +106,19 @@ export const useNavigationGuard = () => {
 
           if (response.ok) {
             const latestQuizData = await response.json();
-            if (latestQuizData) {
-              localStorage.setItem("quizData", JSON.stringify(latestQuizData));
+            if (latestQuizData.quizData) {
+              localStorage.setItem(
+                "quizData",
+                JSON.stringify(latestQuizData.quizData),
+              );
               localStorage.setItem("hasCompletedQuiz", "true");
+              // Set the quiz attempt ID so they can potentially unlock this specific report
+              if (latestQuizData.quizAttemptId) {
+                localStorage.setItem(
+                  "currentQuizAttemptId",
+                  latestQuizData.quizAttemptId.toString(),
+                );
+              }
               // Don't set hasUnlockedAnalysis - they'll need to pay per report
             }
           }
