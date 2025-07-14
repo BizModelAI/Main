@@ -54,10 +54,17 @@ function App() {
     showSaveModal,
     hasPendingQuizResults,
     navigateWithGuard,
-    handleSaveResults,
+    handleSaveResults: guardHandleSaveResults,
     handleLoseResults,
     handleCloseModal,
   } = useNavigationGuard();
+
+  // Custom save results handler that triggers payment
+  const handleSaveResults = () => {
+    guardHandleSaveResults();
+    // For now, redirect to a payment page - this could be enhanced to open a payment modal
+    navigate("/payment");
+  };
 
   // Restore data from localStorage on app start
   React.useEffect(() => {
