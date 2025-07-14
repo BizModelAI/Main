@@ -178,6 +178,8 @@ export const ReportUnlockPaywall: React.FC<ReportUnlockPaywallProps> = ({
   onBack,
   preview = false,
 }) => {
+  const [amount, setAmount] = useState("4.99");
+  const [isFirstReport, setIsFirstReport] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [error, setError] = useState<string>("");
 
