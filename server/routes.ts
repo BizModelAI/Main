@@ -2155,12 +2155,19 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
   // Get user data retention status
   app.get("/api/auth/data-retention-status", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+
+      if (!userId) {
+        console.log("Data retention status: Not authenticated", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: userId,
+          sessionKey: getSessionKey(req),
+        });
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const isPaid = await storage.isPaidUser(req.session.userId);
-      const user = await storage.getUser(req.session.userId);
+      const isPaid = await storage.isPaidUser(userId);
+      const user = await storage.getUser(userId);
 
       res.json({
         isPaidUser: isPaid,
