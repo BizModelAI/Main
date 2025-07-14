@@ -463,38 +463,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         xhr.withCredentials = true;
         xhr.setRequestHeader("Content-Type", "application/json");
 
-        response = await new Promise<Response>((resolve, reject) => {
-          xhr.onload = () => {
-            const responseText = xhr.responseText;
-            resolve({
-              ok: xhr.status >= 200 && xhr.status < 300,
-              status: xhr.status,
-              statusText: xhr.statusText,
-              json: () => {
-                try {
-                  return Promise.resolve(JSON.parse(responseText));
-                } catch (e) {
-                  return Promise.reject(new Error("Invalid JSON response"));
-                }
-              },
-              text: () => Promise.resolve(responseText),
-              headers: new Headers(),
-              url: url,
-              redirected: false,
-              type: "basic",
-              clone: () => response,
-              body: null,
-              bodyUsed: false,
-              arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-              blob: () => Promise.resolve(new Blob()),
-              formData: () => Promise.resolve(new FormData()),
-            } as Response);
-          };
-          xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
-          xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
-          xhr.timeout = 10000; // 10 second timeout
-          xhr.send();
-        });
+        response = await Promise.race([
+          new Promise<Response>((resolve, reject) => {
+            xhr.onload = () => {
+              const responseText = xhr.responseText;
+              resolve({
+                ok: xhr.status >= 200 && xhr.status < 300,
+                status: xhr.status,
+                statusText: xhr.statusText,
+                json: () => {
+                  try {
+                    return Promise.resolve(JSON.parse(responseText));
+                  } catch (e) {
+                    return Promise.reject(new Error("Invalid JSON response"));
+                  }
+                },
+                text: () => Promise.resolve(responseText),
+                headers: new Headers(),
+                url: url,
+                redirected: false,
+                type: "basic",
+                clone: () => response,
+                body: null,
+                bodyUsed: false,
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+                blob: () => Promise.resolve(new Blob()),
+                formData: () => Promise.resolve(new FormData()),
+              } as Response);
+            };
+            xhr.onerror = () =>
+              reject(new Error("XMLHttpRequest network error"));
+            xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+            xhr.timeout = 10000; // 10 second timeout
+            xhr.send();
+          }),
+          // Additional timeout safety net
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Request timeout after 15 seconds")),
+              15000,
+            ),
+          ),
+        ]);
       } catch (xhrError) {
         console.log(
           "getLatestQuizData: XMLHttpRequest failed, trying fetch as last resort",
