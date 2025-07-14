@@ -3,6 +3,58 @@ import { storage } from "./storage.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 
+// Temporary session cache as fallback for cookie issues
+const tempSessionCache = new Map<
+  string,
+  { userId: number; timestamp: number }
+>();
+
+// Helper function to get session key from request
+function getSessionKey(req: any): string {
+  // Use a combination of IP and User-Agent as session key
+  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  const userAgent = req.headers["user-agent"] || "unknown";
+  return `${ip}-${userAgent}`;
+}
+
+// Helper function to get user from session or cache
+function getUserIdFromRequest(req: any): number | undefined {
+  // First try normal session
+  if (req.session?.userId) {
+    return req.session.userId;
+  }
+
+  // Fallback to temporary cache
+  const sessionKey = getSessionKey(req);
+  const cachedSession = tempSessionCache.get(sessionKey);
+
+  if (cachedSession) {
+    // Check if session is still valid (24 hours)
+    const now = Date.now();
+    if (now - cachedSession.timestamp < 24 * 60 * 60 * 1000) {
+      return cachedSession.userId;
+    } else {
+      // Cleanup expired session
+      tempSessionCache.delete(sessionKey);
+    }
+  }
+
+  return undefined;
+}
+
+// Helper function to set user in session and cache
+function setUserIdInRequest(req: any, userId: number): void {
+  // Set in normal session
+  req.session.userId = userId;
+
+  // Also set in cache as fallback
+  const sessionKey = getSessionKey(req);
+  tempSessionCache.set(sessionKey, {
+    userId: userId,
+    timestamp: Date.now(),
+  });
+}
+
 declare module "express-session" {
   interface SessionData {
     userId?: number;
