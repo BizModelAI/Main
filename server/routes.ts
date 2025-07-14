@@ -2099,7 +2099,6 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
           email: users.email,
           source: sql<string>`'paid_user'`,
           createdAt: users.createdAt,
-          hasAccessPass: users.hasAccessPass,
         })
         .from(users)
         .where(sql`${users.email} IS NOT NULL`);
