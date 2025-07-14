@@ -629,7 +629,6 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
   const [showRoundIntro, setShowRoundIntro] = useState(true);
   const [currentRound, setCurrentRound] = useState(1);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [showRetakeModal, setShowRetakeModal] = useState(false);
 
   const { toast } = useToast();
   const {
