@@ -53,47 +53,24 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
 
       // For authenticated users, check their database records
       try {
-        console.log("PaywallContext: Checking user status for:", user.email);
-
         // Check if user has completed quiz
         const quizData = await getLatestQuizData();
 
         if (!isMounted) return; // Component unmounted, don't update state
 
         const hasQuiz = !!quizData;
-        console.log("PaywallContext: Quiz data found:", hasQuiz);
         setHasCompletedQuiz(hasQuiz);
 
         // Check if user has access pass (payment)
         const hasAccess = user.hasAccessPass;
-        console.log("PaywallContext: User has access pass:", hasAccess);
         setHasUnlockedAnalysis(hasAccess);
-
-        // Development mode: If user exists but quiz data call failed, assume they have completed quiz
-        if (!hasQuiz && import.meta.env.MODE === "development") {
-          console.log(
-            "PaywallContext: Development mode - assuming quiz completed for logged-in user",
-          );
-          setHasCompletedQuiz(true);
-        }
 
         // Update localStorage for consistency
         localStorage.setItem("hasCompletedQuiz", hasQuiz.toString());
         localStorage.setItem("hasUnlockedAnalysis", hasAccess.toString());
       } catch (error) {
         if (isMounted) {
-          console.error("PaywallContext: Error checking user status:", error);
-
-          // Development mode fallback: If there's an error but user is logged in, assume quiz is completed
-          if (import.meta.env.MODE === "development") {
-            console.log(
-              "PaywallContext: Development mode - handling error gracefully",
-            );
-            setHasCompletedQuiz(true);
-            if (user.hasAccessPass) {
-              setHasUnlockedAnalysis(true);
-            }
-          }
+          console.error("Error checking user status:", error);
         }
       }
     };
