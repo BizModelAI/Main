@@ -198,6 +198,22 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     // Clear ALL AI cache for fresh quiz results to prevent inconsistencies
     aiCacheManager.clearAllCache();
     localStorage.removeItem("quiz-completion-ai-insights");
+    localStorage.removeItem("ai-generation-in-progress");
+    localStorage.removeItem("ai-generation-timestamp");
+    // Clear any cached business analysis that might be outdated
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (
+        key &&
+        (key.startsWith("ai-analysis-") ||
+          key.startsWith("skills-analysis-") ||
+          key.startsWith("ai-cache-"))
+      ) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
     console.log("All AI cache cleared for new quiz results");
 
     // Trigger confetti blast only on first visit to results page
