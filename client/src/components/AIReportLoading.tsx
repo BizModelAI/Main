@@ -125,6 +125,15 @@ const AIReportLoading: React.FC<AIReportLoadingProps> = ({
 
   const [steps, setSteps] = useState<LoadingStep[]>(loadingSteps);
 
+  // Clear any potentially stuck state on component mount
+  useEffect(() => {
+    console.log(
+      "🚀 AIReportLoading component mounted, clearing any stuck state",
+    );
+    localStorage.removeItem("ai-generation-in-progress");
+    localStorage.removeItem("ai-generation-timestamp");
+  }, []);
+
   // Generate all 6 characteristics with OpenAI
   const generateAllCharacteristics = async (
     quizData: QuizData,
