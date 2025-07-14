@@ -33,12 +33,15 @@ const Settings: React.FC = () => {
 
   // Sync form data when user data changes
   useEffect(() => {
+    console.log("Settings: User data changed:", user);
     if (user) {
-      setFormData({
+      const newFormData = {
         firstName: user?.name?.split(" ")[0] || "",
         lastName: user?.name?.split(" ").slice(1).join(" ") || "",
         email: user?.email || "",
-      });
+      };
+      console.log("Settings: Setting form data to:", newFormData);
+      setFormData(newFormData);
     }
   }, [user]);
 
