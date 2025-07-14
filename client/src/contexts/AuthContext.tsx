@@ -280,9 +280,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const data = await response.json();
           errorMessage = data.error || errorMessage;
+          console.error("updateProfile: Server error response:", {
+            status: response.status,
+            statusText: response.statusText,
+            data: data,
+            updates: updates,
+          });
         } catch (parseError) {
           // If JSON parsing fails, use the response status text or default message
           errorMessage = response.statusText || errorMessage;
+          console.error("updateProfile: Failed to parse error response:", {
+            status: response.status,
+            statusText: response.statusText,
+            parseError: parseError,
+            updates: updates,
+          });
         }
         throw new Error(errorMessage);
       }
