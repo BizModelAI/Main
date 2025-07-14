@@ -1,5 +1,3 @@
-// Centralized API client that avoids FullStory fetch interference
-
 export interface ApiRequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   headers?: Record<string, string>;
@@ -13,30 +11,41 @@ export async function apiRequest(
 ): Promise<Response> {
   const { method = "GET", headers = {}, body, timeout = 30000 } = options;
 
-  let response: Response;
   let lastError: Error | null = null;
 
   // Retry up to 3 times with exponential backoff
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       // Use XMLHttpRequest first to avoid FullStory interference
-      response = await attemptXMLHttpRequest(url, method, headers, body, timeout);
+      const response = await attemptXMLHttpRequest(
+        url,
+        method,
+        headers,
+        body,
+        timeout,
+      );
       return response; // Success, return immediately
     } catch (xhrError) {
-      console.log(`apiClient: XMLHttpRequest attempt ${attempt} failed for ${url}, trying fetch fallback`);
+      console.log(
+        `apiClient: XMLHttpRequest attempt ${attempt} failed for ${url}, trying fetch fallback`,
+      );
 
       try {
         // Fallback to fetch
-        response = await attemptFetch(url, method, headers, body);
+        const response = await attemptFetch(url, method, headers, body);
         return response; // Success, return immediately
       } catch (fetchError) {
-        lastError = new Error(`Attempt ${attempt} failed - XHR: ${(xhrError as Error).message}, Fetch: ${(fetchError as Error).message}`);
+        lastError = new Error(
+          `Attempt ${attempt} failed - XHR: ${(xhrError as Error).message}, Fetch: ${(fetchError as Error).message}`,
+        );
 
         if (attempt < 3) {
           // Wait before retry with exponential backoff
           const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
-          console.log(`apiClient: Attempt ${attempt} failed, retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          console.log(
+            `apiClient: Attempt ${attempt} failed, retrying in ${delay}ms...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
@@ -44,7 +53,9 @@ export async function apiRequest(
 
   // All attempts failed
   console.error(`apiClient: All attempts failed for ${url}:`, lastError);
-  throw new Error(`Failed to ${method} ${url}: All request methods failed after 3 attempts`);
+  throw new Error(
+    `Failed to ${method} ${url}: All request methods failed after 3 attempts`,
+  );
 }
 
 async function attemptXMLHttpRequest(
@@ -52,88 +63,81 @@ async function attemptXMLHttpRequest(
   method: string,
   headers: Record<string, string>,
   body: any,
-  timeout: number
+  timeout: number,
 ): Promise<Response> {
-    const xhr = new XMLHttpRequest();
-    xhr.open(method, url, true);
-    xhr.withCredentials = true;
+  const xhr = new XMLHttpRequest();
+  xhr.open(method, url, true);
+  xhr.withCredentials = true;
 
-    // Set headers
-    xhr.setRequestHeader("Content-Type", "application/json");
-    Object.entries(headers).forEach(([key, value]) => {
-      xhr.setRequestHeader(key, value);
-    });
+  // Set headers
+  xhr.setRequestHeader("Content-Type", "application/json");
+  Object.entries(headers).forEach(([key, value]) => {
+    xhr.setRequestHeader(key, value);
+  });
 
-    response = await new Promise<Response>((resolve, reject) => {
-      xhr.onload = () => {
-        const responseText = xhr.responseText;
-        resolve({
-          ok: xhr.status >= 200 && xhr.status < 300,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          json: () => {
-            try {
-              return Promise.resolve(JSON.parse(responseText));
-            } catch (e) {
-              return Promise.reject(new Error("Invalid JSON response"));
-            }
-          },
-          text: () => Promise.resolve(responseText),
-          headers: new Headers(),
-          url: url,
-          redirected: false,
-          type: "basic",
-          clone: () => response,
-          body: null,
-          bodyUsed: false,
-          arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-          blob: () => Promise.resolve(new Blob()),
-          formData: () => Promise.resolve(new FormData()),
-        } as Response);
-      };
-      xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
-      xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
-      xhr.timeout = timeout;
-
-      if (body && method !== "GET") {
-        xhr.send(JSON.stringify(body));
-      } else {
-        xhr.send();
-      }
-    });
-  } catch (xhrError) {
-    console.log(
-      `apiClient: XMLHttpRequest failed for ${url}, trying fetch fallback`,
-    );
-
-    // Fallback to fetch
-    try {
-      const fetchOptions: RequestInit = {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          ...headers,
+  return new Promise<Response>((resolve, reject) => {
+    xhr.onload = () => {
+      const responseText = xhr.responseText;
+      resolve({
+        ok: xhr.status >= 200 && xhr.status < 300,
+        status: xhr.status,
+        statusText: xhr.statusText,
+        json: () => {
+          try {
+            return Promise.resolve(JSON.parse(responseText));
+          } catch (e) {
+            return Promise.reject(new Error("Invalid JSON response"));
+          }
         },
-      };
-
-      if (body && method !== "GET") {
-        fetchOptions.body = JSON.stringify(body);
-      }
-
-      response = await fetch(url, fetchOptions);
-    } catch (fetchError) {
-      console.error(
-        `apiClient: Both XMLHttpRequest and fetch failed for ${url}:`,
-        {
-          xhrError,
-          fetchError,
+        text: () => Promise.resolve(responseText),
+        headers: new Headers(),
+        url: url,
+        redirected: false,
+        type: "basic",
+        clone: () => {
+          throw new Error(
+            "Response.clone() not supported in XMLHttpRequest fallback",
+          );
         },
-      );
-      throw new Error(`Failed to ${method} ${url}: All request methods failed`);
+        body: null,
+        bodyUsed: false,
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        blob: () => Promise.resolve(new Blob()),
+        formData: () => Promise.resolve(new FormData()),
+      } as Response);
+    };
+    xhr.onerror = () => reject(new Error("XMLHttpRequest network error"));
+    xhr.ontimeout = () => reject(new Error("XMLHttpRequest timeout"));
+    xhr.timeout = timeout;
+
+    if (body && method !== "GET") {
+      xhr.send(JSON.stringify(body));
+    } else {
+      xhr.send();
     }
+  });
+}
+
+async function attemptFetch(
+  url: string,
+  method: string,
+  headers: Record<string, string>,
+  body: any,
+): Promise<Response> {
+  const fetchOptions: RequestInit = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+    },
+    credentials: "include",
+  };
+
+  if (body && method !== "GET") {
+    fetchOptions.body = JSON.stringify(body);
   }
 
-  return response;
+  return await fetch(url, fetchOptions);
 }
 
 // Convenience methods
