@@ -32,6 +32,11 @@ export function getUserIdFromRequest(req: any): number | undefined {
     // Check if session is still valid (24 hours)
     const now = Date.now();
     if (now - cachedSession.timestamp < 24 * 60 * 60 * 1000) {
+      // Found user in cache, restore to session for consistency
+      req.session.userId = cachedSession.userId;
+      console.log(
+        `Session restored from cache: userId ${cachedSession.userId} for sessionKey ${sessionKey}`,
+      );
       return cachedSession.userId;
     } else {
       // Cleanup expired session
