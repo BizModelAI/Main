@@ -371,7 +371,7 @@ const BusinessModelDetail: React.FC<BusinessModelDetailProps> = ({
     if (quizData && path) {
       generateAndCacheAIAnalysis(quizData, path);
       generateSkillsAnalysis(quizData, model);
-    } else if (user && user.hasAccessPass && path) {
+    } else if (user && path) {
       // Fallback for paid users when quiz data API fails: create mock quiz data
       const mockQuizData: QuizData = {
         // Round 1: Motivation & Vision
