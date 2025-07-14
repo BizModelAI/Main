@@ -135,15 +135,8 @@ export function setupAuthRoutes(app: Express) {
           return res.status(500).json({ error: "Session save failed" });
         }
 
-        // Manually ensure the session cookie is set
-        const cookieName = "connect.sid";
-        const cookieValue = `s%3A${req.sessionID}`;
-
-        // Build cookie string manually with development-friendly settings
-        let cookieString = `${cookieName}=${cookieValue}; Path=/; Max-Age=86400`;
-
-        // Set the cookie manually to ensure it's sent to browser
-        res.setHeader("Set-Cookie", cookieString);
+        // Let express-session handle the cookie setting - don't override
+        // The session.save() should automatically set the cookie
 
         console.log("Login: Session saved successfully", {
           sessionId: req.sessionID,
