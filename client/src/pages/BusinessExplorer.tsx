@@ -350,7 +350,12 @@ const BusinessExplorer: React.FC<BusinessExplorerProps> = ({
               onLearnMore={handleLearnMore}
               isExpanded={expandedCard === model.id}
               onToggleExpand={() => handleCardExpand(model.id)}
-              showFitBadge={!!(hasUnlockedAnalysis && quizData)}
+              showFitBadge={
+                !!(
+                  hasUnlockedAnalysis &&
+                  (quizData || (import.meta.env.MODE === "development" && user))
+                )
+              }
               fitCategory={model.fitCategory}
               fitScore={model.fitScore}
               getFitCategoryColor={getFitCategoryColor}
