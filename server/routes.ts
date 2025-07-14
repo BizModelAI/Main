@@ -2274,7 +2274,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
         dataRetentionPolicy: isPaid
           ? "permanent"
           : "24_hours_from_quiz_completion",
-        hasAccessPass: user?.hasAccessPass || false,
+        hasAccessPass: false, // Access pass concept removed
         accountCreatedAt: user?.createdAt,
         dataWillBeDeletedIfUnpaid: !isPaid,
       });
