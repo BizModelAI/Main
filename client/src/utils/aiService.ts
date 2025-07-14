@@ -1214,10 +1214,6 @@ Use only provided data. No invented details.`;
   }
 
   private createUserProfile(quizData: QuizData): string {
-    // Get top scoring business path for reference
-    const businessPaths = this.calculateBusinessPaths(quizData);
-    const topMatch = businessPaths[0];
-
     // Extract motivations from quiz data
     const motivations = [];
     if (
@@ -1235,10 +1231,6 @@ Use only provided data. No invented details.`;
     if (motivations.length === 0) motivations.push("growth");
 
     const profile = {
-      topMatch: {
-        name: topMatch?.name || "Unknown",
-        fitScore: topMatch?.fitScore || 0,
-      },
       personality: {
         discipline: quizData.selfMotivationLevel || 3,
         riskTolerance: quizData.riskComfortLevel || 3,
