@@ -176,6 +176,8 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   >(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
+  const { user } = useAuth();
+
   const {
     hasUnlockedAnalysis,
     hasCompletedQuiz,
@@ -188,8 +190,6 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
   // For access pass users, check if this specific report is unlocked
   // For non-access pass users, they get full access (they paid per quiz)
   const canViewFullReport = user?.hasAccessPass ? isReportUnlocked : true;
-
-  const { user } = useAuth();
 
   useEffect(() => {
     console.log("Results component received quizData:", quizData);
