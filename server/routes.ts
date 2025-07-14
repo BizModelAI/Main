@@ -2333,7 +2333,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
 
       console.log("After quiz attempt:", {
         userId: testUser.id,
-        hasAccessPass: finalUser.hasAccessPass,
+        hasAccessPass: false, // Access pass concept removed
         attemptsCount: finalAttemptsCount,
       });
 
