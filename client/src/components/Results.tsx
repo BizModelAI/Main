@@ -1306,7 +1306,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                                   </div>
 
                                   <div className="flex items-start space-x-4">
-                                    <div className="text-3xl mt-1">🚀</div>
+                                    <div className="text-3xl mt-1">��</div>
                                     <div>
                                       <h4 className="font-bold text-white text-lg mb-2">
                                         Step-by-Step Launch Guidance
@@ -1687,17 +1687,17 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
                   canViewFullReport ? "bg-white" : "bg-gray-100 relative"
                 }`}
               >
-                {!hasUnlockedAnalysis && (
+                {!canViewFullReport && (
                   <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500 absolute top-2 md:top-3 right-2 md:right-3" />
                 )}
                 <Share2
                   className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform ${
-                    hasUnlockedAnalysis ? "text-purple-600" : "text-gray-400"
+                    canViewFullReport ? "text-purple-600" : "text-gray-400"
                   }`}
                 />
                 <h4
                   className={`font-bold mb-1 md:mb-2 text-sm md:text-base ${
-                    hasUnlockedAnalysis ? "text-gray-900" : "text-gray-500"
+                    canViewFullReport ? "text-gray-900" : "text-gray-500"
                   }`}
                 >
                   Share My Results
