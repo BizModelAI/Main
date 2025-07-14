@@ -62,41 +62,29 @@ export const PaywallProvider: React.FC<PaywallProviderProps> = ({
 
         const hasQuiz = !!quizData;
         console.log("PaywallContext: Quiz data found:", hasQuiz);
-        setHasCompletedQuiz(hasQuiz);
-
-        // If user is logged in but we couldn't get quiz data due to network issues,
-        // but they have hasAccessPass, assume they've completed the quiz
-        if (!hasQuiz && user.hasAccessPass) {
-          console.log(
-            "PaywallContext: User has access pass but no quiz data retrieved - assuming quiz completed",
-          );
-          setHasCompletedQuiz(true);
-        }
 
         // Check if user has access pass (payment)
         const hasAccess = user.hasAccessPass;
         console.log("PaywallContext: User has access pass:", hasAccess);
         setHasUnlockedAnalysis(hasAccess);
 
-        // If user is authenticated but quiz data call failed or returned empty,
-        // assume they have completed quiz (this handles existing users)
-        if (!hasQuiz) {
-          console.log(
-            "PaywallContext: No quiz data found but user is authenticated - assuming quiz completed",
-          );
-          setHasCompletedQuiz(true);
+        // For authenticated users, always assume they have completed the quiz
+        // This handles existing users and prevents access issues
+        console.log(
+          "PaywallContext: User is authenticated - setting quiz as completed",
+        );
+        setHasCompletedQuiz(true);
 
-          // In development mode, also unlock analysis
-          if (import.meta.env.MODE === "development") {
-            console.log(
-              "PaywallContext: Development mode - also unlocking analysis",
-            );
-            setHasUnlockedAnalysis(true);
-          }
+        // In development mode, also unlock analysis for testing
+        if (import.meta.env.MODE === "development") {
+          console.log(
+            "PaywallContext: Development mode - also unlocking analysis",
+          );
+          setHasUnlockedAnalysis(true);
         }
 
         // Update localStorage for consistency
-        localStorage.setItem("hasCompletedQuiz", hasQuiz.toString());
+        localStorage.setItem("hasCompletedQuiz", "true");
         localStorage.setItem("hasUnlockedAnalysis", hasAccess.toString());
       } catch (error) {
         if (isMounted) {
