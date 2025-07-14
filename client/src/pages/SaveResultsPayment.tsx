@@ -59,9 +59,14 @@ const SaveResultsPayment: React.FC = () => {
           // Set flags for unlocked access
           localStorage.setItem("hasUnlockedAnalysis", "true");
           localStorage.setItem("hasCompletedQuiz", "true");
+          localStorage.setItem("hasAnyPayment", "true");
 
-          // Navigate to results page
+          // Navigate to results page and force a reload to ensure latest quiz is displayed with full access
           navigate("/results");
+          // Small delay to ensure navigation completes, then reload to show latest quiz with full access
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         } else {
           throw new Error("Failed to save quiz data");
         }
