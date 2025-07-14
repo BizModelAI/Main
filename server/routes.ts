@@ -668,10 +668,21 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(401).json({ error: "Not authenticated" });
       }
 
+      console.log(`Latest quiz data: Fetching attempts for user ${userId}`);
       const attempts = await storage.getQuizAttempts(userId);
+      console.log(
+        `Latest quiz data: Found ${attempts.length} attempts for user ${userId}`,
+      );
+
       if (attempts.length > 0) {
+        console.log(
+          `Latest quiz data: Returning quiz data for user ${userId}, attempt ${attempts[0].id}`,
+        );
         res.json(attempts[0].quizData); // Most recent attempt
       } else {
+        console.log(
+          `Latest quiz data: No attempts found for user ${userId}, returning null`,
+        );
         res.json(null);
       }
     } catch (error) {
