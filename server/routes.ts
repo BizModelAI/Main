@@ -657,23 +657,17 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Get latest quiz data for authenticated user (for business model pages)
   app.get("/api/auth/latest-quiz-data", async (req, res) => {
     try {
+      const sessionKey = getSessionKey(req);
       console.log("Latest quiz data: Starting request", {
         sessionId: req.sessionID,
         sessionUserId: req.session?.userId,
-        sessionKey: getSessionKey(req),
-        headers: req.headers["user-agent"],
-        ip: req.ip || req.connection.remoteAddress,
+        sessionKey: sessionKey,
+        hasUserAgent: !!req.headers["user-agent"],
+        hasIP: !!(req.ip || req.connection.remoteAddress),
       });
 
       const userId = getUserIdFromRequest(req);
       console.log("Latest quiz data: getUserIdFromRequest returned", userId);
-
-      // Debug: Let's check the actual cache
-      const { tempSessionCache } = await import("./auth.js");
-      console.log(
-        "Latest quiz data: Cache contents:",
-        Array.from(tempSessionCache.entries()).slice(0, 3),
-      );
 
       if (!userId) {
         console.log("Latest quiz data: Not authenticated", {
