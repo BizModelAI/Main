@@ -1715,7 +1715,7 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             </div>
           </motion.div>
 
-          {/* Report Unlock Section for Access Pass Users */}
+          {/* Report Unlock Section for Access Pass Users - Now same flow as non-logged-in users */}
           {user?.hasAccessPass && !isReportUnlocked && quizAttemptId && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1725,7 +1725,15 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
             >
               <ReportUnlockPaywall
                 quizAttemptId={quizAttemptId}
-                onUnlock={refreshUnlockStatus}
+                onUnlock={() => {
+                  // After payment, refresh unlock status and reload page to show latest quiz with full access
+                  refreshUnlockStatus();
+                  window.location.reload();
+                }}
+                onBack={() => {
+                  // User chose not to pay - stay on preview results
+                  // Do nothing, they stay in preview mode
+                }}
                 preview={true}
               />
             </motion.div>
