@@ -814,6 +814,90 @@ CRITICAL RULES:
     return validItems.slice(0, expectedLength);
   }
 
+  private validateTop3Fits(
+    fits: any,
+    topPaths: BusinessPath[],
+  ): { model: string; reason: string }[] {
+    if (!Array.isArray(fits)) {
+      return topPaths.slice(0, 3).map((path, index) => ({
+        model: path.name,
+        reason: `This business model aligns well with your ${
+          index === 0 ? "top" : index === 1 ? "secondary" : "alternative"
+        } strengths and offers a ${path.fitScore}% compatibility match.`,
+      }));
+    }
+
+    const validFits = fits
+      .filter(
+        (fit) =>
+          fit &&
+          typeof fit.model === "string" &&
+          typeof fit.reason === "string" &&
+          fit.reason.length > 20,
+      )
+      .slice(0, 3);
+
+    // Fill with fallbacks if needed
+    while (validFits.length < 3 && validFits.length < topPaths.length) {
+      const index = validFits.length;
+      validFits.push({
+        model: topPaths[index]?.name || "Business Model",
+        reason: `This business model aligns well with your ${
+          index === 0 ? "top" : index === 1 ? "secondary" : "alternative"
+        } strengths and offers strong potential for success.`,
+      });
+    }
+
+    return validFits;
+  }
+
+  private validateBottom3Avoid(avoid: any): {
+    model: string;
+    reason: string;
+    futureConsideration?: string;
+  }[] {
+    if (!Array.isArray(avoid)) {
+      return [
+        {
+          model: "High-risk speculation",
+          reason: "Requires risk tolerance beyond your comfort level",
+          futureConsideration: "Could be viable after building experience",
+        },
+        {
+          model: "Complex technical development",
+          reason: "May require more technical expertise than available",
+          futureConsideration: "Consider after developing stronger skills",
+        },
+        {
+          model: "High-investment businesses",
+          reason: "Investment requirements exceed current budget",
+          futureConsideration: "Revisit when you have more capital",
+        },
+      ];
+    }
+
+    const validAvoid = avoid
+      .filter(
+        (item) =>
+          item &&
+          typeof item.model === "string" &&
+          typeof item.reason === "string" &&
+          item.reason.length > 20,
+      )
+      .slice(0, 3);
+
+    // Ensure we have at least 3 items
+    while (validAvoid.length < 3) {
+      validAvoid.push({
+        model: "Misaligned business model",
+        reason: "Does not align well with your current profile and goals",
+        futureConsideration: "Could become viable as your skills develop",
+      });
+    }
+
+    return validAvoid;
+  }
+
   private createUserProfile(quizData: QuizData): string {
     return `
 User Profile:
