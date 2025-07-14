@@ -1113,6 +1113,32 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Check if report is unlocked for a specific quiz attempt
+  app.get(
+    "/api/report-unlock-status/:userId/:quizAttemptId",
+    async (req, res) => {
+      try {
+        const { userId, quizAttemptId } = req.params;
+
+        const payments = await storage.getPaymentsByUser(parseInt(userId));
+        const unlockPayment = payments.find(
+          (p) =>
+            p.quizAttemptId === parseInt(quizAttemptId) &&
+            p.type === "report_unlock" &&
+            p.status === "completed",
+        );
+
+        res.json({
+          isUnlocked: !!unlockPayment,
+          paymentId: unlockPayment?.id || null,
+        });
+      } catch (error) {
+        console.error("Error checking report unlock status:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    },
+  );
+
   // PayPal payment creation endpoint
   app.post("/api/create-paypal-payment", async (req, res) => {
     try {
