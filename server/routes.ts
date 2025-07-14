@@ -640,11 +640,18 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Get latest quiz data for authenticated user (for business model pages)
   app.get("/api/auth/latest-quiz-data", async (req, res) => {
     try {
-      if (!req.session.userId) {
+      const userId = getUserIdFromRequest(req);
+
+      if (!userId) {
+        console.log("Latest quiz data: Not authenticated", {
+          sessionUserId: req.session?.userId,
+          cacheUserId: userId,
+          sessionKey: getSessionKey(req),
+        });
         return res.status(401).json({ error: "Not authenticated" });
       }
 
-      const attempts = await storage.getQuizAttempts(req.session.userId);
+      const attempts = await storage.getQuizAttempts(userId);
       if (attempts.length > 0) {
         res.json(attempts[0].quizData); // Most recent attempt
       } else {
