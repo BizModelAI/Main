@@ -239,6 +239,13 @@ const Results: React.FC<ResultsProps> = ({ quizData, onBack, userEmail }) => {
     // Use advanced scoring algorithm
     const advancedScores = calculateAdvancedBusinessModelMatches(quizData);
     console.log("Advanced algorithm scores:", advancedScores);
+    console.log(
+      "Top 3 business models:",
+      advancedScores
+        .slice(0, 3)
+        .map((s) => `${s.name} (${s.score}%)`)
+        .join(", "),
+    );
 
     // Convert to BusinessPath format for compatibility
     const convertedPaths: BusinessPath[] = advancedScores.map((score) => ({
