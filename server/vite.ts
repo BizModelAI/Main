@@ -27,6 +27,7 @@ export async function setupVite(app: Express, server: Server) {
     const viteModule = await import("vite");
     createViteServer = viteModule.createServer;
     createLogger = viteModule.createLogger;
+    viteLogger = createLogger();
 
     const serverOptions = {
       middlewareMode: true,
