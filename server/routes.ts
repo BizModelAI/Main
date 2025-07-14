@@ -2204,5 +2204,94 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
     }
   });
 
+  // Test endpoint for debugging retake issue
+  app.post("/api/test-retake-flow", async (req, res) => {
+    try {
+      console.log("=== Testing retake flow ===");
+
+      // Create a test user with access pass
+      const testUser = await storage.createUser({
+        username: "test-retake-user@example.com",
+        password: "test123",
+      });
+      console.log("Created test user:", testUser.id);
+
+      // Give them access pass and 5 retakes
+      await storage.updateUser(testUser.id, {
+        hasAccessPass: true,
+        quizRetakesRemaining: 5,
+        totalQuizRetakesUsed: 0,
+      });
+      console.log("Updated user with access pass and 5 retakes");
+
+      // Simulate first quiz attempt by calling our internal endpoint
+      const quizData = { mockQuizData: true };
+
+      // Manually check isPaidUser and user data before attempt
+      const isPaid = await storage.isPaidUser(testUser.id);
+      const user = await storage.getUser(testUser.id);
+      const attemptsCount = await storage.getQuizAttemptsCount(testUser.id);
+
+      console.log("Before quiz attempt:", {
+        userId: testUser.id,
+        isPaid,
+        hasAccessPass: user.hasAccessPass,
+        quizRetakesRemaining: user.quizRetakesRemaining,
+        attemptsCount,
+      });
+
+      // Record the quiz attempt
+      const attempt = await storage.recordQuizAttempt({
+        userId: testUser.id,
+        quizData,
+      });
+
+      // Check the decrement logic manually
+      const shouldDecrement =
+        isPaid && user.hasAccessPass && user.quizRetakesRemaining > 0;
+      console.log("Should decrement retakes:", shouldDecrement);
+
+      if (shouldDecrement) {
+        console.log("Decrementing retakes...");
+        await storage.decrementQuizRetakes(testUser.id);
+      }
+
+      // Check final status
+      const finalUser = await storage.getUser(testUser.id);
+      const finalAttemptsCount = await storage.getQuizAttemptsCount(
+        testUser.id,
+      );
+
+      console.log("After quiz attempt:", {
+        userId: testUser.id,
+        hasAccessPass: finalUser.hasAccessPass,
+        quizRetakesRemaining: finalUser.quizRetakesRemaining,
+        totalQuizRetakesUsed: finalUser.totalQuizRetakesUsed,
+        attemptsCount: finalAttemptsCount,
+      });
+
+      res.json({
+        success: true,
+        testUserId: testUser.id,
+        before: {
+          isPaid,
+          hasAccessPass: user.hasAccessPass,
+          quizRetakesRemaining: user.quizRetakesRemaining,
+          attemptsCount,
+        },
+        shouldDecrement,
+        after: {
+          hasAccessPass: finalUser.hasAccessPass,
+          quizRetakesRemaining: finalUser.quizRetakesRemaining,
+          totalQuizRetakesUsed: finalUser.totalQuizRetakesUsed,
+          attemptsCount: finalAttemptsCount,
+        },
+      });
+    } catch (error) {
+      console.error("Error in test retake flow:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Routes registered successfully
 }
