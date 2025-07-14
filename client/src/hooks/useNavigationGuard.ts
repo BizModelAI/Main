@@ -34,10 +34,10 @@ export const useNavigationGuard = () => {
       quizData &&
       hasCompletedQuiz &&
       user &&
-      // Non-access pass users: need to pay for access pass
-      ((!user.hasAccessPass && !hasUnlockedAnalysis) ||
-        // Access pass users: need to save quiz attempt and optionally pay for report unlock
-        (user.hasAccessPass && !currentQuizAttemptId))
+      // Users without unlocked analysis: need to pay for reports
+      (!hasUnlockedAnalysis ||
+        // Logged users: need to save quiz attempt and optionally pay for report unlock
+        !currentQuizAttemptId)
     );
 
     setGuardState((prev) => ({
