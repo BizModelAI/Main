@@ -249,11 +249,27 @@ export function setupAuthRoutes(app: Express) {
   app.put("/api/auth/profile", async (req, res) => {
     try {
       if (!req.session.userId) {
+        console.log(
+          "Profile update: Not authenticated, userId:",
+          req.session.userId,
+        );
         return res.status(401).json({ error: "Not authenticated" });
       }
 
       const updates = req.body;
+      console.log(
+        "Profile update: Received updates for userId",
+        req.session.userId,
+        ":",
+        updates,
+      );
+
       const user = await storage.updateUser(req.session.userId, updates);
+      console.log("Profile update: Updated user:", {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      });
 
       // Don't send password
       const { password: _, ...userWithoutPassword } = user;
