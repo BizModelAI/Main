@@ -48,32 +48,14 @@ app.use(
 app.use((req: any, res: any, next: any) => {
   const isApiRequest = req.path.startsWith("/api/");
 
-  console.log(`Session Debug: ${req.method} ${req.path}`, {
-    sessionId: req.sessionID,
-    userId: req.session?.userId,
-    sessionExists: !!req.session,
-    cookieHeader: req.headers.cookie?.substring(0, 100) + "..." || "none",
-    userAgent: req.headers["user-agent"]?.substring(0, 50) + "..." || "none",
-    referer: req.headers.referer || "none",
-    host: req.headers.host || "none",
-    origin: req.headers.origin || "none",
-    protocol: req.protocol,
-    secure: req.secure,
-    // Show all headers for API requests to debug
-    ...(isApiRequest ? { allHeaders: req.headers } : {}),
-  });
-
-  // Debug response headers after response
-  const originalSend = res.send;
-  res.send = function (data: any) {
-    if (req.path.startsWith("/api/auth/login")) {
-      console.log("Login Response Headers:", {
-        setCookie: res.getHeaders()["set-cookie"],
-        allHeaders: res.getHeaders(),
-      });
-    }
-    return originalSend.call(this, data);
-  };
+  // Only log API requests to reduce noise
+  if (isApiRequest) {
+    console.log(`API: ${req.method} ${req.path}`, {
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasCookie: !!req.headers.cookie,
+    });
+  }
 
   next();
 });
