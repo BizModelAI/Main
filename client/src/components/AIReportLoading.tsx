@@ -553,19 +553,49 @@ Return JSON format:
           // Make PREVIEW-ONLY API call for quiz loading phase
           try {
             console.log(
-              "📊 Generating preview insights only during quiz loading phase",
+              "📊 Generating PREVIEW insights ONLY during quiz loading phase (no full report data)",
             );
-            const insights = await aiService.generatePreviewInsightsOnly(
+            const previewData = await aiService.generateResultsPreview(
               activeQuizData,
               pathsForInsights,
             );
 
-            console.log("✅ AI insights generation completed successfully");
             console.log(
-              "Generated insights summary:",
-              insights.personalizedSummary?.substring(0, 100) + "...",
+              "✅ Preview insights generation completed successfully",
             );
-            return { aiInsights: insights };
+            console.log(
+              "Generated preview summary:",
+              previewData.previewInsights?.substring(0, 100) + "...",
+            );
+
+            // Convert preview data to expected format for backward compatibility
+            const formattedInsights = {
+              personalizedSummary: previewData.previewInsights,
+              customRecommendations: previewData.keyInsights,
+              potentialChallenges: previewData.successPredictors,
+              successStrategies: [
+                "Focus on building core skills first",
+                "Start with proven strategies",
+                "Build consistent daily habits",
+                "Connect with other entrepreneurs",
+              ],
+              personalizedActionPlan: {
+                week1: ["Complete market research", "Set up basic workspace"],
+                month1: [
+                  "Launch minimum viable version",
+                  "Gather initial feedback",
+                ],
+                month3: [
+                  "Optimize based on feedback",
+                  "Scale successful elements",
+                ],
+                month6: ["Expand offerings", "Build team if needed"],
+              },
+              motivationalMessage:
+                "You have the foundation to build a successful business. Stay consistent and trust the process.",
+            };
+
+            return { aiInsights: formattedInsights };
           } catch (error) {
             console.error("❌ AI insights generation failed:", error);
             console.error(
