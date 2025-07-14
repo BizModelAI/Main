@@ -728,22 +728,12 @@ const Quiz: React.FC<QuizProps> = ({ onComplete, onBack, userId }) => {
         console.log("Quiz completed with data:", formData);
 
         // Record the quiz attempt if userId is provided
+        // Quiz attempts are now free and saved automatically via Results component
         if (userId) {
-          try {
-            await recordAttempt(formData as QuizData);
-            toast({
-              title: "Quiz Completed!",
-              description: "Your responses have been saved successfully.",
-            });
-          } catch (error) {
-            console.error("Failed to record quiz attempt:", error);
-            toast({
-              title: "Warning",
-              description:
-                "Quiz completed but there was an issue saving your attempt.",
-              variant: "destructive",
-            });
-          }
+          toast({
+            title: "Quiz Completed!",
+            description: "Your responses will be saved when you view results.",
+          });
         }
 
         onComplete(formData as QuizData);
