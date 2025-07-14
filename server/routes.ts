@@ -2342,7 +2342,7 @@ CRITICAL: Use ONLY the actual data provided above. Do NOT make up specific numbe
         testUserId: testUser.id,
         before: {
           isPaid,
-          hasAccessPass: user.hasAccessPass,
+          hasAccessPass: false, // Access pass concept removed
           attemptsCount,
         },
         shouldDecrement,
