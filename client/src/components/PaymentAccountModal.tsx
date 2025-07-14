@@ -39,7 +39,8 @@ export const PaymentAccountModal: React.FC<PaymentAccountModalProps> = ({
 
   // Account form data
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
